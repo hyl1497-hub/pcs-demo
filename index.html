@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="pcs-api-base" content="">
 <meta name="pcs-firebase" content="{&quot;apiKey&quot;:&quot;AIzaSyASB4CKv15IwJUp8pIVKXFtOYwKlY7y1es&quot;,&quot;databaseURL&quot;:&quot;https://pcs-demo-18101-default-rtdb.asia-southeast1.firebasedatabase.app&quot;}">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-OBCWizvmKjXr7A8Ue5G/uxqrdDswFdUkAqe6EVy5JBE=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-eL0oEGFQ67b8iMqUEHcsJ9F5kf6ukcs2FEaAFRC9n50=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'none'">
 <title>PCS Platform · Process Control System</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -2418,6 +2418,28 @@ textarea.ui-dialog-input{resize:vertical; min-height:72px;}
 .pm-ol-tag{font-size:10.5px; font-weight:700; color:#7A1D2A; background:#FBEFF1; border-radius:4px; padding:1px 5px;}
 .pm-ol-sym{font-size:12px; font-weight:800;}
 .pm-ol-info{font-size:11px; color:#2F6FB5; font-weight:700; cursor:help;}
+
+/* v119 구조 이력·커서 공유 */
+.pm-hist-card{max-width:1000px; width:96vw;}
+.pm-hist-body{display:grid; grid-template-columns:300px 1fr; gap:14px; max-height:68vh;}
+@media (max-width:760px){ .pm-hist-body{grid-template-columns:1fr;} }
+.pm-hist-list{overflow:auto; border:1px solid var(--line-soft); border-radius:10px; padding:4px; display:flex; flex-direction:column; gap:2px;}
+.pm-hist-item{display:flex; flex-direction:column; align-items:flex-start; gap:2px; text-align:left; border:0; background:none; padding:7px 9px; border-radius:8px; cursor:pointer; font-family:inherit; font-size:11.5px; color:var(--ink-700);}
+.pm-hist-item b{font-size:11px; font-family:ui-monospace, Menlo, monospace; color:var(--ink-500); font-weight:600;}
+.pm-hist-item small{color:var(--ink-400);}
+.pm-hist-item:hover{background:#FBF5F6;}
+.pm-hist-item.on{background:#FFF1F3; box-shadow:inset 3px 0 0 #C0182A;}
+.pm-hist-item.ver b{color:#3F8F5C;}
+.pm-hist-main{overflow:auto; min-width:0;}
+.pm-hist-cmp{display:flex; align-items:center; gap:8px; font-size:12px; margin-bottom:8px; flex-wrap:wrap;}
+.pm-hist-cmp select{font-size:12px; padding:4px 6px; border:1px solid var(--line); border-radius:7px; max-width:100%;}
+.pm-hist-tree{border:1px solid var(--line-soft); border-radius:8px; max-height:300px; overflow:auto;}
+.pm-hist-row{font-size:12px; padding-top:3px; padding-bottom:3px; border-bottom:1px solid #F3EEEE; display:flex; gap:6px; align-items:center;}
+.pm-hist-row.kind-stage{font-weight:800; color:#6B1222;}
+.pcs-cursor-share{margin-left:6px; width:24px; height:24px; border-radius:50%; border:1px solid var(--line); background:#fff; cursor:pointer; font-size:13px; line-height:1; color:var(--ink-500);}
+.pcs-cursor-share.on{color:#C0182A; border-color:#E5B8BF;}
+.pm-kb-name{display:block; width:100%; text-align:left; border:0; background:none; padding:0; cursor:pointer; font-family:inherit;}
+.pm-kb-name:focus-visible{outline:2px solid #C0182A; outline-offset:2px; border-radius:4px;}
 </style>
 </head>
 <body>
@@ -4222,6 +4244,7 @@ function renderHeader(){
           </div>
         </div>
         <div class="header-user-dropdown-item" data-on-click="navSidebar_dc1d0e">${icon('sliders')}<span>사용자 설정</span></div>
+        <div class="header-user-dropdown-item" id="userMenuCursorShare" role="menuitemcheckbox" aria-checked="${pcsCursorShareOn()}" data-on-click="pcsToggleCursorShare">${icon('target')}<span>내 커서 공유 <b>${pcsCursorShareOn() ? '켜짐' : '꺼짐'}</b></span></div>
         <div class="header-user-dropdown-item" id="userMenuVersion" data-on-click="openReleaseNotes">${icon('history')}<span>버전 <b class="mono">${escapeXml(PCS_APP_VERSION)}</b> · 바뀐 점</span></div>
         <div class="header-user-dropdown-item logout" data-on-click="logout">${icon('close')}<span>로그아웃</span></div>
       </div>` : ''}
@@ -4901,14 +4924,23 @@ function render(){
 /* -------- DASHBOARD -------- */
 /* ============================================================================
    05b_release_notes.js — v111  앱 버전과 "이번 버전에서 바뀐 점"
-   · PCS_APP_VERSION은 build.sh가 빌드 번호로 바꿔 넣는다(v118 자리).
+   · PCS_APP_VERSION은 build.sh가 빌드 번호로 바꿔 넣는다(v119 자리).
    · PCS_RELEASE_NOTES 맨 앞 항목은 항상 이번 빌드 버전이어야 한다(tests/unit/release-notes.test.cjs가 검사).
      버전을 올릴 때 여기 맨 앞에 한 항목을 넣는다. 테스트하는 사람이 무엇을 눌러 보면 되는지(try)를 같이 쓴다.
    · 오른쪽 위 사용자 메뉴 → "버전 vN · 바뀐 점" 으로 열고, 새 버전으로 처음 열면 알림을 한 번 띄운다.
    ========================================================================== */
-var PCS_APP_VERSION = 'v118';
+var PCS_APP_VERSION = 'v119';
 
 const PCS_RELEASE_NOTES = [
+  { version: 'v119', date: '2026-11-20', title: '구조 이력·비교·되돌리기, 커서 공유 끄기',
+    items: [
+      'Process Map 도구 막대의 🕘(구조 이력): 구조가 바뀔 때마다 쌓인 시점 목록 → 그 시점의 구조, 지금(또는 다른 시점·승인 버전)과의 차이(추가·삭제·이동·이름·종류·순서).',
+      '"이 시점으로 되돌리기"는 기록을 지우지 않고 "되돌림"이라는 새 변경으로 남습니다(Audit Trail, 실행취소 가능). 승인 기록이 있는 UO를 지워야 하면 막습니다.',
+      '"새 Draft Process Map으로 열기"로 예전 구조에서 새로 시작할 수 있습니다. 승인 버전마다 그 때의 구조가 남아 버전끼리 비교됩니다.',
+      '사용자 메뉴 "내 커서 공유"(공유 모드 접속자 표시줄의 ⌖ 단추)로 내 마우스 위치·선택 도형을 다른 사람에게 보내지 않게 할 수 있습니다.',
+      '노드 300개 Process Map도 배치·아웃라인·칸반을 빠르게 그립니다(성능 예산 테스트). 칸반·아웃라인·새 창들의 접근성(키보드·스크린리더)을 점검해 고쳤습니다.',
+    ],
+    try: ['참고 PCS에서 이름을 바꾸고 하위 단계를 더한 뒤 🕘 → 맨 아래 시점 → 차이 보기 → 되돌리기', '승인된 USP PCS → 🕘 → 승인 버전과 지금 비교', '사용자 메뉴 → 내 커서 공유'] },
   { version: 'v118', date: '2026-11-20', title: '노드 정보 — 설명 서식·링크·태그·표시·관계선 모양',
     items: [
       'UO 패널(단계는 단계 패널)의 설명에 간단한 서식을 씁니다: ## 제목, - 목록, **굵게**, *기울임*, [이름](https://…). 서식 단추와 미리보기가 있습니다.',
@@ -7193,6 +7225,7 @@ function pmWithUndo(pmId, run){
   // 로드 중(시드)·로그인 전에는 쌓지 않는다 — 실행취소는 사람이 한 편집만
   if(!pmId || pmStructDepth > 0 || !STATE.auth || !STATE.auth.loggedIn || !DATA.processMaps.some(m => m.id === pmId)) return run();
   const before = pmScopeSnapshot(pmId);
+  const beforeTree = pmStructTree(pmId);   // v119 구조 이력
   pmStructDepth++;
   let result;
   try { result = run(); } finally { pmStructDepth--; }
@@ -7201,6 +7234,7 @@ function pmWithUndo(pmId, run){
     const st = pmUndoState(pmId);
     st.undo.push(before); if(st.undo.length > PM_UNDO_MAX) st.undo.shift();
     st.redo = [];
+    pmStructRecord(pmId, null, beforeTree);   // v119: 구조가 바뀌었으면 이력 한 줄(같으면 안 남김)
   }
   return result;
 }
@@ -7222,6 +7256,7 @@ function pmUndoStep(pmId, dir){
   to.push(pmScopeSnapshot(pmId));
   pmScopeRestore(pmId, snap);
   logAudit('Process Map', dir === 'undo' ? '실행취소' : '다시 실행', `${(DATA.processMaps.find(m => m.id === pmId) || {}).code || pmId} 구조 ${dir === 'undo' ? '되돌림' : '다시 적용'}`, null, null, { pmId });
+  pmStructRecord(pmId, dir === 'undo' ? '실행취소' : '다시 실행');   // v119
   validateData(DATA);
   return true;
 }
@@ -7616,7 +7651,7 @@ function renderPmOutline(wrap, pm){
     const kind = r.kind, n = r.node;
     const canEdit = kind === 'uo' ? uoEditable(n.id) : editable;
     const isCol = collapsed.has(n.id) && !filt;
-    return `<div class="pm-ol-row kind-${kind} ${sel === n.id ? 'sel' : ''} ${filt && filt.match.has(n.id) ? 'hit' : ''}" data-ol-row="${escapeXmlAttr(n.id)}" style="padding-left:${12 + r.depth * 22}px;">
+    return `<div role="listitem" class="pm-ol-row kind-${kind} ${sel === n.id ? 'sel' : ''} ${filt && filt.match.has(n.id) ? 'hit' : ''}" data-ol-row="${escapeXmlAttr(n.id)}" style="padding-left:${12 + r.depth * 22}px;">
       <button class="pm-ol-tw ${r.childIds.length ? '' : 'leaf'}" ${r.childIds.length ? `data-ol-toggle="${escapeXmlAttr(n.id)}" aria-label="${isCol ? '펼치기' : '접기'}" title="${isCol ? `펼치기 — 하위 ${r.descCount}개` : '접기'}"` : 'tabindex="-1" aria-hidden="true"'}>${r.childIds.length ? (isCol ? '▸' : '▾') : '·'}</button>
       ${showNum ? `<span class="pm-ol-num mono">${escapeXml(r.number)}</span>` : ''}
       <input class="pm-ol-name" value="${escapeXmlAttr(n.name)}" ${canEdit ? '' : 'readonly'} aria-label="${escapeXmlAttr(PM_NODE_KINDS[kind].label + ' ' + r.number + ' 이름')}" data-ol-name="${escapeXmlAttr(n.id)}" spellcheck="false">
@@ -7638,7 +7673,7 @@ function renderPmOutline(wrap, pm){
         ${flow.length ? flow.map(g => `<div class="pm-ol-flow-line">${g.stage ? `<span class="pm-ol-flow-stage">${escapeXml(g.stage)}</span>` : ''}${escapeXml(g.text)}</div>`).join('') : '<div class="pm-ol-flow-line">Unit Operation이 없습니다.</div>'}
       </div>
       ${filt ? `<div class="pm-ol-note" data-ol-hits>찾은 줄 ${filt.match.size}개${filt.match.size ? ' — 접힌 곳도 펼쳐 보여 줍니다' : ''}</div>` : ''}
-      <div class="pm-ol-list" role="tree" aria-label="Process Map 아웃라인">${rows.map(rowHtml).join('') || '<div class="pm-ol-note">노드가 없습니다.</div>'}</div>
+      <div class="pm-ol-list" role="list" aria-label="Process Map 아웃라인">${rows.map(rowHtml).join('') || '<div class="pm-ol-note" role="listitem">노드가 없습니다.</div>'}</div>
       <div class="pm-ol-help">${editable ? 'Enter 다음 줄 · Tab / Shift+Tab 들여쓰기·내어쓰기 · Alt+↑↓ 줄 옮기기 · ↑↓ 줄 이동 · 빈 줄 Backspace 지우기 · Esc 편집 끝' : 'Process Map이 Draft가 아니라 구조를 바꿀 수 없습니다(UO 이름은 그 UO가 Draft일 때 고칩니다).'}</div>
     </div>`;
   pmBindOutline(wrap, pm.id);
@@ -7925,7 +7960,7 @@ function pmExportRender(){
     <div class="modal-header">구조 내보내기 — Markdown · 텍스트</div>
     <div class="modal-body">
       <div style="display:flex; gap:14px; flex-wrap:wrap; margin-bottom:10px;">${chk('numbers', '번호 붙이기')}${chk('status', '상태·버전')}${chk('details', '장비·자재·파라미터')}${chk('info', '설명·링크·태그')}</div>
-      <pre class="pm-exp-preview" data-exp-preview>${escapeXml(md)}</pre>
+      <pre class="pm-exp-preview" data-exp-preview tabindex="0" aria-label="내보내기 미리보기">${escapeXml(md)}</pre>
       <p style="font-size:11.5px; color:var(--ink-500); margin:6px 0 0;">"> " 줄(상태·리스트)은 읽기용이라 다시 가져올 때 무시됩니다. 구조(이름·순서·종류)만 왕복됩니다.</p>
     </div>
     <div class="modal-actions"><button class="btn" data-on-click="closeGlobalModal">닫기</button>
@@ -8417,9 +8452,9 @@ function pmKanbanCardHtml(r, editable, cols){
   const pkg = apOpenPackageOf(DATA, id, apStatusOf);
   const steps = r.childIds.filter(c => (DATA.nodes.find(x => x.id === c) || {}).kind === 'step').length;
   const move = editable ? `<select class="pm-kb-move" aria-label="${escapeXmlAttr(n.name)} 단계 옮기기" ${pcsOn('change', 'pcsCallWithValue', ['pmKanbanMoveUi', id])}><option value="__">단계 옮기기…</option>${cols.map(c => `<option value="${escapeXmlAttr(c.id)}">${escapeXml(c.title)}</option>`).join('')}</select>` : '';
-  return `<div class="pm-kb-card status-${st.replace(/\s+/g, '-').toLowerCase()}" data-kb-card="${escapeXmlAttr(id)}" ${editable ? 'draggable="true"' : ''} tabindex="0" role="button" aria-label="${escapeXmlAttr((r.number || '') + ' ' + n.name + ' — ' + st)}">
+  return `<div class="pm-kb-card status-${st.replace(/\s+/g, '-').toLowerCase()}" data-kb-card="${escapeXmlAttr(id)}" ${editable ? 'draggable="true"' : ''}>
     <div class="pm-kb-card-top"><span class="pm-kb-num">${escapeXml(r.number)}</span>${uoBadge(st)}<span class="pm-kb-ver">v${ver}</span></div>
-    <div class="pm-kb-name">${escapeXml(n.name)}</div>
+    <button class="pm-kb-name" data-kb-open="${escapeXmlAttr(id)}" aria-label="${escapeXmlAttr((r.number || '') + ' ' + n.name + ' — ' + st + ', 패널 열기')}">${escapeXml(n.name)}</button>
     <div class="pm-kb-meta">${last ? `최근: ${escapeXml(last.status)} · ${escapeXml(last.by || '')}` : '승인 이력 없음'}${steps ? ` · 하위 단계 ${steps}` : ''}</div>
     ${pkg ? `<div class="pm-kb-pkg" title="진행 중 결재 묶음">${icon('layers')} ${escapeXml(pkg.no)} ${escapeXml(pkg.title || '')}</div>` : ''}
     ${move}
@@ -8442,8 +8477,7 @@ function renderPmKanban(wrap, pm){
     }).join('')}</div></div>`;
   wrap.querySelectorAll('[data-kb-card]').forEach(card => {
     const id = card.getAttribute('data-kb-card');
-    card.addEventListener('click', e => { if(e.target.closest('select')) return; openPmPanelMenu(id); });
-    card.addEventListener('keydown', e => { if(e.key === 'Enter' && e.target === card){ e.preventDefault(); openPmPanelMenu(id); } });
+    card.addEventListener('click', e => { if(e.target.closest('select')) return; openPmPanelMenu(id); });   // 이름 단추(키보드: Tab → Enter)도 같은 곳
     card.addEventListener('dragstart', e => { e.dataTransfer.setData('text/x-pcs-uo', id); e.dataTransfer.effectAllowed = 'move'; card.classList.add('dragging'); });
     card.addEventListener('dragend', () => card.classList.remove('dragging'));
   });
@@ -8910,6 +8944,223 @@ function pmFlowEdgePopupHtml(pmId, edge){
     </div></div>`;
 }
 function pmSetFlowEdgePropUi(pmId, edgeId, key, value){ if(pmSetFlowEdgeProp(pmId, edgeId, key, value)) renderPmCanvas(); }
+/* ============================================================================
+   07h_pm_history.js — v119  Process Map 구조 이력·비교·되돌리기 + 내 커서 공유 끄기
+   · 구조(노드 id·이름·종류·부모·순서)가 바뀔 때마다 그 시점의 구조를 DATA.pmStructHistory[pmId]에 한 줄로 남긴다
+     (구조 편집 = pmWithUndo, UO 이름 = 내용 편집 래퍼 pfdRunEdit 뒤에서). 승인(기준선 발행) 때는 versionHistory에도 그 구조를 담는다.
+   · "구조 이력" 창(ThinkWise 편집 이력): 시각별 목록 → 그 시점 구조 보기, 두 시점(또는 지금·승인 버전) 비교(추가·삭제·이동·이름·종류·순서),
+     이 시점으로 되돌리기(Draft Process Map만), 새 Draft Process Map으로 열기.
+   · 되돌리기는 기록을 지우지 않는다(GMP): 바꾸는 것도 하나의 새 변경("Revert Structure" 감사 기록 + 이력 한 줄)이고 실행취소할 수 있다.
+     승인 기록이 있는 UO를 지워야 하거나 승인된 UO 이름을 바꿔야 하면 막는다. 그 사이 지운 노드는 같은 ID의 빈 Draft로 다시 만든다(도면·리스트는 돌아오지 않음 — 안내).
+   · 이력 줄은 Process Map마다 최근 PM_STRUCT_HISTORY_MAX개(오래된 것부터 빠짐 — 감사 기록은 그대로). 승인 버전의 구조는 versionHistory에 따로 남는다.
+   ========================================================================== */
+var PM_STRUCT_HISTORY_MAX = 200;
+
+/* ---------- 순수 함수 ---------- */
+/* 비교용 구조: [{ id, name, kind, parentId, order }] (order는 형제 안 순서 0,1,2…) */
+function pmStructTreeOf(nodes){
+  const list = (nodes || []).map(n => ({ id: n.id, name: n.name, kind: n.kind || 'uo', parentId: n.parentId || null, o: n.order || 0 }));
+  const byP = {};
+  list.forEach(n => { (byP[n.parentId || ''] = byP[n.parentId || ''] || []).push(n); });
+  Object.values(byP).forEach(g => g.sort((a, b) => a.o - b.o).forEach((n, i) => { n.order = i; }));
+  return list.map(({ id, name, kind, parentId, order }) => ({ id, name, kind, parentId, order })).sort((a, b) => a.id < b.id ? -1 : 1);
+}
+function pmStructSig(tree){ return JSON.stringify(tree || []); }
+/* 두 구조의 차이 a(기준) → b(대상) */
+function pmStructDiff(a, b){
+  const A = new Map((a || []).map(n => [n.id, n])), B = new Map((b || []).map(n => [n.id, n]));
+  const out = { added: [], removed: [], moved: [], renamed: [], kind: [], reordered: [] };
+  B.forEach((n, id) => { if(!A.has(id)) out.added.push(n); });
+  A.forEach((n, id) => { if(!B.has(id)) out.removed.push(n); });
+  B.forEach((n, id) => {
+    const o = A.get(id); if(!o) return;
+    if(o.name !== n.name) out.renamed.push({ id, from: o.name, to: n.name });
+    if((o.parentId || null) !== (n.parentId || null)) out.moved.push({ id, name: n.name, from: o.parentId, to: n.parentId });
+    else if(o.order !== n.order) out.reordered.push({ id, name: n.name, from: o.order, to: n.order });
+    if(o.kind !== n.kind) out.kind.push({ id, name: n.name, from: o.kind, to: n.kind });
+  });
+  out.total = out.added.length + out.removed.length + out.moved.length + out.renamed.length + out.kind.length + out.reordered.length;
+  return out;
+}
+/* 구조 → 줄(번호·깊이) — 보기·새 Process Map 만들기용 */
+function pmStructRows(tree){
+  const nodes = (tree || []).map(n => ({ id: n.id, name: n.name, kind: n.kind === 'uo' ? undefined : n.kind, parentId: n.parentId, order: n.order }));
+  return pmTreeRows(nodes);
+}
+/* 되돌리기 계획: cur(지금) → old(그 시점). lockOf(id) → 지울 수 없는 이유|'' , uoLocked(id) → 이름을 못 바꾸는 이유|'' */
+function pmStructRevertPlan(cur, old, lockOf, uoLocked){
+  const d = pmStructDiff(cur, old);
+  const blocked = [];
+  d.added.length;   // old에만 있는 것 = 다시 만들 것
+  d.removed.forEach(n => { const r = lockOf ? lockOf(n.id) : ''; if(r) blocked.push(`"${n.name}" 지우기: ${r}`); });
+  d.renamed.forEach(r => { const why = uoLocked ? uoLocked(r.id) : ''; if(why) blocked.push(`"${r.from}" 이름 바꾸기: ${why}`); });
+  return { create: d.added, remove: d.removed, rename: d.renamed, move: d.moved, kind: d.kind, reorder: d.reordered, total: d.total, blocked };
+}
+
+/* 스키마 3 마이그레이션(순수): 승인된 Process Map의 마지막 버전에 구조가 없으면 지금 구조를 붙인다 —
+   승인된 Process Map은 구조가 잠겨 있으므로 지금 구조가 곧 그 버전의 구조다. Draft·재작업 중이면 알 수 없어 그대로 둔다 */
+function pmMigrateVersionTrees(data){
+  (data.processMaps || []).forEach(pm => {
+    const vh = pm.versionHistory || [];
+    const last = vh[vh.length - 1];
+    if(pm.status === 'Approved' && last && !last.tree && last.version === pm.version) last.tree = pmStructTreeOf((data.nodes || []).filter(n => n.pmId === pm.id));
+  });
+  return data;
+}
+
+/* ---------- 기록 ---------- */
+function pmStructTree(pmId){ return pmStructTreeOf(getPmTreeNodes(pmId)); }
+function pmStructHistoryOf(pmId){ return ((DATA.pmStructHistory || {})[pmId]) || []; }
+/* 지난 기록과 다르면 한 줄 더한다(store 함수 안에서만 부른다 — 구조 편집·이름 편집·되돌리기·승인 뒤) */
+function pmStructRecord(pmId, action, beforeTree){
+  if(!pmId || !DATA.processMaps.some(m => m.id === pmId)) return null;
+  if(!DATA.pmStructHistory) DATA.pmStructHistory = {};
+  const list = DATA.pmStructHistory[pmId] = DATA.pmStructHistory[pmId] || [];
+  const at = new Date().toISOString().slice(0, 19).replace('T', ' ');
+  const by = uoActor();
+  if(!list.length && beforeTree) list.push({ id: genId('psh'), at, by, action: '이력 시작(이 시점의 구조)', tree: beforeTree });
+  const tree = pmStructTree(pmId);
+  if(list.length && pmStructSig(list[list.length - 1].tree) === pmStructSig(tree)) return null;
+  const last = DATA.auditTrail[DATA.auditTrail.length - 1];
+  const rec = { id: genId('psh'), at, by, action: action || (last ? `${last.action}: ${String(last.detail || '').slice(0, 80)}` : '구조 변경'), tree };
+  list.push(rec);
+  if(list.length > PM_STRUCT_HISTORY_MAX) list.splice(0, list.length - PM_STRUCT_HISTORY_MAX);
+  return rec;
+}
+/* 비교·되돌리기 대상: 이력 줄 + 승인 버전(versionHistory.tree) + 지금 */
+function pmStructPoints(pmId){
+  const pm = DATA.processMaps.find(m => m.id === pmId) || {};
+  const ver = (pm.versionHistory || []).filter(v => v.tree).map(v => ({ id: 'ver:' + v.version, at: v.at, by: v.by, action: `승인 버전 ${v.version}`, version: v.version, tree: v.tree }));
+  return pmStructHistoryOf(pmId).map(r => Object.assign({}, r)).concat(ver).sort((a, b) => a.at < b.at ? -1 : a.at > b.at ? 1 : 0);
+}
+function pmStructPoint(pmId, id){
+  if(id === 'current') return { id: 'current', at: '지금', action: '지금 구조', tree: pmStructTree(pmId) };
+  return pmStructPoints(pmId).find(p => p.id === id) || null;
+}
+
+/* ---------- store: 되돌리기 ---------- */
+/* [store] 구조를 그 시점으로 — 새 변경으로 남는다. 반환 { ok, msg } */
+function pmRevertStructure(pmId, pointId){
+  const p = pmStructPoint(pmId, pointId);
+  if(!p || pointId === 'current') return { ok: false, msg: '되돌릴 시점이 없습니다' };
+  const nodes = getPmTreeNodes(pmId);
+  const plan = pmStructRevertPlan(pmStructTreeOf(nodes), p.tree,
+    id => { const n = nodes.find(x => x.id === id); return n ? pmNodeLockReason(n) : ''; },
+    id => { const n = nodes.find(x => x.id === id); return n && pmIsUo(n) && !uoEditable(id) ? `${uoStatusOf(id)} 상태(재작업 후)` : ''; });
+  if(plan.blocked.length) return { ok: false, msg: plan.blocked.join('\n') };
+  if(!plan.total) return { ok: false, msg: '지금 구조와 같습니다' };
+  // 1) 그 사이 지운 노드를 같은 ID의 빈 Draft로(부모 먼저)
+  const want = new Map(p.tree.map(n => [n.id, n]));
+  const pending = plan.create.slice();
+  let guard = 0;
+  while(pending.length && guard++ < 1000){
+    const i = pending.findIndex(n => !n.parentId || DATA.nodes.some(x => x.id === n.parentId));
+    if(i < 0) break;
+    const n = pending.splice(i, 1)[0];
+    store.addNode({ id: n.id, pmId, parentId: n.parentId || null, name: n.name, order: n.order, hasContent: false, x: 80, y: 150, ...(n.kind !== 'uo' ? { kind: n.kind } : {}) });
+    ensureNodeMeta(n.id);
+  }
+  // 2) 이름·종류·부모·순서
+  DATA.nodes.filter(n => n.pmId === pmId && want.has(n.id)).forEach(n => {
+    const w = want.get(n.id);
+    n.name = w.name; n.parentId = w.parentId || null; n.order = w.order;
+    if(w.kind === 'uo') delete n.kind; else n.kind = w.kind;
+  });
+  // 3) 그 시점에 없던 노드 지우기(도면·리스트·흐름 정리 포함)
+  if(plan.remove.length) pmDeleteNodes(pmId, plan.remove.map(n => n.id));
+  pmTidyLayout(pmId);
+  logAudit('Process Map', 'Revert Structure', `${p.at} "${p.action}" 시점으로 — 추가 ${plan.create.length}·삭제 ${plan.remove.length}·이동 ${plan.move.length}·이름 ${plan.rename.length}·종류 ${plan.kind.length}·순서 ${plan.reorder.length}`, null, pointId, { pmId });
+  pmStructRecord(pmId, `되돌림 → ${p.at} (${p.action})`);
+  validateData(DATA);
+  return { ok: true, msg: plan.create.length ? `다시 만든 ${plan.create.length}개 노드는 빈 Draft입니다(도면·리스트는 돌아오지 않습니다).` : '' };
+}
+
+/* ---------- 화면: 구조 이력 창 ---------- */
+function pmHistoryOpen(pmId){
+  const pts = pmStructPoints(pmId);
+  STATE.pmHist = { pmId, sel: pts.length ? pts[pts.length - 1].id : 'current', target: 'current', msg: '' };
+  pmHistoryRender();
+}
+function pmHistorySet(key, v){ if(STATE.pmHist){ STATE.pmHist[key] = v; STATE.pmHist.msg = ''; pmHistoryRender(); } }
+function pmHistoryDiffHtml(d, nameOf){
+  const row = (cls, sign, t) => `<div class="uo-diff-row ${cls}">${sign} ${t}</div>`;
+  if(!d.total) return '<div class="uo-diff-summary" data-hist-total="0">차이가 없습니다</div>';
+  return `<div class="uo-diff-summary" data-hist-total="${d.total}">바뀐 곳 <b>${d.total}</b> — 추가 ${d.added.length} · 삭제 ${d.removed.length} · 이동 ${d.moved.length} · 이름 ${d.renamed.length} · 종류 ${d.kind.length} · 순서 ${d.reordered.length}</div>
+    <div data-hist-diff>${d.added.map(n => row('add', '＋', escapeXml(n.name))).join('')}${d.removed.map(n => row('rem', '－', escapeXml(n.name))).join('')}
+    ${d.moved.map(m => row('chg', '↳', `${escapeXml(m.name)}: ${escapeXml(nameOf(m.from))} → ${escapeXml(nameOf(m.to))}`)).join('')}
+    ${d.renamed.map(r => row('chg', '±', `이름 ${escapeXml(r.from)} → ${escapeXml(r.to)}`)).join('')}
+    ${d.kind.map(k => row('chg', '±', `${escapeXml(k.name)} 종류 ${escapeXml(PM_NODE_KINDS[k.from].label)} → ${escapeXml(PM_NODE_KINDS[k.to].label)}`)).join('')}
+    ${d.reordered.map(r => row('chg', '⇅', `${escapeXml(r.name)} 순서 ${r.from + 1} → ${r.to + 1}`)).join('')}</div>`;
+}
+function pmHistoryRender(){
+  const s = STATE.pmHist; if(!s) return;
+  const pm = DATA.processMaps.find(m => m.id === s.pmId);
+  const pts = pmStructPoints(s.pmId).slice().reverse();
+  const base = pmStructPoint(s.pmId, s.sel), target = pmStructPoint(s.pmId, s.target);
+  const all = new Map(); [base, target].forEach(p => (p ? p.tree : []).forEach(n => all.set(n.id, n.name)));
+  const nameOf = id => id ? (all.get(id) || id) : 'ROOT';
+  const d = base && target ? pmStructDiff(base.tree, target.tree) : null;
+  const rows = base ? pmStructRows(base.tree) : [];
+  const editable = pmStructureEditable(s.pmId);
+  const opt = p => `<option value="${escapeXmlAttr(p.id)}" ${s.target === p.id ? 'selected' : ''}>${escapeXml(p.at)} · ${escapeXml(p.action.slice(0, 40))}</option>`;
+  apModalRoot().innerHTML = `<div class="modal-overlay" data-on-click="if_cb546e"><div class="modal-card pm-hist-card" data-pm-history>
+    <div class="modal-header">구조 이력 · 비교 — ${escapeXml(pm.code)} ${escapeXml(pm.name)}</div>
+    <div class="modal-body pm-hist-body">
+      <div class="pm-hist-list" role="listbox" aria-label="구조 이력">
+        <button class="pm-hist-item ${s.sel === 'current' ? 'on' : ''}" role="option" aria-selected="${s.sel === 'current'}" data-hist-point="current" data-on-click="pmHistorySet" data-a-click="${pcsArgs(['sel', 'current'])}"><b>지금</b><span>현재 구조</span></button>
+        ${pts.map(p => `<button class="pm-hist-item ${s.sel === p.id ? 'on' : ''} ${p.version ? 'ver' : ''}" role="option" aria-selected="${s.sel === p.id}" data-hist-point="${escapeXmlAttr(p.id)}" data-on-click="pmHistorySet" data-a-click="${pcsArgs(['sel', p.id])}"><b>${escapeXml(p.at)}</b><span>${p.version ? `<span class="badge badge-green">${escapeXml(p.version)}</span> ` : ''}${escapeXml(p.action)}</span><small>${escapeXml(p.by || '')}</small></button>`).join('') || '<div class="mb-uo-sub" style="padding:10px;">아직 기록이 없습니다. 구조를 바꾸면 쌓입니다.</div>'}
+      </div>
+      <div class="pm-hist-main">
+        <div class="pm-hist-cmp"><span>${escapeXml(base ? `${base.at} ${base.action}` : '')}</span> →
+          <select id="pmHistTarget" aria-label="비교 대상" ${pcsOn('change', 'pcsCallWithValue', ['pmHistorySet', 'target'])}><option value="current" ${s.target === 'current' ? 'selected' : ''}>지금 구조</option>${pts.map(opt).join('')}</select></div>
+        ${d ? pmHistoryDiffHtml(d, nameOf) : ''}
+        <div class="pm-note-label" style="margin-top:12px;">그 시점의 구조 (${rows.length}개 노드)</div>
+        <div class="pm-hist-tree" data-hist-tree tabindex="0" role="region" aria-label="그 시점의 구조">${rows.map(r => `<div class="pm-hist-row kind-${r.kind}" style="padding-left:${r.depth * 16 + 6}px;"><span class="mono pm-group-num">${escapeXml(r.number)}</span>${r.kind !== 'uo' ? `<span class="pm-kind-tag kind-${r.kind}">${PM_NODE_KINDS[r.kind].short}</span>` : ''}${escapeXml(r.node.name)}</div>`).join('')}</div>
+        ${s.msg ? `<div class="pcs-import-msg ${s.ok ? '' : 'error'}" data-hist-msg>${escapeXml(s.msg).replace(/\n/g, '<br>')}</div>` : ''}
+      </div>
+    </div>
+    <div class="modal-actions"><button class="btn" data-on-click="closeGlobalModal">닫기</button>
+      <button class="btn" id="pmHistOpenNew" ${s.sel === 'current' ? 'disabled' : ''} data-on-click="pmHistoryOpenAsNew">${icon('plus')} 새 Draft Process Map으로 열기</button>
+      <button class="btn btn-primary" id="pmHistRevert" ${s.sel !== 'current' && editable ? '' : 'disabled'} title="${editable ? '이 시점의 구조로 — 기록은 지우지 않고 새 변경으로 남습니다' : 'Draft Process Map에서만'}" data-on-click="pmHistoryRevertUi">${icon('undo')} 이 시점으로 되돌리기</button></div>
+  </div></div>`;
+}
+async function pmHistoryRevertUi(){
+  const s = STATE.pmHist; if(!s || s.sel === 'current') return;
+  const p = pmStructPoint(s.pmId, s.sel);
+  const d = pmStructDiff(pmStructTree(s.pmId), p.tree);
+  if(!(await uiConfirm(`${p.at} "${p.action}" 시점의 구조로 되돌릴까요?\n추가 ${d.added.length} · 삭제 ${d.removed.length} · 이동 ${d.moved.length} · 이름 ${d.renamed.length} · 순서 ${d.reordered.length}\n\n기록은 지우지 않고 "되돌림"이라는 새 변경으로 남습니다(실행취소 가능).`, { title: '구조 되돌리기', okLabel: '되돌리기' }))) return;
+  const r = pmWithUndo(s.pmId, () => pmRevertStructureGuarded(s.pmId, s.sel));
+  if(!r){ return; }
+  STATE.pmHist = Object.assign({}, s, { sel: (pmStructPoints(s.pmId).slice(-1)[0] || {}).id || 'current', target: 'current', msg: r.ok ? `되돌렸습니다. ${r.msg}` : r.msg, ok: r.ok });
+  if(r.ok) render();
+  pmHistoryRender();
+}
+/* 구조 잠금 래퍼(PM_STRUCTURE_MUTATORS) */
+function pmRevertStructureGuarded(pmId, pointId){ return pmRevertStructure(pmId, pointId); }
+function pmHistoryOpenAsNew(){
+  const s = STATE.pmHist; if(!s || s.sel === 'current') return;
+  const p = pmStructPoint(s.pmId, s.sel);
+  const src = DATA.processMaps.find(m => m.id === s.pmId);
+  const id = genId('pm');
+  store.addProcessMap({ id, productId: src.productId, code: src.code, name: `${src.name} (${p.version || p.at} 구조)`, kind: src.kind, reviewedBy: '', approvedBy: '', status: 'Draft', version: 'v1.0', description: '', scope: '', approvalHistory: [], layout: { mode: 'flow' } });
+  ensurePmFlowEdges(id);
+  const items = pmStructRows(p.tree).map(r => ({ name: r.node.name, kind: r.kind, depth: r.depth, line: 0 }));
+  pmImportOutline(id, 'ROOT', items, false);
+  logAudit('Process Map', 'Open Structure As New', `${src.code} ${p.at} "${p.action}" → ${id}`, s.pmId, id, { pmId: id });
+  STATE.pmHist = null; closeGlobalModal();
+  openProcessMapInNewTab(id);
+}
+
+/* ---------- 내 커서 공유 끄기(ThinkWise "마우스포인터 공유") ---------- */
+/* 이 브라우저의 설정(내 화면 편의) — 끄면 PFD 보드의 커서·선택 도형을 보내지 않는다. 어디를 보고 있는지(위치)는 계속 보인다 */
+function pcsCursorShareOn(){ try { return localStorage.getItem('pcs_cursor_share') !== 'off'; } catch(_){ return true; } }
+function pcsToggleCursorShare(){
+  const on = !pcsCursorShareOn();
+  try { localStorage.setItem('pcs_cursor_share', on ? 'on' : 'off'); } catch(_){}
+  if(typeof pcsPresence !== 'undefined' && pcsPresence){ pcsPresence.cursor = null; pcsPresence.lastSel = ''; if(pcsPresence.on) pcsPresenceSend(true); }
+  uiToast(on ? '내 커서 공유를 켰습니다' : '내 커서 공유를 껐습니다 — 다른 사람에게 내 마우스 위치와 선택한 도형이 보이지 않습니다');
+  render();
+}
 function openBomReport(pmId){
   goTo('bomReport', { reportPmId: pmId }, { label:'BOM Report', tag:'BOM' });
 }
@@ -9721,6 +9972,7 @@ function pmToolbarHtml(pm){
       ${pmTagFilterSelectHtml(pm)}
       <span class="pm-toolbar-sep"></span>
       <div class="pm-zoom-btn pm-tool-text" id="pmExportBtn" role="button" tabindex="0" data-on-click="pmExportOpen" data-a-click="${pcsArgs([pm.id])}" title="구조 내보내기 (.md · .txt)">${icon('download')}</div>
+      <div class="pm-zoom-btn pm-tool-text" id="pmHistoryBtn" role="button" tabindex="0" data-on-click="pmHistoryOpen" data-a-click="${pcsArgs([pm.id])}" title="구조 이력 · 비교 · 되돌리기">${icon('history')}</div>
       <div class="pm-zoom-btn pm-tool-text" id="pmImportBtn" role="button" tabindex="0" data-on-click="pmImportOpen" data-a-click="${pcsArgs([pm.id, '', ''])}" title="구조 가져오기 (.md · .txt · 붙여넣기)">${icon('upload')}</div>
       <span class="pm-toolbar-sep"></span>
       <div class="pm-zoom-btn" id="pmFocusBtn" data-on-click="pmToggleFocus" title="집중 모드 — 도구 막대·머리글 숨기기">⛶</div>
@@ -22694,7 +22946,7 @@ function issuePmBaseline(pmId, kind, by){
   pm.version = version;
   pm.baseline = { version, uoVersions, issuedAt: at, issuedBy: by };
   if(!pm.versionHistory) pm.versionHistory = [];
-  pm.versionHistory.push({ version, kind, at, by, changes });
+  pm.versionHistory.push({ version, kind, at, by, changes, tree: pmStructTree(pmId) });   // v119: 그 버전의 구조(버전 간 구조 비교)
   logAudit('Process Map','Baseline Issue', `${pm.code} ${pm.name}: ${prev ? prev.version : '-'} → ${version} (${kind})`, prev ? prev.version : null, version);
   return version;
 }
@@ -22922,6 +23174,7 @@ const PM_STRUCTURE_MUTATORS = {
   pmSetNodeKind: pmOfNode(0), pmSetNodeKindUi: pmOfNode(0), pmIndentNode: pmOfNode(0), pmOutdentNode: pmOfNode(0), pmGroupIntoStage: uoArg(0), pmGroupSelectionUi: uoArg(0), pmDeleteBranch: uoArg(0), pmDeleteBranchUi: uoArg(0),
   pmImportOutlineGuarded: uoArg(0),   // v116 가져오기(선택한 가지 아래)
   pmSetFlowEdgeProp: uoArg(0),        // v118 관계선 모양
+  pmRevertStructureGuarded: uoArg(0), // v119 구조 되돌리기
 };
 /* ---------------------------------------------------------------------------
    v83 : 편집 한 번 = (실행취소 기록 + audit trail + 검증) 한 묶음
@@ -22966,12 +23219,14 @@ function pfdRunEdit(name, target, run){
   const before = pfdBoardSnapshot();
   const contentBefore = isUo ? uoHash(uoContentOf(target)) : '';   // v109: PFD 밖(WI·리스트·이름)의 변경도 잡는다
   const auditLen = DATA.auditTrail.length;
+  const nameTree = isUo && name === 'updateProcessNode' ? pmStructTree(uoNode(target).pmId) : null;   // v119: UO 이름도 구조 이력에
   pfdEditDepth++;
   const prevCtx = pcsAuditCtx;
   if(isUo) pcsAuditCtx = { nodeId: target };   // v109: 이 편집의 감사 기록은 이 UO 것
   let result;
   try { result = run(); } finally { pfdEditDepth--; pcsAuditCtx = prevCtx; }
   const contentChanged = isUo && uoHash(uoContentOf(target)) !== contentBefore;
+  if(nameTree && contentChanged) pmStructRecord(uoNode(target).pmId, null, nameTree);
   if(contentChanged && typeof pmUndoInvalidate === 'function') pmUndoInvalidate(uoNode(target).pmId);   // v114: UO 내용을 고치면 구조 실행취소는 그 앞으로 못 간다
   if((contentChanged || pfdBoardSnapshot() !== before) && isUo && typeof pcsPresenceNoteEdit === 'function') pcsPresenceNoteEdit(target);
   // v109: WI·리스트·UO 이름처럼 PFD 도면 밖의 변경은 실행취소 대상은 아니지만 감사 기록은 남긴다
@@ -23951,7 +24206,7 @@ function pfdBoardSetCallout(nodeId, textId, on){
    ========================================================================== */
 
 const PCS_APP_ID = 'pcs-platform';
-const PCS_SCHEMA_VERSION = 2;   // v113: Mass Balance Step의 주인 UO(stream.nodeId)
+const PCS_SCHEMA_VERSION = 3;   // v113: Mass Balance Step의 주인 UO(stream.nodeId), v119: 승인 버전의 구조
 const PCS_DB_NAME = 'pcs_platform_demo2';
 const PCS_DB_STORE = 'documents';
 const PCS_DOC_KEY = 'main';
@@ -23961,6 +24216,7 @@ const PCS_AUTOSAVE_INTERVAL_MS = 1200;
    예) 2: data => { data.pfdDocs = …; delete data.pfdShapes; return data; }                    */
 const PCS_MIGRATIONS = {
   2: data => mbMigrateStreamOwners(data),   // v113: 주인 없는 Step은 PFD 화살표 연동을 따라 UO를 정한다
+  3: data => pmMigrateVersionTrees(data),   // v119: 승인된 Process Map의 마지막 버전에 구조(버전 간 구조 비교)
 };
 
 /* ---------- 순수 함수: 문서 만들기 / 검사 / 마이그레이션 ---------- */
@@ -29402,6 +29658,7 @@ function seedReferenceMassBalance(){
 }
 seedReferenceMassBalance();
 seedPmHierarchy();   // v112: 07b_pm_hierarchy.js
+pmMigrateVersionTrees(DATA);   // v119: 시드의 승인 버전에도 구조(스키마 3과 같은 규칙)
 seedReferenceBomRules();   // v113: 17b_uo_mass_balance.js
 
 /* ---------- Process Map ↔ PFD 경로 정리 ---------- */
@@ -30348,8 +30605,9 @@ function pcsPresenceEntry(){
   const e = { name: me.name, email: me.email || '', color: me.color, device: me.device, view: w.view, pmId: w.pmId || node && node.pmId || '', nodeId: w.nodeId || '',
     nodeName: node ? node.name : '', area: w.area, areaLabel: w.label, at: Date.now() };
   if(pcsPresence.lastEdit && w.nodeId === pcsPresence.lastEdit.nodeId) e.editing = pcsPresence.lastEdit.at;
-  if(w.area === 'pfd' && pcsPresence.cursor) e.cursor = pcsPresence.cursor;
-  if(w.area === 'pfd' && typeof pfdSelectedShapeId !== 'undefined' && pfdSelectedShapeId) e.sel = { nodeId: (typeof pfdSelectedNodeId !== 'undefined' && pfdSelectedNodeId) || w.nodeId || '', shapeId: pfdSelectedShapeId };
+  const share = typeof pcsCursorShareOn !== 'function' || pcsCursorShareOn();   // v119: 내 커서 공유 끄기
+  if(share && w.area === 'pfd' && pcsPresence.cursor) e.cursor = pcsPresence.cursor;
+  if(share && w.area === 'pfd' && typeof pfdSelectedShapeId !== 'undefined' && pfdSelectedShapeId) e.sel = { nodeId: (typeof pfdSelectedNodeId !== 'undefined' && pfdSelectedNodeId) || w.nodeId || '', shapeId: pfdSelectedShapeId };
   return e;
 }
 async function pcsPresenceSend(force){
@@ -30466,12 +30724,12 @@ function pcsPresenceCursorTick(){
   const svg = document.getElementById('pfdBoardSvg');
   const c = pcsPresence.cursorClient;
   let cur = null;
-  if(svg && c && c.inside){
+  if(svg && c && c.inside && pcsCursorShareOn()){
     const r = svg.getBoundingClientRect();
     const { panX, panY, zoom } = pfdBoardState;
     cur = { nodeId: pfdBoardState.activeNodeId || pfdBoardState.focusNodeId || '', x: Math.round((c.x - r.left - panX) / zoom), y: Math.round((c.y - r.top - panY) / zoom) };
   }
-  const sel = typeof pfdSelectedShapeId !== 'undefined' ? pfdSelectedShapeId || '' : '';
+  const sel = pcsCursorShareOn() && typeof pfdSelectedShapeId !== 'undefined' ? pfdSelectedShapeId || '' : '';
   const same = JSON.stringify(cur) === JSON.stringify(pcsPresence.cursor) && sel === pcsPresence.lastSel;
   pcsPresence.cursor = cur; pcsPresence.lastSel = sel;
   if(!same) pcsPresenceSend(false);
@@ -30506,7 +30764,8 @@ function pcsPresencePaintHeader(list){
   }
   const me = Object.assign({ sid: pcsSessionId }, pcsPresence.me, { areaLabel: '', device: pcsPresence.me.device });
   bar.innerHTML = list.slice(0, 6).map(e => pcsPresenceAvatarHtml(e, 26)).join('') + (list.length > 6 ? `<span class="pcs-avatar pcs-avatar-more">+${list.length - 6}</span>` : '')
-    + `<span class="pcs-presence-count" title="${escapeXmlAttr(pcsPresence.blocked || ['나: ' + me.name + ' · ' + me.device].concat(list.map(e => pcsPresenceText(e, Date.now()))).join('\n'))}" data-presence-count="${list.length}">${pcsPresence.blocked ? '접속자 표시 꺼짐' : `함께 ${list.length + 1}명`}</span>`;
+    + `<span class="pcs-presence-count" title="${escapeXmlAttr(pcsPresence.blocked || ['나: ' + me.name + ' · ' + me.device].concat(list.map(e => pcsPresenceText(e, Date.now()))).join('\n'))}" data-presence-count="${list.length}">${pcsPresence.blocked ? '접속자 표시 꺼짐' : `함께 ${list.length + 1}명`}</span>`
+    + `<button class="pcs-cursor-share ${pcsCursorShareOn() ? 'on' : ''}" id="pcsCursorShareBar" title="내 커서 공유 ${pcsCursorShareOn() ? '켜짐 — 누르면 끔' : '꺼짐 — 누르면 켬'}" aria-pressed="${pcsCursorShareOn()}" data-on-click="pcsToggleCursorShare">${pcsCursorShareOn() ? '⌖' : '⌀'}</button>`;
 }
 /* Process Map 캔버스: UO 노드 오른쪽 위에 작업자 원(순수 SVG) */
 function pcsPresencePaintPm(list){
@@ -30772,6 +31031,11 @@ const PCS_CALLABLE = new Set([
   'pmOpenNodeLink',
   'pmSetTagFilter',
   'pmSetFlowEdgePropUi',
+  'pmHistoryOpen',
+  'pmHistorySet',
+  'pmHistoryRevertUi',
+  'pmHistoryOpenAsNew',
+  'pcsToggleCursorShare',
   'pmAddChildUi',
   'pmSetNodeKindUi',
   'pmSelectBranch',
