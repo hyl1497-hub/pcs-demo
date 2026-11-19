@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="pcs-api-base" content="">
 <meta name="pcs-firebase" content="{&quot;apiKey&quot;:&quot;AIzaSyASB4CKv15IwJUp8pIVKXFtOYwKlY7y1es&quot;,&quot;databaseURL&quot;:&quot;https://pcs-demo-18101-default-rtdb.asia-southeast1.firebasedatabase.app&quot;}">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-l1Kcgf5+Tpvkb7atvrVmYR7HxyeHDXmvssPYYwLUQs4=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-OBCWizvmKjXr7A8Ue5G/uxqrdDswFdUkAqe6EVy5JBE=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'none'">
 <title>PCS Platform · Process Control System</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -2380,6 +2380,44 @@ textarea.ui-dialog-input{resize:vertical; min-height:72px;}
 .pm-kb-pkg{font-size:11px; color:#2F6FB5; margin-top:4px; display:flex; align-items:center; gap:4px;}
 .pm-kb-move{margin-top:6px; width:100%; font-size:11px; padding:3px 4px; border:1px solid var(--line-soft); border-radius:6px; background:#FBF9F9; color:var(--ink-700);}
 .pm-kb-empty{font-size:11.5px; color:var(--ink-400); padding:10px; text-align:center; border:1px dashed #D9CFCE; border-radius:8px;}
+
+/* v118 노드 정보·태그·관계선 */
+.pm-node-info{margin-bottom:6px;}
+.pm-fmt-bar{display:flex; gap:4px; margin-bottom:4px;}
+.pm-fmt-btn{font-size:11.5px; padding:3px 8px; border:1px solid var(--line-soft); background:#fff; border-radius:6px; cursor:pointer; font-family:inherit; color:var(--ink-700);}
+.pm-fmt-btn:hover{background:var(--pink-100);}
+.pm-rich-preview, .pcs-rich{font-size:12.5px; line-height:1.6; color:var(--ink-700); background:#FBF9F9; border:1px solid var(--line-soft); border-radius:8px; padding:8px 12px; margin-top:6px;}
+.pm-rich-preview h4, .pm-rich-preview h5, .pm-rich-preview h6, .pcs-rich h4, .pcs-rich h5, .pcs-rich h6{margin:6px 0 4px; font-size:13px; color:var(--burgundy-900);}
+.pm-rich-preview ul, .pm-rich-preview ol, .pcs-rich ul, .pcs-rich ol{margin:4px 0; padding-left:20px;}
+.pm-rich-preview p, .pcs-rich p{margin:4px 0;}
+.pm-info-links{list-style:none; margin:0 0 6px; padding:0; display:flex; flex-direction:column; gap:4px;}
+.pm-info-link{display:flex; align-items:center; gap:6px; font-size:12px;}
+.pm-info-empty{font-size:12px; color:var(--ink-400);}
+.pm-link-kind{font-size:10px; font-weight:800; padding:1px 6px; border-radius:4px; background:#EEF3FA; color:#2F6FB5; white-space:nowrap;}
+.pm-link-go{border:0; background:none; color:#2F6FB5; cursor:pointer; font-size:12px; text-align:left; padding:0; font-family:inherit; text-decoration:underline; text-underline-offset:2px;}
+.pm-link-x{border:0; background:none; cursor:pointer; color:var(--ink-400); font-size:15px; line-height:1; margin-left:auto;}
+.pm-link-form{display:flex; gap:6px; flex-wrap:wrap; align-items:center;}
+.pm-info-input{font-size:12px; padding:5px 8px; border:1px solid var(--line); border-radius:7px; background:#fff; min-width:0; flex:1 1 120px; font-family:inherit;}
+.pm-tag-row{display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-bottom:6px;}
+.pm-tag-chip, .pm-sym-chip{font-size:11.5px; padding:3px 9px; border-radius:999px; border:1px solid var(--line); background:#fff; cursor:pointer; font-family:inherit; color:var(--ink-700);}
+.pm-tag-chip.on{background:#3D0C16; border-color:#3D0C16; color:#fff;}
+.pm-sym-chip{color:var(--sym);}
+.pm-sym-chip.on{background:var(--sym); border-color:var(--sym); color:#fff;}
+.pm-tag-new{font-size:11.5px; padding:3px 8px; border:1px dashed #D9CFCE; border-radius:999px; width:90px; font-family:inherit;}
+.pm-node-tagtext{font-size:9.5px; font-weight:700; fill:#7A1D2A;}
+.pm-info-mark circle{fill:#2F6FB5;}
+.pm-info-mark text{fill:#fff; font-size:8.5px; font-weight:800; font-style:italic;}
+.pm-node-g.pm-dim{opacity:.22;}
+.pm-node-g.pm-tag-hit > .pm-node-rect{stroke:#C0182A; stroke-width:3;}
+.pm-level-select.on{border-color:#C0182A; background:#FFF1F3;}
+.pm-flow-label{font-size:11px; font-weight:700; fill:#C0182A; paint-order:stroke; stroke:#fff; stroke-width:3.5px; stroke-linejoin:round;}
+.pm-flow-colors{display:flex; gap:4px; margin:8px 0 6px;}
+.pm-flow-color{width:18px; height:18px; border-radius:50%; border:2px solid #fff; box-shadow:0 0 0 1px var(--line); cursor:pointer; padding:0;}
+.pm-flow-color.on{box-shadow:0 0 0 2px #3D0C16;}
+.pm-ol-extra{display:inline-flex; gap:4px; align-items:center; flex-wrap:wrap;}
+.pm-ol-tag{font-size:10.5px; font-weight:700; color:#7A1D2A; background:#FBEFF1; border-radius:4px; padding:1px 5px;}
+.pm-ol-sym{font-size:12px; font-weight:800;}
+.pm-ol-info{font-size:11px; color:#2F6FB5; font-weight:700; cursor:help;}
 </style>
 </head>
 <body>
@@ -3187,6 +3225,10 @@ function validateData(data){
     // v112: 노드 종류와 두는 자리(공정 단계·Unit Operation·하위 단계)
     const KP = { stage:[null,'stage'], uo:[null,'stage','uo'], step:['uo','step'] };
     const kind = n.kind || 'uo';
+    // v118: 노드 정보(링크·태그·표시)
+    (n.links || []).forEach(l=>{ if(!['sop','url','pm','uo'].includes(l.kind) || !l.id || !String(l.value||'').trim()) errors.push(`[노드 정보] Node ${n.id} 링크 ${l.id || '?'} 형식 오류`); });
+    if(n.tags && (!Array.isArray(n.tags) || n.tags.some(t=>typeof t !== 'string' || !t.trim()))) errors.push(`[노드 정보] Node ${n.id} 태그 형식 오류`);
+    if(n.symbols && (!Array.isArray(n.symbols) || n.symbols.some(s=>!['flag','warn','done'].includes(s)))) errors.push(`[노드 정보] Node ${n.id} 표시 ${n.symbols} 모름`);
     if(!KP[kind]) errors.push(`[계층 규칙] Node ${n.id} 종류 ${n.kind} 모름`);
     else {
       const p = n.parentId ? (data.nodes||[]).find(x=>x.id===n.parentId) : null;
@@ -4859,14 +4901,23 @@ function render(){
 /* -------- DASHBOARD -------- */
 /* ============================================================================
    05b_release_notes.js — v111  앱 버전과 "이번 버전에서 바뀐 점"
-   · PCS_APP_VERSION은 build.sh가 빌드 번호로 바꿔 넣는다(v117 자리).
+   · PCS_APP_VERSION은 build.sh가 빌드 번호로 바꿔 넣는다(v118 자리).
    · PCS_RELEASE_NOTES 맨 앞 항목은 항상 이번 빌드 버전이어야 한다(tests/unit/release-notes.test.cjs가 검사).
      버전을 올릴 때 여기 맨 앞에 한 항목을 넣는다. 테스트하는 사람이 무엇을 눌러 보면 되는지(try)를 같이 쓴다.
    · 오른쪽 위 사용자 메뉴 → "버전 vN · 바뀐 점" 으로 열고, 새 버전으로 처음 열면 알림을 한 번 띄운다.
    ========================================================================== */
-var PCS_APP_VERSION = 'v117';
+var PCS_APP_VERSION = 'v118';
 
 const PCS_RELEASE_NOTES = [
+  { version: 'v118', date: '2026-11-20', title: '노드 정보 — 설명 서식·링크·태그·표시·관계선 모양',
+    items: [
+      'UO 패널(단계는 단계 패널)의 설명에 간단한 서식을 씁니다: ## 제목, - 목록, **굵게**, *기울임*, [이름](https://…). 서식 단추와 미리보기가 있습니다.',
+      '링크: EDMS SOP 번호, URL, 다른 Process Map, 다른 UO. 누르면 그 문서·화면으로 갑니다. 설명·링크가 있는 노드에는 파란 ⓘ 표시가 붙습니다.',
+      '태그(CPP 포함·신규 공정·위험 검토, 직접 입력)와 표시(⚑ 깃발·⚠ 주의·✓ 완료) — 검토용이라 승인 후에도 달 수 있습니다. 도구 막대 "태그…"로 거르면 맞는 노드만 강조됩니다.',
+      '관계선(흐름 화살표)을 누르면 모양(곡선·직각·직선)·굵기·화살표·색·글·점선을 바꿉니다. 모든 변경이 Audit Trail에 남습니다.',
+      '노드 정보는 아웃라인, Markdown 내보내기("설명·링크·태그"), PCS Report에도 나옵니다.',
+    ],
+    try: ['참고 PCS → Production Bioreactor의 ⓘ와 #CPP 포함 보기', '도구 막대 "태그…" → #CPP 포함', 'UO 패널에서 링크 → EDMS SOP 고르기'] },
   { version: 'v117', date: '2026-11-20', title: '배치 5가지·칸반·화면 도구',
     items: [
       '도구 막대의 배치 단추로 좌→우 공정 흐름, 위→아래 조직도, 오른쪽 트리, 양쪽 마인드맵, 표(단계 × UO), 자유 배치를 고릅니다. 공정 단계를 고르면 그 단계만 다른 배치로 바꿀 수 있습니다.',
@@ -6395,7 +6446,8 @@ function renderPcsReport(){
         <div class="pcs-uo-card">
           <div class="pcs-uo-title" data-uo-num="${escapeXmlAttr(ns.num||String(i+1))}">${escapeXml(ns.num||String(i+1))}. ${editableCell(ns.node.name,'node',ns.node.id,'name',srcEditable)}</div>
           ${ns.stage ? `<div class="pcs-uo-row" style="margin-top:-2px;"><span class="pcs-uo-label">공정 단계</span><span style="font-size:11.5px; color:var(--ink-700);">${escapeXml(ns.stage)}</span></div>` : ''}
-          ${ns.node.description || srcEditable ? `<div style="margin:4px 0 10px;">${editableTextarea(ns.node.description,'node',ns.node.id,'description',srcEditable)}</div>` : ''}
+          ${srcEditable ? `<div style="margin:4px 0 10px;">${editableTextarea(ns.node.description,'node',ns.node.id,'description',srcEditable)}</div>` : ''}
+          ${pmReportNodeInfoHtml(ns.node, srcEditable)}
           <div class="pcs-uo-row"><span class="pcs-uo-label">Work Instruction</span><span class="badge ${WI_STATUS_BADGE[ns.wi ? wiStatusOf(ns.node.id) : '']||'badge-gray'}"><span class="badge-dot"></span>${ns.wiStatus}</span></div>
           ${ns.eq.length ? `<div class="pcs-uo-label" style="margin-top:8px;">Equipment (${ns.eq.length})</div><table class="pcs-report-table"><thead><tr><th>Name</th><th>Tag ID</th><th>Area</th><th>Calibration</th></tr></thead><tbody>${ns.eq.map(e=>`<tr><td>${editableCell(e.name,'equipment',e.id,'name',srcEditable)}</td><td class="mono">${editableCell(e.tag,'equipment',e.id,'tag',srcEditable)}</td><td>${editableCell(e.area,'equipment',e.id,'area',srcEditable)}</td><td>${editableCell(e.cal,'equipment',e.id,'cal',srcEditable)}</td></tr>`).join('')}</tbody></table>` : ''}
           ${ns.mat.length ? `<div class="pcs-uo-label" style="margin-top:8px;">Material (${ns.mat.length})</div><table class="pcs-report-table"><thead><tr><th>Name</th><th>Cat No.</th><th>Specification</th><th>BOM Class</th><th>Storage</th></tr></thead><tbody>${ns.mat.map(m=>`<tr><td>${editableCell(m.name,'material',m.id,'name',srcEditable)}</td><td class="mono">${editableCell(m.cat,'material',m.id,'cat',srcEditable)}</td><td>${editableCell(m.spec,'material',m.id,'spec',srcEditable)}</td><td>${editableCell(m.bomClass,'material',m.id,'bomClass',srcEditable)}</td><td>${editableCell(m.storage,'material',m.id,'storage',srcEditable)}</td></tr>`).join('')}</tbody></table>` : ''}
@@ -6984,8 +7036,7 @@ function renderPmPanelGroup(node){
     <div style="display:flex; gap:6px; margin-bottom:14px;">
       <input class="inline-input" aria-label="${escapeXmlAttr(PM_NODE_KINDS[kind].label)} 이름" value="${escapeXmlAttr(node.name)}" ${editable ? '' : 'disabled'} data-on-change="updateProcessNode_c97ef1" data-a-change="${pcsArgs([String(node.id)])}">
     </div>
-    <div class="pm-note-label">설명</div>
-    <textarea class="pm-textarea" style="min-height:60px; resize:vertical;" placeholder="설명 입력…" ${editable ? '' : 'readonly'} data-on-input="find_d2b3a2" data-a-input="${pcsArgs([String(node.id)])}">${pcsSanitizeHtml(node.description || '')}</textarea>
+    ${pmNodeInfoHtml(node)}
     ${uos.length ? `<div class="pm-note-label" style="margin-top:12px;">Unit Operation 승인 ${approved} / ${uos.length}</div>` : ''}
     <div class="pm-group-list" data-group-children>
       ${desc.length ? desc.map(r => `<div class="pm-group-row" style="padding-left:${(r.depth - (rows.find(x => x.id === node.id) || { depth: 0 }).depth - 1) * 14 + 8}px;" data-on-click="openPmPanelMenu" data-a-click="${pcsArgs([String(r.id)])}">
@@ -7029,7 +7080,13 @@ function seedPmHierarchy(){
   if(dsp.length) pmGroupIntoStage(pmId, dsp, 'A02 Downstream (DSP)');
   if(DATA.nodes.some(n => n.id === 'nt_production')){
     ['Inoculation (N-1 → Production)', 'Fed-batch Culture (Day 0–14)', 'Harvest 판정'].forEach(name => pmAddChildNode('nt_production', 'step', name));
+    // v118 노드 정보(07g store 함수 — 데모 참고 값)
+    pmSetNodeDescription('nt_production', '## 목적\nN-1 배양액을 접종해 Fed-batch로 **14일** 생산 배양한다.\n- 접종 전 VCD·Viability 확인(AM-002)\n- 온도·pH·DO는 CPP로 관리\n[ICH Q8(R2) 가이드라인](https://database.ich.org/sites/default/files/Q8_R2_Guideline.pdf)');
+    pmAddNodeLink('nt_production', { kind: 'sop', value: 'AM-002' });
+    pmToggleNodeTag('nt_production', 'CPP 포함');
   }
+  if(DATA.nodes.some(n => n.id === 'nt_chrom1')) pmToggleNodeTag('nt_chrom1', 'CPP 포함');
+  if(DATA.nodes.some(n => n.id === 'nt_viral_filt')){ pmToggleNodeTag('nt_viral_filt', '위험 검토'); pmToggleNodeSymbol('nt_viral_filt', 'flag'); }
   pmTidyLayout(pmId);
   DATA.auditTrail.length = auditLen;
 }
@@ -7564,6 +7621,7 @@ function renderPmOutline(wrap, pm){
       ${showNum ? `<span class="pm-ol-num mono">${escapeXml(r.number)}</span>` : ''}
       <input class="pm-ol-name" value="${escapeXmlAttr(n.name)}" ${canEdit ? '' : 'readonly'} aria-label="${escapeXmlAttr(PM_NODE_KINDS[kind].label + ' ' + r.number + ' 이름')}" data-ol-name="${escapeXmlAttr(n.id)}" spellcheck="false">
       ${kind !== 'uo' ? `<span class="pm-kind-tag kind-${kind}">${PM_NODE_KINDS[kind].short.toUpperCase()}</span>` : uoBadge(uoStatusOf(n.id))}
+      ${pmOutlineInfoHtml(n)}
       ${isCol ? `<span class="pm-ol-more">+${r.descCount}</span>` : ''}
       <button class="pm-ol-open" data-ol-open="${escapeXmlAttr(n.id)}" title="패널 열기" aria-label="${escapeXmlAttr(n.name)} 패널 열기">›</button>
     </div>`;
@@ -7685,6 +7743,12 @@ function pmToMarkdown(title, rows, opts, info){
         if(d.material && d.material.length) out.push(`${q}자재: ${d.material.join(', ')}`);
         if(d.parameter && d.parameter.length) out.push(`${q}파라미터: ${d.parameter.join(', ')}`);
       }
+      if(o.info){   // v118 노드 정보
+        if(d.desc) out.push(`${q}설명: ${d.desc}`);
+        if(d.links && d.links.length) out.push(`${q}링크: ${d.links.join(', ')}`);
+        if(d.tags && d.tags.length) out.push(`${q}태그: ${d.tags.map(t => '#' + t).join(' ')}`);
+        if(d.symbols && d.symbols.length) out.push(`${q}표시: ${d.symbols.join(', ')}`);
+      }
     }
     if(isHead) out.push('');
   });
@@ -7800,10 +7864,14 @@ function pmParamExportText(p){
   return `${p.name}${crit}${range}`;
 }
 function pmNodeExportInfo(r){
-  if(r.kind !== 'uo') return null;
+  // v118: 설명·링크·태그·표시는 모든 노드
+  const n = r.node;
+  const note = { desc: pmRichTextPlain(n.description), links: (n.links || []).map(l => pmLinkText(l, pmLinkLookup()) + (l.kind === 'url' ? ` <${l.value}>` : '')), tags: n.tags || [], symbols: (n.symbols || []).map(s => (PM_SYMBOLS.find(x => x.id === s) || {}).label || s) };
+  if(r.kind !== 'uo') return note;
   const b = ensureNodeListBucket(r.id);
   const nm = (t, id) => { const m = getMasterItem(t, id); return m ? m.name : id; };
   return {
+    ...note,
     status: `${uoStatusOf(r.id)} v${uoVersionOf(r.id)}`,
     equipment: (b.equipment || []).map(id => { const e = getMasterItem('equipment', id); return e ? `${e.name}${e.tag ? ' (' + e.tag + ')' : ''}` : id; }),
     material: (b.material || []).map(id => nm('material', id)),
@@ -7856,7 +7924,7 @@ function pmExportRender(){
   apModalRoot().innerHTML = `<div class="modal-overlay" data-on-click="if_cb546e"><div class="modal-card" style="max-width:720px;" data-pm-export>
     <div class="modal-header">구조 내보내기 — Markdown · 텍스트</div>
     <div class="modal-body">
-      <div style="display:flex; gap:14px; flex-wrap:wrap; margin-bottom:10px;">${chk('numbers', '번호 붙이기')}${chk('status', '상태·버전')}${chk('details', '장비·자재·파라미터')}</div>
+      <div style="display:flex; gap:14px; flex-wrap:wrap; margin-bottom:10px;">${chk('numbers', '번호 붙이기')}${chk('status', '상태·버전')}${chk('details', '장비·자재·파라미터')}${chk('info', '설명·링크·태그')}</div>
       <pre class="pm-exp-preview" data-exp-preview>${escapeXml(md)}</pre>
       <p style="font-size:11.5px; color:var(--ink-500); margin:6px 0 0;">"> " 줄(상태·리스트)은 읽기용이라 다시 가져올 때 무시됩니다. 구조(이름·순서·종류)만 왕복됩니다.</p>
     </div>
@@ -8524,6 +8592,324 @@ function pmLayoutDecorSvg(view, nodes, maxX){
   (view.seq || []).forEach(([a, b]) => { const A = at[a], B = at[b]; if(!A || !B || A.y !== B.y) return; const y = A.y + PM_NODE_H / 2, x1 = A.x + PM_NODE_W + 4, x2 = B.x - 6; if(x2 - x1 > 8) out.push(`<path class="pm-seq" d="M${x1},${y} L${x2},${y}" marker-end="url(#pmSeqArrow)"/>`); });
   return out;
 }
+/* ============================================================================
+   07g_pm_node_info.js — v118  Process Map 노드 정보
+   · 설명: 간단한 서식(# 제목, - 목록, 1. 번호 목록, **굵게**, *기울임*, [이름](https://…)) — 저장은 글 그대로, 보일 때 pmRichTextHtml.
+   · 링크: EDMS SOP(문서 번호)·URL·다른 Process Map·다른 Unit Operation. 노드에 작은 ⓘ 표시.
+     설명·링크는 승인 대상 내용(UO는 승인되면 잠김, 단계·하위 단계는 Process Map이 Draft일 때만) — PCS Report에 들어가기 때문.
+   · 태그(CPP 포함·신규 공정·위험 검토 + 직접 입력)와 표시(⚑ 깃발·⚠ 주의·✓ 완료): 검토용 꼬리표 — 승인 내용이 아니라서 상태와 상관없이 달고 뗀다(감사 기록).
+     도구 막대 태그 거르기: 맞는 노드는 강조, 나머지는 흐리게.
+   · 관계선(pmFlowEdges): 모양(곡선·직각·직선)·굵기·화살표·색·글(label)·점선 — store pmSetFlowEdgeProp(감사 기록, 구조 잠금).
+   · 아웃라인·Markdown 내보내기·PCS Report에 함께 나온다.
+   ========================================================================== */
+var PM_TAG_PRESETS = ['CPP 포함', '신규 공정', '위험 검토'];
+var PM_SYMBOLS = [
+  { id: 'flag', label: '깃발', glyph: '⚑', color: '#C0182A' },
+  { id: 'warn', label: '주의', glyph: '⚠', color: '#B7791F' },
+  { id: 'done', label: '완료', glyph: '✓', color: '#3F8F5C' },
+];
+var PM_LINK_KINDS = [['sop', 'EDMS SOP'], ['url', 'URL'], ['pm', 'Process Map'], ['uo', 'Unit Operation']];
+const PM_EDGE_SHAPES = [['curve', '곡선'], ['straight', '직각'], ['line', '직선']];
+const PM_EDGE_COLORS = ['#C0182A', '#3D0C16', '#2F6FB5', '#3F8F5C', '#B7791F', '#7A4FB5', '#6B6B6B'];
+
+/* ---------- 순수 함수 ---------- */
+function pmEscHtml(s){ return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+function pmRichInline(s){
+  return pmEscHtml(s)
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, (m, t, u) => `<a href="${u}" target="_blank" rel="noopener noreferrer">${t}</a>`)
+    .replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>')
+    .replace(/(^|[^*])\*([^*\s][^*]*)\*/g, '$1<i>$2</i>');
+}
+/* 간단한 서식 → HTML(위험한 태그·속성 없음 — 글은 먼저 이스케이프한다) */
+function pmRichTextHtml(text){
+  const lines = String(text || '').replace(/\r\n?/g, '\n').split('\n');
+  const out = []; let list = null; let para = [];
+  const flushPara = () => { if(para.length){ out.push(`<p>${para.map(pmRichInline).join('<br>')}</p>`); para = []; } };
+  const closeList = () => { if(list){ out.push(`</${list}>`); list = null; } };
+  lines.forEach(l => {
+    const h = /^(#{1,3})\s+(.*)$/.exec(l), ul = /^\s*[-*]\s+(.*)$/.exec(l), ol = /^\s*\d+[.)]\s+(.*)$/.exec(l);
+    if(h){ flushPara(); closeList(); out.push(`<h${h[1].length + 3}>${pmRichInline(h[2])}</h${h[1].length + 3}>`); }
+    else if(ul || ol){ flushPara(); const t = ul ? 'ul' : 'ol'; if(list !== t){ closeList(); out.push(`<${t}>`); list = t; } out.push(`<li>${pmRichInline((ul || ol)[1])}</li>`); }
+    else if(!l.trim()){ flushPara(); closeList(); }
+    else { closeList(); para.push(l.trim()); }
+  });
+  flushPara(); closeList();
+  return out.join('');
+}
+/* 서식 표시를 뗀 한 줄 글(아웃라인·Markdown 요약) */
+function pmRichTextPlain(text){
+  return String(text || '').replace(/\r\n?/g, '\n').split('\n').map(l => l.replace(/^#{1,3}\s+/, '').replace(/^\s*([-*]|\d+[.)])\s+/, '').replace(/\[([^\]]+)\]\(([^)]+)\)/g, '$1').replace(/\*\*?([^*]+)\*\*?/g, '$1').trim()).filter(Boolean).join(' / ');
+}
+/* 링크 값 검사·이름. lookup: { sop(no)→{no,title}, pm(id)→{code,name}, uo(id)→{name} } */
+function pmLinkCheck(link){
+  const v = String((link && link.value) || '').trim();
+  if(!link || !PM_LINK_KINDS.some(([k]) => k === link.kind)) return '링크 종류를 고르세요';
+  if(!v) return '값을 넣으세요';
+  if(link.kind === 'url' && !/^https?:\/\/\S+\.\S+/.test(v)) return 'URL은 http:// 또는 https://로 시작해야 합니다';
+  return '';
+}
+function pmLinkText(link, lookup){
+  const L = lookup || {};
+  if(link.kind === 'sop'){ const s = L.sop && L.sop(link.value); return `SOP ${link.value}${s ? ' ' + s.title + ' (v' + s.version + ')' : ''}`; }
+  if(link.kind === 'pm'){ const p = L.pm && L.pm(link.value); return p ? `${p.code} ${p.name}` : `Process Map ${link.value} (없음)`; }
+  if(link.kind === 'uo'){ const u = L.uo && L.uo(link.value); return u ? `UO ${u.name}` : `UO ${link.value} (없음)`; }
+  return link.label || link.value;
+}
+/* 태그 거르기: tag가 비면 null, 아니면 맞는 노드 id 집합 */
+function pmTagFilterSet(nodes, tag){
+  if(!tag) return null;
+  return new Set((nodes || []).filter(n => (n.tags || []).includes(tag)).map(n => n.id));
+}
+/* 쓰인 태그 + 기본 태그(중복 없이, 기본 먼저) */
+function pmTagList(nodes){
+  const used = new Set(); (nodes || []).forEach(n => (n.tags || []).forEach(t => used.add(t)));
+  return PM_TAG_PRESETS.concat([...used].filter(t => !PM_TAG_PRESETS.includes(t)).sort());
+}
+function pmNodeHasInfo(n){ return !!(n && (String(n.description || '').trim() || (n.links || []).length)); }
+/* 관계선 경로: shape curve(기본)·straight(직각)·line(직선) */
+function pmFlowPathD(sx, sy, ex, ey, horizontal, shape){
+  const mx = sx + (ex - sx) * 0.5, my = sy + (ey - sy) * 0.5;
+  if(shape === 'line') return `M${sx},${sy} L${ex},${ey}`;
+  if(shape === 'straight') return horizontal ? `M${sx},${sy} L${mx},${sy} L${mx},${ey} L${ex},${ey}` : `M${sx},${sy} L${sx},${my} L${ex},${my} L${ex},${ey}`;
+  return horizontal ? `M${sx},${sy} C${mx},${sy} ${mx},${ey} ${ex},${ey}` : `M${sx},${sy} C${sx},${my} ${ex},${my} ${ex},${ey}`;
+}
+
+/* ---------- 데이터 ---------- */
+function pmLinkLookup(){
+  return {
+    sop: no => (DATA.edmsSopMaster || []).find(e => e.no === no),
+    pm: id => DATA.processMaps.find(m => m.id === id),
+    uo: id => DATA.nodes.find(n => n.id === id),
+  };
+}
+function pmNodeInfoEditable(n){ return pmIsUo(n) ? uoEditable(n.id) : pmStructureEditable(n.pmId); }
+function pmNodeInfoGuard(n){ return pmIsUo(n) ? uoGuard(n.id) : pmStructureGuard(n.pmId); }
+
+/* ---------- store ---------- */
+/* [store] 설명(서식 글). 승인 내용 — 잠금 확인 */
+function pmSetNodeDescription(nodeId, text){
+  const n = DATA.nodes.find(x => x.id === nodeId);
+  if(!n || !pmNodeInfoGuard(n)) return false;
+  const v = String(text || '');
+  if((n.description || '') === v) return false;
+  const old = n.description || '';
+  n.description = v;
+  logAudit('Process Map', 'Set Description', `${n.name}: ${pmRichTextPlain(v).slice(0, 60) || '(비움)'}`, old.slice(0, 200), v.slice(0, 200), { nodeId, pmId: n.pmId });
+  validateData(DATA);
+  return true;
+}
+/* [store] 링크 더하기 { kind, value, label } — 반환 오류 글(없으면 '') */
+function pmAddNodeLink(nodeId, link){
+  const n = DATA.nodes.find(x => x.id === nodeId);
+  if(!n) return '노드가 없습니다';
+  if(!pmNodeInfoGuard(n)) return '잠겨 있습니다';
+  const err = pmLinkCheck(link);
+  if(err) return err;
+  const l = { id: genId('lnk'), kind: link.kind, value: String(link.value).trim(), label: String(link.label || '').trim() };
+  if((n.links || []).some(x => x.kind === l.kind && x.value === l.value)) return '이미 있는 링크입니다';
+  n.links = (n.links || []).concat([l]);
+  logAudit('Process Map', 'Add Link', `${n.name}: ${pmLinkText(l, pmLinkLookup())}`, null, l.id, { nodeId, pmId: n.pmId });
+  validateData(DATA);
+  return '';
+}
+function pmRemoveNodeLink(nodeId, linkId){
+  const n = DATA.nodes.find(x => x.id === nodeId);
+  if(!n || !pmNodeInfoGuard(n)) return false;
+  const l = (n.links || []).find(x => x.id === linkId);
+  if(!l) return false;
+  n.links = n.links.filter(x => x.id !== linkId);
+  if(!n.links.length) delete n.links;
+  logAudit('Process Map', 'Remove Link', `${n.name}: ${pmLinkText(l, pmLinkLookup())}`, l.id, null, { nodeId, pmId: n.pmId });
+  validateData(DATA);
+  return true;
+}
+/* [store] 태그 달기·떼기(검토 꼬리표 — 상태와 상관없이) */
+function pmToggleNodeTag(nodeId, tag){
+  const n = DATA.nodes.find(x => x.id === nodeId);
+  const t = String(tag || '').trim().slice(0, 30);
+  if(!n || !t) return false;
+  const has = (n.tags || []).includes(t);
+  n.tags = has ? n.tags.filter(x => x !== t) : (n.tags || []).concat([t]);
+  if(!n.tags.length) delete n.tags;
+  logAudit('Process Map', has ? 'Remove Tag' : 'Add Tag', `${n.name}: #${t}`, has ? t : null, has ? null : t, { nodeId, pmId: n.pmId });
+  validateData(DATA);
+  return true;
+}
+/* [store] 표시(⚑ ⚠ ✓) 달기·떼기 */
+function pmToggleNodeSymbol(nodeId, sym){
+  const n = DATA.nodes.find(x => x.id === nodeId);
+  const s = PM_SYMBOLS.find(x => x.id === sym);
+  if(!n || !s) return false;
+  const has = (n.symbols || []).includes(sym);
+  n.symbols = has ? n.symbols.filter(x => x !== sym) : (n.symbols || []).concat([sym]);
+  if(!n.symbols.length) delete n.symbols;
+  logAudit('Process Map', has ? 'Remove Symbol' : 'Add Symbol', `${n.name}: ${s.glyph} ${s.label}`, has ? sym : null, has ? null : sym, { nodeId, pmId: n.pmId });
+  validateData(DATA);
+  return true;
+}
+/* [store] 관계선 모양 — key: arrow·lineStyle·width·color·label·dashed (구조 잠금은 PM_STRUCTURE_MUTATORS) */
+const PM_FLOW_PROPS = {
+  arrow: v => ['none', 'end', 'start', 'both'].includes(v) ? v : null,
+  lineStyle: v => PM_EDGE_SHAPES.some(([k]) => k === v) ? v : null,
+  width: v => { const n = Math.round(Number(v)); return n >= 1 && n <= 6 ? n : null; },
+  color: v => /^#[0-9a-fA-F]{6}$/.test(String(v)) ? String(v).toUpperCase() : null,
+  label: v => String(v == null ? '' : v).slice(0, 40),
+  dashed: v => !!v,
+};
+function pmSetFlowEdgeProp(pmId, edgeId, key, value){
+  const e = ensurePmFlowEdges(pmId).find(x => x.id === edgeId);
+  if(!e || !PM_FLOW_PROPS[key]) return false;
+  const v = PM_FLOW_PROPS[key](value);
+  if(v === null || e[key] === v) return false;
+  const old = e[key];
+  if(key === 'label' && !v) delete e.label; else e[key] = v;
+  logAudit('Process Map', 'Flow Style', `${edgeId} ${key}: ${v === '' ? '(비움)' : v}`, old === undefined ? null : old, v, { pmId });
+  validateData(DATA);
+  return true;
+}
+
+/* ---------- 화면: 노드 정보 편집(UO 패널 개요·단계 패널) ---------- */
+function pmNodeInfoHtml(node){
+  const editable = pmNodeInfoEditable(node);
+  const lookup = pmLinkLookup();
+  const nodes = getPmTreeNodes(node.pmId);
+  const draft = (STATE.pmLinkDraft && STATE.pmLinkDraft.nodeId === node.id) ? STATE.pmLinkDraft : { nodeId: node.id, kind: 'sop', value: '', label: '', error: '' };
+  const kindSel = PM_LINK_KINDS.map(([k, l]) => `<option value="${k}" ${draft.kind === k ? 'selected' : ''}>${l}</option>`).join('');
+  const valueField = draft.kind === 'sop'
+    ? `<select class="pm-info-input" data-link-value aria-label="EDMS SOP" ${pcsOn('change', 'pcsCallWithValue', ['pmLinkDraftSet', node.id, 'value'])}><option value="">SOP 고르기…</option>${(DATA.edmsSopMaster || []).map(e => `<option value="${escapeXmlAttr(e.no)}" ${draft.value === e.no ? 'selected' : ''}>${escapeXml(e.no)} ${escapeXml(e.title)}</option>`).join('')}</select>`
+    : draft.kind === 'pm'
+      ? `<select class="pm-info-input" data-link-value aria-label="Process Map" ${pcsOn('change', 'pcsCallWithValue', ['pmLinkDraftSet', node.id, 'value'])}><option value="">Process Map 고르기…</option>${DATA.processMaps.filter(m => !m._virtual && m.id !== node.pmId).map(m => `<option value="${m.id}" ${draft.value === m.id ? 'selected' : ''}>${escapeXml(m.code)} ${escapeXml(m.name)}</option>`).join('')}</select>`
+      : draft.kind === 'uo'
+        ? `<select class="pm-info-input" data-link-value aria-label="Unit Operation" ${pcsOn('change', 'pcsCallWithValue', ['pmLinkDraftSet', node.id, 'value'])}><option value="">UO 고르기…</option>${DATA.processMaps.filter(m => !m._virtual).map(m => `<optgroup label="${escapeXmlAttr(m.code + ' ' + m.name)}">${getProcessNodes(m.id).filter(u => u.id !== node.id).map(u => `<option value="${u.id}" ${draft.value === u.id ? 'selected' : ''}>${escapeXml(u.name)}</option>`).join('')}</optgroup>`).join('')}</select>`
+        : `<input class="pm-info-input" data-link-value placeholder="https://…" value="${escapeXmlAttr(draft.value)}" aria-label="URL" ${pcsOn('change', 'pcsCallWithValue', ['pmLinkDraftSet', node.id, 'value'])}><input class="pm-info-input" placeholder="이름(선택)" value="${escapeXmlAttr(draft.label)}" aria-label="링크 이름" ${pcsOn('change', 'pcsCallWithValue', ['pmLinkDraftSet', node.id, 'label'])}>`;
+  const links = (node.links || []).map(l => `<li class="pm-info-link" data-link-id="${l.id}"><span class="pm-link-kind">${escapeXml((PM_LINK_KINDS.find(([k]) => k === l.kind) || [])[1] || l.kind)}</span>
+      <button class="pm-link-go" data-on-click="pmOpenNodeLink" data-a-click="${pcsArgs([node.id, l.id])}">${escapeXml(pmLinkText(l, lookup))}</button>
+      ${editable ? `<button class="pm-link-x" title="링크 지우기" aria-label="링크 지우기" data-on-click="pmRemoveNodeLinkUi" data-a-click="${pcsArgs([node.id, l.id])}">×</button>` : ''}</li>`).join('');
+  const tags = pmTagList(nodes).map(t => { const on = (node.tags || []).includes(t); return `<button class="pm-tag-chip ${on ? 'on' : ''}" data-tag="${escapeXmlAttr(t)}" aria-pressed="${on}" data-on-click="pmToggleNodeTagUi" data-a-click="${pcsArgs([node.id, t])}">#${escapeXml(t)}</button>`; }).join('');
+  const syms = PM_SYMBOLS.map(s => { const on = (node.symbols || []).includes(s.id); return `<button class="pm-sym-chip ${on ? 'on' : ''}" data-symbol="${s.id}" aria-pressed="${on}" title="${escapeXmlAttr(s.label)}" style="--sym:${s.color}" data-on-click="pmToggleNodeSymbolUi" data-a-click="${pcsArgs([node.id, s.id])}">${s.glyph} ${escapeXml(s.label)}</button>`; }).join('');
+  const fmt = (label, before, after, title) => `<button class="pm-fmt-btn" title="${escapeXmlAttr(title)}" data-on-click="pmDescFormat" data-a-click="${pcsArgs([node.id, before, after])}">${label}</button>`;
+  return `<div class="pm-node-info" data-node-info="${node.id}">
+    <div class="pm-note-label">설명 ${pmIsUo(node) ? '(PCS Report에 포함됨)' : ''}</div>
+    ${editable ? `<div class="pm-fmt-bar">${fmt('제목', '## ', '', '제목 줄')}${fmt('• 목록', '- ', '', '목록 줄')}${fmt('<b>B</b>', '**', '**', '굵게')}${fmt('<i>I</i>', '*', '*', '기울임')}${fmt('🔗', '[', '](https://)', '링크')}</div>` : ''}
+    <textarea class="pm-textarea" id="pmDescInput" style="min-height:80px; resize:vertical;" placeholder="설명 입력… (## 제목, - 목록, **굵게**, [이름](https://…))" ${editable ? '' : 'readonly'} data-desc-node="${node.id}" ${pcsOn('change', 'pcsCallWithValue', ['pmSetNodeDescriptionUi', node.id])}>${escapeXml(node.description || '')}</textarea>
+    ${String(node.description || '').trim() ? `<div class="pm-rich-preview" data-desc-preview>${pmRichTextHtml(node.description)}</div>` : ''}
+    <div class="pm-note-label" style="margin-top:12px;">링크 (${(node.links || []).length})</div>
+    <ul class="pm-info-links" data-node-links>${links || '<li class="pm-info-empty">없음</li>'}</ul>
+    ${editable ? `<div class="pm-link-form" data-link-form><select class="pm-info-input" aria-label="링크 종류" data-link-kind ${pcsOn('change', 'pcsCallWithValue', ['pmLinkDraftSet', node.id, 'kind'])}>${kindSel}</select>${valueField}<button class="btn btn-sm" id="pmLinkAdd" data-on-click="pmAddNodeLinkUi" data-a-click="${pcsArgs([node.id])}">${icon('plus')} 링크</button></div>
+      ${draft.error ? `<div class="pcs-import-msg error" data-link-error>${escapeXml(draft.error)}</div>` : ''}` : ''}
+    <div class="pm-note-label" style="margin-top:12px;">태그 · 표시 <span style="font-weight:400; color:var(--ink-400);">(검토용 — 승인 후에도 달 수 있음)</span></div>
+    <div class="pm-tag-row" data-node-tags>${tags}<input class="pm-tag-new" placeholder="+ 태그" aria-label="새 태그" maxlength="30" ${pcsOn('change', 'pcsCallWithValue', ['pmAddCustomTagUi', node.id])}></div>
+    <div class="pm-tag-row" data-node-symbols>${syms}</div>
+  </div>`;
+}
+function pmInfoRerender(){ pmKeepCanvasScroll(); render(); }
+function pmSetNodeDescriptionUi(nodeId, v){ if(pmSetNodeDescription(nodeId, v)) pmInfoRerender(); }
+function pmLinkDraftSet(nodeId, key, v){
+  const d = (STATE.pmLinkDraft && STATE.pmLinkDraft.nodeId === nodeId) ? STATE.pmLinkDraft : { nodeId, kind: 'sop', value: '', label: '', error: '' };
+  d[key] = v; d.error = '';
+  if(key === 'kind'){ d.value = ''; d.label = ''; }
+  STATE.pmLinkDraft = d;
+  if(key === 'kind') pmInfoRerender();
+}
+function pmAddNodeLinkUi(nodeId){
+  const d = (STATE.pmLinkDraft && STATE.pmLinkDraft.nodeId === nodeId) ? STATE.pmLinkDraft : { nodeId, kind: 'sop', value: '', label: '' };
+  const err = pmAddNodeLink(nodeId, d);
+  STATE.pmLinkDraft = err ? Object.assign({}, d, { error: err }) : { nodeId, kind: d.kind, value: '', label: '', error: '' };
+  pmInfoRerender();
+}
+function pmRemoveNodeLinkUi(nodeId, linkId){ if(pmRemoveNodeLink(nodeId, linkId)) pmInfoRerender(); }
+function pmToggleNodeTagUi(nodeId, tag){ if(pmToggleNodeTag(nodeId, tag)) pmInfoRerender(); }
+function pmAddCustomTagUi(nodeId, v){ const t = String(v || '').replace(/^#/, '').trim(); const n = DATA.nodes.find(x => x.id === nodeId); if(t && n && !(n.tags || []).includes(t) && pmToggleNodeTag(nodeId, t)) pmInfoRerender(); }
+function pmToggleNodeSymbolUi(nodeId, sym){ if(pmToggleNodeSymbol(nodeId, sym)) pmInfoRerender(); }
+/* 서식 단추: 고른 글을 감싸거나 줄 앞에 붙이고 바로 저장 */
+function pmDescFormat(nodeId, before, after){
+  const ta = document.getElementById('pmDescInput'); if(!ta || ta.readOnly) return;
+  const s = ta.selectionStart, e = ta.selectionEnd, v = ta.value;
+  let nv;
+  if(!after){ const ls = v.lastIndexOf('\n', s - 1) + 1; nv = v.slice(0, ls) + before + v.slice(ls); }
+  else nv = v.slice(0, s) + before + (v.slice(s, e) || '글') + after + v.slice(e);
+  ta.value = nv;
+  pmSetNodeDescriptionUi(nodeId, nv);
+}
+/* 링크 열기: URL은 새 창, Process Map·UO는 그 화면, SOP는 EDMS 정보 */
+function pmOpenNodeLink(nodeId, linkId){
+  const n = DATA.nodes.find(x => x.id === nodeId);
+  const l = n && (n.links || []).find(x => x.id === linkId);
+  if(!l) return;
+  if(l.kind === 'url'){ window.open(l.value, '_blank', 'noopener'); return; }
+  if(l.kind === 'pm'){ if(DATA.processMaps.some(m => m.id === l.value)) openProcessMapInNewTab(l.value); return; }
+  if(l.kind === 'uo'){ const u = DATA.nodes.find(x => x.id === l.value); if(!u) return; if(u.pmId !== n.pmId) openProcessMapInNewTab(u.pmId); openPmPanelMenu(u.id); return; }
+  const s = (DATA.edmsSopMaster || []).find(e => e.no === l.value);
+  uiAlert(s ? `${s.no} ${s.title}\n분류: ${s.category} · 버전 ${s.version}` : `EDMS에 ${l.value}이(가) 없습니다.`, { title: 'EDMS SOP' });
+}
+
+/* ---------- 화면: 캔버스 표시·태그 거르기 ---------- */
+/* 노드 위 오른쪽: 태그(#…)·표시(⚑⚠✓), 안쪽 왼쪽 위: 정보 ⓘ(설명·링크가 있으면). 순수 SVG만 */
+function pmNodeInfoSvg(n, kind){
+  const out = [];
+  let x = PM_NODE_W;
+  (n.symbols || []).slice().reverse().forEach(id => { const s = PM_SYMBOLS.find(y => y.id === id); if(!s) return; x -= 16; out.push(`<g class="pm-sym" data-sym="${id}" transform="translate(${x},-14)"><rect width="15" height="13" rx="3" fill="#fff" stroke="${s.color}"/><text x="7.5" y="10" text-anchor="middle" font-size="9.5" font-weight="800" fill="${s.color}">${s.glyph}</text><title>${escapeXml(s.label)}</title></g>`); });
+  const tags = n.tags || [];
+  if(tags.length){
+    const t = '#' + tags[0] + (tags.length > 1 ? ` +${tags.length - 1}` : '');
+    out.push(`<text class="pm-node-tagtext" x="${x - 4}" y="-4" text-anchor="end">${escapeXml(t.length > 22 ? t.slice(0, 21) + '…' : t)}<title>${escapeXml(tags.map(y => '#' + y).join(' '))}</title></text>`);
+  }
+  if(pmNodeHasInfo(n)){
+    const ix = kind === 'uo' ? 11 : PM_NODE_W - 11, iy = kind === 'uo' ? 11 : 12;
+    out.push(`<g class="pm-info-mark" data-info-mark="${n.id}" transform="translate(${ix},${iy})"><circle r="6"/><text text-anchor="middle" dominant-baseline="central">i</text><title>${escapeXml([pmRichTextPlain(n.description).slice(0, 80), ...(n.links || []).map(l => pmLinkText(l, pmLinkLookup()))].filter(Boolean).join('\n'))}</title></g>`);
+  }
+  return out.join('');
+}
+function pmTagFilterOf(){ return getActiveTab().ctx.pmTagFilter || ''; }
+function pmSetTagFilter(v){ getActiveTab().ctx.pmTagFilter = v || ''; renderPmCanvas(); }
+function pmTagFilterSelectHtml(pm){
+  const cur = pmTagFilterOf();
+  const list = pmTagList(getPmTreeNodes(pm.id));
+  return `<select class="pm-level-select ${cur ? 'on' : ''}" id="pmTagFilter" aria-label="태그로 거르기" title="태그로 거르기 — 맞는 노드 강조" ${pcsOn('change', 'pcsCallWithValue', ['pmSetTagFilter'])}><option value="">태그…</option>${list.map(t => `<option value="${escapeXmlAttr(t)}" ${cur === t ? 'selected' : ''}>#${escapeXml(t)}</option>`).join('')}</select>`;
+}
+/* 그린 뒤 거르기 표시(부분 패치) */
+function pmApplyTagFilter(pmId){
+  const set = pmTagFilterSet(getPmTreeNodes(pmId), pmTagFilterOf());
+  document.querySelectorAll('#pmCanvas .pm-node-g[data-node-id]').forEach(g => {
+    const id = g.getAttribute('data-node-id');
+    g.classList.toggle('pm-tag-hit', !!set && set.has(id));
+    g.classList.toggle('pm-dim', !!set && !set.has(id) && id !== 'ROOT');
+  });
+}
+
+/* 아웃라인 줄: 표시·태그·정보 */
+function pmOutlineInfoHtml(n){
+  const syms = (n.symbols || []).map(id => { const s = PM_SYMBOLS.find(x => x.id === id); return s ? `<span class="pm-ol-sym" style="color:${s.color}" title="${escapeXmlAttr(s.label)}">${s.glyph}</span>` : ''; }).join('');
+  const tags = (n.tags || []).map(t => `<span class="pm-ol-tag">#${escapeXml(t)}</span>`).join('');
+  const info = pmNodeHasInfo(n) ? `<span class="pm-ol-info" data-ol-info title="${escapeXmlAttr([pmRichTextPlain(n.description), ...(n.links || []).map(l => pmLinkText(l, pmLinkLookup()))].filter(Boolean).join('\n'))}">ⓘ${(n.links || []).length ? ' ' + n.links.length : ''}</span>` : '';
+  return syms || tags || info ? `<span class="pm-ol-extra" data-ol-extra>${syms}${tags}${info}</span>` : '';
+}
+/* PCS Report: UO 설명(서식)·링크·태그 */
+function pmReportNodeInfoHtml(node, editable){
+  const links = (node.links || []).map(l => l.kind === 'url' ? `<a href="${escapeXmlAttr(l.value)}" target="_blank" rel="noopener noreferrer">${escapeXml(pmLinkText(l, pmLinkLookup()))}</a>` : escapeXml(pmLinkText(l, pmLinkLookup()))).join(' · ');
+  const tags = (node.tags || []).map(t => `<span class="pm-ol-tag">#${escapeXml(t)}</span>`).join(' ');
+  return `${!editable && String(node.description || '').trim() ? `<div class="pcs-rich" data-report-desc>${pmRichTextHtml(node.description)}</div>` : ''}
+    ${links ? `<div class="pcs-uo-row" data-report-links><span class="pcs-uo-label">관련 문서·링크</span><span style="font-size:11.5px;">${links}</span></div>` : ''}
+    ${tags ? `<div class="pcs-uo-row" data-report-tags><span class="pcs-uo-label">태그</span><span>${tags}</span></div>` : ''}`;
+}
+
+/* ---------- 관계선 팝업(모양·굵기·화살표·색·글) ---------- */
+function pmFlowEdgePopupHtml(pmId, edge){
+  const cmd = (key, val) => `data-on-click="pmSetFlowEdgePropUi" data-a-click="${pcsArgs([pmId, edge.id, key, val])}"`;
+  const arrow = edge.arrow || 'end', shape = edge.lineStyle || 'curve', width = edge.width || 2, color = edge.color || '#C0182A';
+  const arrows = [['none', '──', '화살표 없음'], ['end', '──▶', '정방향'], ['start', '◀──', '역방향'], ['both', '◀─▶', '양방향']];
+  return `<div class="pm-flow-pop" data-flow-popup="${edge.id}">
+    <div class="pfd-edge-opts">${arrows.map(([k, l, t]) => `<div class="pfd-edge-opt ${arrow === k ? 'active' : ''}" title="${t}" data-flow-arrow="${k}" ${cmd('arrow', k)}>${l}</div>`).join('')}</div>
+    <div class="pfd-edge-opts" style="margin-top:6px;">${PM_EDGE_SHAPES.map(([k, l]) => `<div class="pfd-edge-opt ${shape === k ? 'active' : ''}" data-flow-shape="${k}" ${cmd('lineStyle', k)}>${l}</div>`).join('')}</div>
+    <div class="pfd-edge-opts" style="margin-top:6px;">${[1, 2, 3, 4].map(w => `<div class="pfd-edge-opt ${width === w ? 'active' : ''}" title="굵기 ${w}" data-flow-width="${w}" ${cmd('width', w)}><svg width="22" height="10"><line x1="1" y1="5" x2="21" y2="5" stroke="currentColor" stroke-width="${w}"/></svg></div>`).join('')}</div>
+    <div class="pm-flow-colors">${PM_EDGE_COLORS.map(c => `<button class="pm-flow-color ${color.toUpperCase() === c ? 'on' : ''}" style="background:${c}" title="${c}" aria-label="색 ${c}" data-flow-color="${c}" ${cmd('color', c)}></button>`).join('')}</div>
+    <input class="pm-info-input" id="pmFlowLabel" placeholder="선 위 글 (예: Harvest 전달)" maxlength="40" value="${escapeXmlAttr(edge.label || '')}" ${pcsOn('change', 'pcsCallWithValue', ['pmSetFlowEdgePropUi', pmId, edge.id, 'label'])}>
+    <div class="pfd-edge-popup-actions">
+      <span class="pfd-edge-popup-dash ${edge.dashed ? 'active' : ''}" ${cmd('dashed', !edge.dashed)}>점선</span>
+      <span class="pfd-edge-popup-del" data-on-click="removePmFlowEdge" data-a-click="${pcsArgs([pmId, edge.id])}">${icon('close')}<span>삭제</span></span>
+    </div></div>`;
+}
+function pmSetFlowEdgePropUi(pmId, edgeId, key, value){ if(pmSetFlowEdgeProp(pmId, edgeId, key, value)) renderPmCanvas(); }
 function openBomReport(pmId){
   goTo('bomReport', { reportPmId: pmId }, { label:'BOM Report', tag:'BOM' });
 }
@@ -8942,8 +9328,7 @@ function renderPmPanelMenu(node){
       <input class="inline-input" aria-label="Unit Operation 이름" value="${escapeXmlAttr(node.name)}" ${uoEditable(node.id)?'':'disabled'} data-on-change="updateProcessNode_c97ef1" data-a-change="${pcsArgs([String(node.id)])}">
       <button class="btn btn-sm" data-on-click="removeProcessNode" data-a-click="${pcsArgs([String(node.id)])}">삭제</button>
     </div>
-    <div class="pm-note-label">Unit Operation 설명 (PCS Report에 포함됨)</div>
-    <textarea class="pm-textarea" style="min-height:80px; resize:vertical;" placeholder="설명 입력…" ${uoEditable(node.id)?'':'readonly'} data-on-input="find_d2b3a2" data-a-input="${pcsArgs([String(node.id)])}">${pcsSanitizeHtml(node.description||'')}</textarea>
+    ${pmNodeInfoHtml(node)}
 
     <div style="margin-top:14px; padding-top:14px; border-top:1px solid var(--line-soft);">
       <div class="pm-menu-card pm-menu-card-wi" data-on-click="openPmPanelWi" data-a-click="${pcsArgs([String(node.id)])}" style="margin-bottom:6px;">
@@ -9051,22 +9436,7 @@ function removePmFlowEdge(pmId, edgeId){
   if(pmFlowEdgePopup && pmFlowEdgePopup.edgeId===edgeId) pmFlowEdgePopup = null;
   renderPmCanvas();
 }
-function setPmFlowEdgeArrow(pmId, edgeId, arrow){
-  const e = ensurePmFlowEdges(pmId).find(x=>x.id===edgeId);
-  if(e) e.arrow = arrow;
-  renderPmCanvas();
-}
-function togglePmFlowEdgeDashed(pmId, edgeId){
-  const e = ensurePmFlowEdges(pmId).find(x=>x.id===edgeId);
-  if(e) e.dashed = !e.dashed;
-  renderPmCanvas();
-}
-/* 선 스타일 — 'curve'(부드러운 S자, 기본값) 또는 'straight'(직선/직각). 분기가 많을 때는 직선이 더 깔끔하게 구분되는 경우가 많다. */
-function setPmFlowEdgeStyle(pmId, edgeId, style){
-  const e = ensurePmFlowEdges(pmId).find(x=>x.id===edgeId);
-  if(e) e.lineStyle = style;
-  renderPmCanvas();
-}
+/* v118: 관계선 모양은 store pmSetFlowEdgeProp(07g, 감사 기록·구조 잠금) — 전에는 화면 코드가 DATA를 직접 바꿨다 */
 function closePmFlowEdgePopup(){ pmFlowEdgePopup = null; pmSelectedFlowEdgeId = null; renderPmCanvas(); }
 function renderPmFlowEdgePopup(){
   const layer = document.getElementById('pmFlowPopupLayer');
@@ -9074,32 +9444,12 @@ function renderPmFlowEdgePopup(){
   const { pmId, edgeId, x, y } = pmFlowEdgePopup;
   const edge = ensurePmFlowEdges(pmId).find(e=>e.id===edgeId);
   if(!edge) return;
-  const arrow = edge.arrow || 'end';
-  const opts = [
-    { id:'none', label:'──', title:'화살표 없음' },
-    { id:'end', label:'──▶', title:'정방향' },
-    { id:'start', label:'◀──', title:'역방향' },
-    { id:'both', label:'◀─▶', title:'양방향' },
-  ];
-  const optsHtml = opts.map(o=>`<div class="pfd-edge-opt ${arrow===o.id?'active':''}" title="${escapeXmlAttr(o.title)}" data-on-click="setPmFlowEdgeArrow" data-a-click="${pcsArgs([String(pmId), String(edgeId), String(o.id)])}">${escapeXml(o.label)}</div>`).join('');
-  const lineStyle = edge.lineStyle || 'curve';
-  const styleOpts = [
-    { id:'curve', label:'╲∼', title:'곡선' },
-    { id:'straight', label:'⌐', title:'직선/직각' },
-  ];
-  const styleOptsHtml = styleOpts.map(o=>`<div class="pfd-edge-opt ${lineStyle===o.id?'active':''}" title="${escapeXmlAttr(o.title)}" data-on-click="setPmFlowEdgeStyle" data-a-click="${pcsArgs([String(pmId), String(edgeId), String(o.id)])}">${escapeXml(o.label)}</div>`).join('');
   const div = document.createElement('div');
   div.className = 'pfd-edge-popup';
   div.style.left = (x*pmView.scale) + 'px';
   div.style.top = (y*pmView.scale) + 'px';
   div.onmousedown = (ev)=>ev.stopPropagation();
-  div.innerHTML = `
-    <div class="pfd-edge-opts">${optsHtml}</div>
-    <div class="pfd-edge-opts" style="margin-top:6px;">${styleOptsHtml}</div>
-    <div class="pfd-edge-popup-actions">
-      <span class="pfd-edge-popup-dash ${edge.dashed?'active':''}" data-on-click="togglePmFlowEdgeDashed" data-a-click="${pcsArgs([String(pmId), String(edgeId)])}">점선</span>
-      <span class="pfd-edge-popup-del" data-on-click="removePmFlowEdge" data-a-click="${pcsArgs([String(pmId), String(edgeId)])}">${icon('close')}<span>삭제</span></span>
-    </div>`;
+  div.innerHTML = pmFlowEdgePopupHtml(pmId, edge);   // v118: 모양·굵기·화살표·색·글
   layer.appendChild(div);
 }
 
@@ -9193,6 +9543,7 @@ function renderPmCanvas(){
   if(!wrap.__scrollKept){ wrap.__scrollKept = true; wrap.addEventListener('scroll', ()=>{ STATE.pmCanvasScroll = STATE.pmCanvasScroll || {}; STATE.pmCanvasScroll[wrap.getAttribute('data-pmid')] = { l: wrap.scrollLeft, t: wrap.scrollTop }; }, { passive:true }); }
   attachPmCanvasEvents(wrap, pmId);
   pmRenderMinimap();   // v117 미니맵(켜져 있으면)
+  pmApplyTagFilter(pmId);   // v118 태그 거르기
   if(pmFlowEdgePopup && pmFlowEdgePopup.pmId===pmId) renderPmFlowEdgePopup();
   pmRenderSelectionBar();
   if(STATE.pmInline) pmRenderInline();   // v114: 이름 입력 칸은 다시 그려도 유지
@@ -9249,6 +9600,7 @@ function pmNodesSvg(nodes, nodeDepth, selectedId, isEditing, rowById, collapsed,
       ${kindTag}${numSvg}
       ${lines.map((line,i)=>`<text class="pm-node-label" x="${PM_NODE_W/2}" y="${ly0 + i*15}" text-anchor="middle">${escapeXml(line)}</text>`).join('')}
       ${colSvg}
+      ${pmNodeInfoSvg(n, kind)}
       ${isSelected ? pmPlusHandlesSvg(n) : ''}
     </g>`;
     }
@@ -9272,6 +9624,7 @@ function pmNodesSvg(nodes, nodeDepth, selectedId, isEditing, rowById, collapsed,
       ${uoNodeMarksSvg(n)}
       ${badgeChips}
       ${colSvg}
+      ${pmNodeInfoSvg(n, 'uo')}
       ${flowHandles}
       ${isSelected ? pmPlusHandlesSvg(n) : ''}
     </g>`;
@@ -9322,22 +9675,20 @@ function pmFlowEdgesSvg(pmId, allBoxes, rootId, nodes){
       sx = fc.cx + fromOffset; sy = dy>=0 ? fromBox.y+fromBox.h : fromBox.y;
       ex = tc.cx + toOffset; ey = dy>=0 ? toBox.y : toBox.y;
     }
-    const lineStyle = e.lineStyle || 'curve';
-    let d;
-    if(lineStyle === 'straight'){
-      // 직선/직각: 가로 이동이 우세하면 중간 지점에서 한 번 꺾고, 세로 이동이 우세하면 그 반대로 꺾는다.
-      const mx = sx+(ex-sx)*0.5, my = sy+(ey-sy)*0.5;
-      d = horizontal ? `M${sx},${sy} L${mx},${sy} L${mx},${ey} L${ex},${ey}` : `M${sx},${sy} L${sx},${my} L${ex},${my} L${ex},${ey}`;
-    } else {
-      const mx = sx+(ex-sx)*0.5, my = sy+(ey-sy)*0.5;
-      d = horizontal ? `M${sx},${sy} C${mx},${sy} ${mx},${ey} ${ex},${ey}` : `M${sx},${sy} C${sx},${my} ${ex},${my} ${ex},${ey}`;
-    }
+    const d = pmFlowPathD(sx, sy, ex, ey, horizontal, e.lineStyle || 'curve');   // v118: 곡선·직각·직선
     const arrow = e.arrow||'end';
-    const markerEnd = (arrow==='end'||arrow==='both') ? 'url(#pmFlowArrow)' : '';
-    const markerStart = (arrow==='start'||arrow==='both') ? 'url(#pmFlowArrowStart)' : '';
+    // v118: 색이 있으면 그 선만의 화살표 표시(marker는 색을 물려받지 못한다)
+    const mk = e.color ? `pmFA_${e.id}` : 'pmFlowArrow', mks = e.color ? `pmFAS_${e.id}` : 'pmFlowArrowStart';
+    const ownMarkers = e.color ? `<defs><marker id="${mk}" markerWidth="9" markerHeight="9" refX="7" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 Z" fill="${e.color}"/></marker><marker id="${mks}" markerWidth="9" markerHeight="9" refX="2" refY="3.5" orient="auto"><path d="M7,0 L0,3.5 L7,7 Z" fill="${e.color}"/></marker></defs>` : '';
+    const markerEnd = (arrow==='end'||arrow==='both') ? `url(#${mk})` : '';
+    const markerStart = (arrow==='start'||arrow==='both') ? `url(#${mks})` : '';
     const isSel = pmSelectedFlowEdgeId===e.id;
-    return `<g data-flow-edge-id="${e.id}">
-      <path class="pm-flow-edge ${e.dashed?'pm-flow-edge-dashed':''} ${isSel?'pm-flow-edge-selected':''}" d="${d}" marker-end="${markerEnd}" marker-start="${markerStart}"/>
+    const styleAttr = [e.color ? `stroke:${e.color}` : '', e.width ? `stroke-width:${e.width}` : ''].filter(Boolean).join(';');
+    const lx = (sx+ex)/2, ly = (sy+ey)/2;
+    const label = e.label ? `<text class="pm-flow-label" x="${lx}" y="${ly - 6}" text-anchor="middle"${e.color ? ` fill="${e.color}"` : ''}>${escapeXml(e.label)}</text>` : '';
+    return `<g data-flow-edge-id="${e.id}">${ownMarkers}
+      <path class="pm-flow-edge ${e.dashed?'pm-flow-edge-dashed':''} ${isSel?'pm-flow-edge-selected':''}" d="${d}" marker-end="${markerEnd}" marker-start="${markerStart}"${styleAttr ? ` style="${styleAttr}"` : ''}/>
+      ${label}
       <path class="pm-flow-edge-hit" d="${d}" data-flow-edge-id="${e.id}"/>
     </g>`;
   }).join('');
@@ -9367,6 +9718,7 @@ function pmToolbarHtml(pm){
       <select class="pm-level-select" id="pmLevelSelect" aria-label="레벨까지 펼치기" title="몇 레벨까지 펼칠지" ${pcsOn('change', 'pcsCallWithValue', ['pmExpandToLevelFor', pm.id])}>
         <option value="">레벨…</option><option value="1">1레벨까지</option><option value="2">2레벨까지</option><option value="3">3레벨까지</option><option value="0">모두 펼치기</option>
       </select>
+      ${pmTagFilterSelectHtml(pm)}
       <span class="pm-toolbar-sep"></span>
       <div class="pm-zoom-btn pm-tool-text" id="pmExportBtn" role="button" tabindex="0" data-on-click="pmExportOpen" data-a-click="${pcsArgs([pm.id])}" title="구조 내보내기 (.md · .txt)">${icon('download')}</div>
       <div class="pm-zoom-btn pm-tool-text" id="pmImportBtn" role="button" tabindex="0" data-on-click="pmImportOpen" data-a-click="${pcsArgs([pm.id, '', ''])}" title="구조 가져오기 (.md · .txt · 붙여넣기)">${icon('upload')}</div>
@@ -22218,6 +22570,8 @@ function uoContentOf(nodeId){
     wi: { steps: wi.steps || [], defaultSignatureFlow: wi.defaultSignatureFlow || [] },
     // v113: 이 UO의 Mass Balance Step과 BOM 소요량 규칙 — 있을 때만 넣는다(없으면 예전 승인본과 해시가 같다)
     ...uoMbContent(n),
+    // v118: 노드 링크(EDMS SOP·URL·Process Map·UO) — 있을 때만
+    ...((n.links || []).length ? { nodeLinks: n.links } : {}),
   };
 }
 function uoMbContent(n){
@@ -22372,7 +22726,7 @@ function withPmBaseline(pmId, fn){
     const node = uoNode(nodeId), snap = getUoSnapshot(nodeId, ver);
     if(!node || !snap) return;
     const c = snap.content;
-    put(node, 'name', c.name); put(node, 'description', c.description); put(node, 'slideTitle', c.slideTitle);
+    put(node, 'name', c.name); put(node, 'description', c.description); put(node, 'slideTitle', c.slideTitle); put(node, 'links', c.nodeLinks);
     put(node, 'uoStatus', 'Approved'); put(node, 'uoVersion', ver);
     UO_VIEW_KEYS.forEach(([dataKey, cKey])=>{ if(!DATA[dataKey]) DATA[dataKey] = {}; put(DATA[dataKey], nodeId, clone(c[cKey])); });
     Object.entries(snap.masters).forEach(([key, was])=>{
@@ -22543,6 +22897,8 @@ const UO_CONTENT_MUTATORS = {
   openMasterImportModal:uoArg(0), confirmMasterImport:()=>STATE.importModal && STATE.importModal.nodeId, removeItemFromNodeList:uoPanelNode,
   // UO 이름
   updateProcessNode:uoArg(0),
+  // v118 설명·링크(단계·하위 단계는 함수 안에서 구조 잠금을 본다)
+  pmSetNodeDescription:uoArg(0), pmAddNodeLink:uoArg(0), pmRemoveNodeLink:uoArg(0),
   // Work Instruction
   addWiStep:uoArg(0), renameWiStep:uoPanelNode, removeWiStep:uoPanelNode, setWiInstructionText:uoArg(0),
   addWiParameter:uoArg(0), removeWiParameter:uoArg(0), addWiSampling:uoArg(0), removeWiSampling:uoArg(0), addWiTraining:uoArg(0), removeWiTraining:uoArg(0),
@@ -22565,6 +22921,7 @@ const PM_STRUCTURE_MUTATORS = {
   pmAddChildUi: args => { const p = uoNode(args[0]); return p ? p.pmId : getActiveTab().ctx.pmId; },
   pmSetNodeKind: pmOfNode(0), pmSetNodeKindUi: pmOfNode(0), pmIndentNode: pmOfNode(0), pmOutdentNode: pmOfNode(0), pmGroupIntoStage: uoArg(0), pmGroupSelectionUi: uoArg(0), pmDeleteBranch: uoArg(0), pmDeleteBranchUi: uoArg(0),
   pmImportOutlineGuarded: uoArg(0),   // v116 가져오기(선택한 가지 아래)
+  pmSetFlowEdgeProp: uoArg(0),        // v118 관계선 모양
 };
 /* ---------------------------------------------------------------------------
    v83 : 편집 한 번 = (실행취소 기록 + audit trail + 검증) 한 묶음
@@ -29136,9 +29493,12 @@ function uoCompareContent(a, b){
     // v113: UO의 Mass Balance Step·BOM 소요량 규칙
     massBalance: diffSet(byId(a.massBalance), byId(b.massBalance), (x, y)=>JSON.stringify(x) !== JSON.stringify(y) ? ['value'] : []),
     bomRules: diffSet(new Map((a.bomRules || []).map(x=>[x.materialId, x])), new Map((b.bomRules || []).map(x=>[x.materialId, x])), (x, y)=>JSON.stringify(x) !== JSON.stringify(y) ? ['value'] : []),
+    // v118: 설명·노드 링크
+    described: (a.description || '') !== (b.description || '') ? { from: a.description || '', to: b.description || '' } : null,
+    nodeLinks: diffSet(byId(a.nodeLinks), byId(b.nodeLinks), ()=>[]),
   };
   const n = d=>d.added.length + d.removed.length + d.changed.length;
-  r.total = n(r.shapes) + n(r.edges) + n(r.links) + n(r.texts) + n(r.tables) + n(r.massBalance) + n(r.bomRules) + Object.values(lists).reduce((s, x)=>s + x.added.length + x.removed.length, 0) + (wi.changed ? 1 : 0) + (r.renamed ? 1 : 0);
+  r.total = n(r.shapes) + n(r.edges) + n(r.links) + n(r.texts) + n(r.tables) + n(r.massBalance) + n(r.bomRules) + n(r.nodeLinks) + (r.described ? 1 : 0) + Object.values(lists).reduce((s, x)=>s + x.added.length + x.removed.length, 0) + (wi.changed ? 1 : 0) + (r.renamed ? 1 : 0);
   return r;
 }
 const UO_DIFF_KIND_LABEL = { moved:'이동', resized:'크기', relabeled:'이름', retyped:'종류', restyled:'모양', reconnected:'연결', noted:'주석', value:'값', qty:'수량', text:'글', cells:'내용' };
@@ -29194,6 +29554,8 @@ function renderUoCompare(){
         </div>
         <div class="uo-diff-summary" data-diff-total="${d.total}">${d.total ? `바뀐 곳 <b>${d.total}</b>` : '차이가 없습니다'}</div>
         ${d.renamed ? `<div class="uo-diff-row chg">± 이름: ${escapeXml(d.renamed.from)} → ${escapeXml(d.renamed.to)}</div>` : ''}
+        ${d.described ? `<div class="uo-diff-row chg" data-diff-sec="desc">± 설명: ${escapeXml(pmRichTextPlain(d.described.from).slice(0, 60) || '(없음)')} → ${escapeXml(pmRichTextPlain(d.described.to).slice(0, 60) || '(없음)')}</div>` : ''}
+        ${d.nodeLinks && (d.nodeLinks.added.length + d.nodeLinks.removed.length) ? `<div class="uo-diff-sec" data-diff-sec="links"><div class="uo-diff-title">링크</div>${d.nodeLinks.added.map(l=>`<div class="uo-diff-row add">＋ ${escapeXml(pmLinkText(l, pmLinkLookup()))}</div>`).join('')}${d.nodeLinks.removed.map(l=>`<div class="uo-diff-row rem">－ ${escapeXml(pmLinkText(l, pmLinkLookup()))}</div>`).join('')}</div>` : ''}
         ${section('PFD 도형', d.shapes, shapeName)}
         ${section('연결선', d.edges, edgeName)}
         ${section('마스터 연동', d.links, linkName)}
@@ -30399,6 +30761,17 @@ const PCS_CALLABLE = new Set([
   'pmToggleImageMenu',
   'pmExportImage',
   'pmKanbanMoveUi',
+  'pmSetNodeDescriptionUi',
+  'pmLinkDraftSet',
+  'pmAddNodeLinkUi',
+  'pmRemoveNodeLinkUi',
+  'pmToggleNodeTagUi',
+  'pmAddCustomTagUi',
+  'pmToggleNodeSymbolUi',
+  'pmDescFormat',
+  'pmOpenNodeLink',
+  'pmSetTagFilter',
+  'pmSetFlowEdgePropUi',
   'pmAddChildUi',
   'pmSetNodeKindUi',
   'pmSelectBranch',
@@ -30682,8 +31055,6 @@ const PCS_CALLABLE = new Set([
   'setPfdLibraryCategory',
   'setPfdPopupType',
   'setPfdSwapCat',
-  'setPmFlowEdgeArrow',
-  'setPmFlowEdgeStyle',
   'setReportStatus',
   'setWiActiveStep',
   'setWiActiveSub',
@@ -30710,7 +31081,6 @@ const PCS_CALLABLE = new Set([
   'togglePfdEdgeDashed',
   'togglePfdEditorFullscreen',
   'togglePfdPrimitivePop',
-  'togglePmFlowEdgeDashed',
   'toggleProcessMapEdit',
   'toggleSidebar',
   'toggleSuppModalCheck',
@@ -30966,9 +31336,6 @@ const PCS_HANDLERS = {
     syncReportEdit('pm',a[0],'description',this.innerHTML)
   },
   /* 08_reports.js · oninput */
-  find_d2b3a2(event, a){
-    DATA.nodes.find(n=>n.id===a[0]).description=this.value
-  },
   /* 08_reports.js · oninput */
   setPmRootText_1db802(event, a){
     setPmRootText(a[0],'scope',this.value)
