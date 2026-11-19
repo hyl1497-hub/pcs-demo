@@ -5,7 +5,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="pcs-api-base" content="">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-ski2qT7C9gea9JsgdDVzQ2m8OIDp5+0PVexYZyQzNSk=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="pcs-firebase" content="">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-x3YJBSYLrTt7kEpO61fqo2r7t67sKU4vaQEsNeIOrtw=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'none'">
 <title>PCS Platform · Process Control System</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -3686,6 +3687,7 @@ function renderLoginScreen(){
   const roleOptions = USER_PERMISSION_LEVELS.map(r=>`<option value="${r}" ${r===defaultRole?'selected':''}>${r}</option>`).join('');
   const isFav = !!STATE.favoriteRole;
   const server = pcsServerMode();   // v100: 서버 모드에서는 역할을 서버 계정이 정한다
+  const shared = !server && pcsSharedMode();   // v107: 공유 모드는 Firebase 계정(이메일)으로 로그인
   el.innerHTML = `
     <div class="login-screen">
       <div class="login-card">
@@ -3694,11 +3696,11 @@ function renderLoginScreen(){
           <div class="brand-text"><div class="brand-name">LOTTE BIOLOGICS</div><div class="brand-sub">PCS PLATFORM</div></div>
         </div>
         <h1 class="login-title">로그인</h1>
-        <p class="login-sub">${server ? '사내 계정으로 PCS 서버에 접속하세요.' : 'ID와 비밀번호를 입력해 PCS Platform에 접속하세요.'}</p>
+        <p class="login-sub">${server ? '사내 계정으로 PCS 서버에 접속하세요.' : shared ? '관리자가 만들어 준 계정(이메일)으로 공유 데이터에 접속하세요.' : 'ID와 비밀번호를 입력해 PCS Platform에 접속하세요.'}</p>
         <form data-on-submit="preventDefault_38ca9e">
           <div class="login-field">
-            <label>ID</label>
-            <input id="loginId" type="text" placeholder="ID" autocomplete="username" required>
+            <label>${shared ? '이메일' : 'ID'}</label>
+            <input id="loginId" type="${shared ? 'email' : 'text'}" placeholder="${shared ? 'name@example.com' : 'ID'}" autocomplete="username" required>
           </div>
           <div class="login-field">
             <label>PW</label>
@@ -3717,6 +3719,7 @@ function renderLoginScreen(){
           <button type="submit" class="btn btn-primary login-submit">로그인</button>
         </form>
         ${server ? `<p class="login-note" data-login-mode="server">${icon('globe')} 서버: <span class="cell-mono">${escapeXml(pcsServer.base)}</span> · 데이터와 전자서명은 서버에 기록됩니다.</p>`
+          : shared ? `<p class="login-note" data-login-mode="shared">${icon('globe')} 공유 데이터 — 모두가 같은 데이터를 보고 고칩니다. 바꾼 내용은 몇 초 안에 다른 사람 화면에도 반영됩니다. 역할은 모의 테스트용으로 직접 고릅니다.</p>`
           : `<p class="login-note" data-login-mode="local">${icon('info')} 데모 환경입니다 — ID/PW는 형식만 맞으면 어떤 값이든 통과합니다. 새로고침하면 다시 로그인해야 합니다.</p>`}
       </div>
     </div>`;
@@ -3743,6 +3746,7 @@ function submitLogin(){
   }
   if(pcsServerMode()) return pcsServerSubmitLogin(id, pw);
   const role = document.getElementById('loginRole').value;
+  if(pcsSharedMode()) return pcsFbSubmitLogin(id, pw, role);   // v107 공유 모드
   STATE.auth = { loggedIn:true, id, role };
   STATE.lastUsedRole = role; // 다음 로그인 화면의 기본 선택값으로 기억
   document.getElementById('loginScreen').innerHTML = '';
@@ -3755,6 +3759,12 @@ async function logout(){
     // 서버 모드: 마지막 변경을 저장하고 세션을 끝낸다. 다시 로그인하면 서버 문서를 새로 불러오도록 새로고침한다.
     await pcsSaveNow().catch(()=>{});
     await pcsServerLogout();
+    location.reload();
+    return;
+  }
+  if(pcsSharedMode()){   // v107 공유 모드도 같은 방식
+    await pcsSaveNow().catch(()=>{});
+    pcsFbSignOut();
     location.reload();
     return;
   }
@@ -18255,6 +18265,7 @@ function renderSettings(){
       </div>
 ${renderPeopleMasterSettings()}
 ${renderPcsServerSettings()}
+${renderPcsSharedSettings()}
 ${renderPcsDataSettings()}
       ${pcsServerMode() ? `<div class="field-group" style="margin-top:20px;" data-ai-mode="proxy">
         <div class="field-label">${icon('cpu')} AI 자동 생성 (Claude API)</div>
@@ -18356,6 +18367,8 @@ function applyTheme(theme){
 document.addEventListener('DOMContentLoaded', ()=>{
   // v100: API 주소가 정해져 있으면 서버 모드 — 서버 계정으로 로그인한 뒤에 서버 문서를 불러온다(42_server.js)
   if(pcsResolveApiBase().base){ renderLoginScreen(); return; }
+  // v107: 공유 모드(Firebase 설정이 있으면) — Firebase 계정으로 로그인한 뒤 공유 문서를 불러온다(42b_shared.js)
+  if(pcsResolveFirebase().cfg){ renderLoginScreen(); return; }
   pcsPersistInit().catch(err=>console.error(err)).then(()=>{
     if(!STATE.auth.loggedIn){ renderLoginScreen(); }
     else { document.getElementById('appRoot').style.display=''; render(); }
@@ -20485,9 +20498,12 @@ const PCS_SAVE_LABEL = {
 function pcsSaveBadgeHtml(){
   const s = pcsPersist.status;
   const time = s === 'saved' && pcsPersist.savedAt ? ' · ' + pcsPersist.savedAt.slice(11, 16) : '';
-  const where = pcsPersist.adapter && pcsPersist.adapter.kind === 'rest' ? '서버에' : '이 브라우저에';
+  const kind = pcsPersist.adapter && pcsPersist.adapter.kind;
+  const where = kind === 'rest' ? '서버에' : kind === 'firebase' ? '공유 데이터베이스에' : '이 브라우저에';
   const tip = pcsPersist.message || (s === 'saved' ? where + ' 자동으로 저장됩니다. 사용자 설정에서 파일로 내보낼 수 있습니다.' : '');
-  return `<span class="pcs-save-badge pcs-save-${s}" data-save-status="${s}" title="${escapeXmlAttr(tip)}"><span class="pcs-save-dot"></span>${PCS_SAVE_LABEL[s] || s}${time}</span>`;
+  // v107 공유 모드 충돌: 배지를 누르면 최신 데이터 불러오기
+  const resolve = kind === 'firebase' && s === 'conflict' ? ` role="button" tabindex="0" style="cursor:pointer;" data-on-click="pcsFbResolveConflict"` : '';
+  return `<span class="pcs-save-badge pcs-save-${s}" data-save-status="${s}" title="${escapeXmlAttr(tip + (resolve ? ' (눌러서 최신 데이터 불러오기)' : ''))}"${resolve}><span class="pcs-save-dot"></span>${PCS_SAVE_LABEL[s] || s}${time}</span>`;
 }
 function updatePcsSaveBadges(){
   document.querySelectorAll('.pcs-save-slot').forEach(el=>{ el.innerHTML = pcsSaveBadgeHtml(); });
@@ -20575,7 +20591,8 @@ async function pcsSaveNow(){
   p.saving = p.adapter.save(pcsBuildDoc(JSON.parse(json), p.rev, savedAt), p.rev)
     .then(res=>{ p.rev = res.rev; p.lastJson = json; p.savedAt = savedAt; pcsSetSaveStatus('saved'); return true; })
     .catch(err=>{
-      if(err && err.conflict) pcsSetSaveStatus('conflict', (p.adapter && p.adapter.kind === 'rest' ? '다른 사용자나 탭이 서버에 먼저 저장했습니다.' : '다른 탭이나 창에서 먼저 저장했습니다.') + ' 이 탭의 변경을 지키려면 사용자 설정에서 파일로 내보낸 뒤 새로고침하세요.');
+      if(err && err.conflict && p.adapter && p.adapter.kind === 'firebase') pcsSetSaveStatus('conflict', '다른 사용자가 같은 때에 먼저 저장했습니다. 배지를 누르거나 사용자 설정에서 "최신 데이터 불러오기"를 하세요(이 화면의 미저장 변경은 버려집니다 — 필요하면 먼저 파일로 내보내기).');
+      else if(err && err.conflict) pcsSetSaveStatus('conflict', (p.adapter && p.adapter.kind === 'rest' ? '다른 사용자나 탭이 서버에 먼저 저장했습니다.' : '다른 탭이나 창에서 먼저 저장했습니다.') + ' 이 탭의 변경을 지키려면 사용자 설정에서 파일로 내보낸 뒤 새로고침하세요.');
       else if(err && err.auth) pcsSetSaveStatus('error', err.message);
       else { console.error('[저장소] 저장 실패', err); pcsSetSaveStatus('error', String(err && err.message || err)); }
       return false;
@@ -20636,7 +20653,9 @@ function pcsImportFromFileInput(input){
 }
 async function pcsResetToSeed(){
   if(!pcsCan('data.clear')){ uiAlert('저장된 데이터 초기화는 관리자(Admin)만 할 수 있습니다.', { title:'기본 데이터로 초기화' }); return; }
-  if(!(await uiConfirm('이 브라우저에 저장된 데이터를 지우고 기본(시드) 데이터로 되돌립니다.\n되돌릴 수 없습니다. 필요하면 먼저 파일로 내보내세요.\n\n계속할까요?', { title:'기본 데이터로 초기화', okLabel:'초기화', danger:true }))) return;
+  const shared = pcsPersist.adapter && pcsPersist.adapter.kind === 'firebase';
+  const what = shared ? '모든 사용자가 함께 쓰는 공유 데이터를 지우고' : '이 브라우저에 저장된 데이터를 지우고';
+  if(!(await uiConfirm(what + ' 기본(시드) 데이터로 되돌립니다.\n되돌릴 수 없습니다. 필요하면 먼저 파일로 내보내세요.\n\n계속할까요?', { title: shared ? '공유 데이터 초기화' : '기본 데이터로 초기화', okLabel:'초기화', danger:true }))) return;
   const p = pcsPersist;
   if(p.saving) await p.saving.catch(()=>{});
   p.status = 'blocked';
@@ -20647,7 +20666,7 @@ async function pcsResetToSeed(){
 function renderPcsDataSettings(){
   const p = pcsPersist;
   const kind = p.adapter && p.adapter.kind;
-  const where = kind === 'rest' ? '서버 (' + escapeXml(p.adapter.base) + ')' : kind === 'indexeddb' ? '이 브라우저(IndexedDB)' : '메모리(새로고침하면 사라짐)';
+  const where = kind === 'rest' ? '서버 (' + escapeXml(p.adapter.base) + ')' : kind === 'firebase' ? '공유 데이터베이스 (Firebase)' : kind === 'indexeddb' ? '이 브라우저(IndexedDB)' : '메모리(새로고침하면 사라짐)';
   return `
       <div class="field-group" style="margin-top:20px;" id="pcsDataSettings">
         <div class="field-label">${icon('layers')} 데이터 저장</div>
@@ -20659,13 +20678,13 @@ function renderPcsDataSettings(){
         </div>
         ${p.message ? `<p class="pcs-import-msg error" style="margin-bottom:10px;">${escapeXml(p.message)}</p>` : ''}
         <p style="font-size:12px; color:var(--ink-500); margin-bottom:10px;">
-          ${kind === 'rest' ? '편집 내용은 서버에 자동으로 저장됩니다. 다른 사람이 먼저 저장하면 덮어쓰지 않고 멈춥니다.' : `편집 내용은 자동으로 저장되어 새로고침해도 남습니다. 저장본은 이 PC의 이 브라우저에만 있으므로,
+          ${kind === 'rest' || kind === 'firebase' ? `편집 내용은 ${kind === 'rest' ? '서버' : '공유 데이터베이스'}에 자동으로 저장됩니다. 다른 사람이 먼저 저장하면 덮어쓰지 않고 멈춥니다.` : `편집 내용은 자동으로 저장되어 새로고침해도 남습니다. 저장본은 이 PC의 이 브라우저에만 있으므로,
           다른 PC로 옮기거나 보관하려면 파일로 내보내세요.`}
         </p>
         <div style="display:flex; gap:8px; flex-wrap:wrap;">
           <button class="btn btn-primary" data-on-click="pcsExportJson">파일로 내보내기</button>
           ${pcsCan('data.import') ? `<button class="btn" data-on-click="getElementById_653d4d">파일에서 가져오기</button>` : ''}
-          ${pcsCan('data.clear') ? `<button class="btn" style="color:var(--red-600);" data-on-click="pcsResetToSeed">${kind === 'rest' ? '서버 데이터 초기화' : '기본 데이터로 초기화'}</button>` : ''}
+          ${pcsCan('data.clear') ? `<button class="btn" style="color:var(--red-600);" data-on-click="pcsResetToSeed">${kind === 'rest' ? '서버 데이터 초기화' : kind === 'firebase' ? '공유 데이터 초기화' : '기본 데이터로 초기화'}</button>` : ''}
           <input type="file" id="pcsImportFile" accept=".json,application/json" style="display:none;" data-on-change="pcsImportFromFileInput_126282">
         </div>
         <p class="pcs-import-msg" id="pcsImportMsg"></p>
@@ -25962,7 +25981,11 @@ function pcsValidApiBase(v){
 }
 /* 권한 확인. 로컬 모드에서는 데모라 모두 허용한다. */
 function pcsCan(perm){
-  if(!pcsServer.base) return true;
+  if(!pcsServer.base){
+    // v107 공유 모드: 모두가 쓰는 데이터라 가져오기(덮어쓰기)·초기화는 Admin 역할만
+    if(typeof pcsSharedMode === 'function' && pcsSharedMode() && (perm === 'data.import' || perm === 'data.clear')) return !!(STATE.auth && STATE.auth.role === 'Admin');
+    return true;
+  }
   return !!(pcsServer.user && (pcsServer.user.permissions || []).includes(perm));
 }
 function pcsServerMode(){ return !!pcsServer.base; }
@@ -26215,6 +26238,295 @@ function renderPeopleMasterSettings(){
       </div>`;
 }
 /* ============================================================================
+   42b_shared.js — v107  공유 모드 (Firebase Realtime Database)
+   서버를 따로 두지 않고 여러 사람이 같은 데이터를 쓰는 방식. 데모·모의 테스트용.
+     · 로그인   : Firebase Authentication(이메일·비밀번호) REST. 계정은 관리자가 Firebase 콘솔에서 만든다(앱에 가입 기능 없음).
+     · 저장     : 23_storage.js의 어댑터(load/save/clear)를 Firebase REST로 구현. 문서 = { app, schemaVersion, rev, savedAt, savedBy, json }
+                  data는 JSON 문자열로 넣는다(Realtime DB는 빈 배열·null을 지우고 배열을 객체로 바꿀 수 있어 그대로 넣으면 데이터가 달라진다).
+     · 충돌     : 보안 규칙이 "새 rev = 저장된 rev + 1"일 때만 쓰기를 허용한다(docs/firebase/database.rules.json).
+                  두 사람이 같은 rev에서 저장하면 뒤의 것은 거절된다 → 덮어쓰지 않고 "다른 곳에서 변경됨"으로 멈춘다.
+     · 다른 사람의 변경 : 몇 초마다 rev만(몇 바이트) 확인해, 내 쪽에 저장 안 한 변경이 없으면 새 문서를 불러와 화면을 다시 그린다.
+   설정(앞의 것이 우선): window.PCS_CONFIG.firebase → <meta name="pcs-firebase" content='{"apiKey":…,"databaseURL":…}'> → 사용자 설정(이 브라우저)
+   서버 모드(42_server.js, API 주소)가 정해져 있으면 그쪽이 먼저다.
+   준비 절차: docs/FIREBASE_SETUP.md
+   ========================================================================== */
+
+const PCS_FB_META = 'pcs-firebase';
+const PCS_FB_STORED_KEY = 'pcs_firebase';
+const PCS_FB_DOC_PATH = 'pcs/documents/main';
+const PCS_FB_AUTOSAVE_MS = 3000;
+const PCS_FB_WATCH_MS = 8000;
+
+/* 세션 — 토큰은 메모리에만(새로고침하면 다시 로그인) */
+const pcsFb = { cfg: null, source: '', idToken: '', refreshToken: '', expiresAt: 0, email: '', uid: '', watchTimer: null, refreshTimer: null, lastRemoteRev: null, pendingRemote: false };
+
+/* ---------- 순수 함수 ---------- */
+/* 설정 검사·정리. 반환 { ok, cfg?, reason? } */
+function pcsFbNormalizeConfig(raw){
+  let c = raw;
+  if(typeof c === 'string'){ const s = c.trim(); if(!s) return { ok:false, reason:'비어 있음' }; try { c = JSON.parse(s); } catch(_){ return { ok:false, reason:'JSON 형식이 아닙니다.' }; } }
+  if(!c || typeof c !== 'object') return { ok:false, reason:'비어 있음' };
+  const apiKey = String(c.apiKey || '').trim();
+  const databaseURL = String(c.databaseURL || '').trim().replace(/\/+$/, '');
+  if(!apiKey) return { ok:false, reason:'apiKey가 없습니다.' };
+  if(!/^https?:\/\/[^\s/]+(\/[^\s]*)?$/i.test(databaseURL)) return { ok:false, reason:'databaseURL이 올바른 주소가 아닙니다.' };
+  const cfg = { apiKey, databaseURL,
+    identityBase: String(c.identityBase || 'https://identitytoolkit.googleapis.com').replace(/\/+$/, ''),
+    tokenBase: String(c.tokenBase || 'https://securetoken.googleapis.com').replace(/\/+$/, ''),
+    watchMs: Math.max(1000, Number(c.watchMs) || PCS_FB_WATCH_MS),
+    autosaveMs: Math.max(500, Number(c.autosaveMs) || PCS_FB_AUTOSAVE_MS) };
+  return { ok:true, cfg };
+}
+/* 후보 중 첫 번째 올바른 설정 */
+function pcsPickFirebaseConfig(fromConfig, fromMeta, fromStored){
+  for(const [v, source] of [[fromConfig, 'config'], [fromMeta, 'meta'], [fromStored, 'settings']]){
+    const r = pcsFbNormalizeConfig(v);
+    if(r.ok) return { cfg: r.cfg, source };
+  }
+  return { cfg: null, source: '' };
+}
+/* 쓰기가 거절됐을 때 원인 판정: 다시 읽은 rev와 비교. 반환 'conflict' | 'auth' | 'rejected' */
+function pcsFbClassifyReject(readOk, remoteRev, expectedRev){
+  if(!readOk) return 'auth';
+  if((remoteRev || 0) !== (expectedRev || 0)) return 'conflict';
+  return 'rejected';
+}
+/* Firebase Auth 오류 코드 → 사용자 말 */
+function pcsFbAuthMessage(code){
+  const c = String(code || '');
+  if(/INVALID_LOGIN_CREDENTIALS|INVALID_PASSWORD|EMAIL_NOT_FOUND|INVALID_EMAIL/.test(c)) return '이메일 또는 비밀번호가 올바르지 않습니다.';
+  if(/USER_DISABLED/.test(c)) return '사용이 중지된 계정입니다. 관리자에게 문의하세요.';
+  if(/TOO_MANY_ATTEMPTS/.test(c)) return '로그인 시도가 너무 많습니다. 잠시 뒤 다시 시도하세요.';
+  if(/API_KEY|API key/i.test(c)) return 'Firebase 설정(apiKey)이 올바르지 않습니다.';
+  if(/OPERATION_NOT_ALLOWED|PASSWORD_LOGIN_DISABLED/.test(c)) return 'Firebase 콘솔에서 이메일/비밀번호 로그인이 켜져 있지 않습니다.';
+  return '로그인하지 못했습니다. (' + c + ')';
+}
+
+function pcsSharedMode(){ return !pcsServerMode() && !!pcsFb.cfg; }
+function pcsResolveFirebase(){
+  let meta = '';
+  try { const m = document.querySelector(`meta[name="${PCS_FB_META}"]`); meta = m ? (m.getAttribute('content') || '') : ''; } catch(_){}
+  let stored = '';
+  try { stored = localStorage.getItem(PCS_FB_STORED_KEY) || ''; } catch(_){}
+  const r = pcsPickFirebaseConfig(typeof window !== 'undefined' && window.PCS_CONFIG ? window.PCS_CONFIG.firebase : null, meta, stored);
+  pcsFb.cfg = r.cfg; pcsFb.source = r.source;
+  return r;
+}
+
+/* ---------- HTTP ---------- */
+async function pcsFbFetch(url, opts){
+  let res;
+  try { res = await fetch(url, Object.assign({ cache: 'no-store' }, opts || {})); }
+  catch(err){ const e = new Error('공유 데이터베이스에 연결할 수 없습니다. 인터넷 연결이나 회사 방화벽을 확인하세요. (' + (err && err.message || err) + ')'); e.network = true; throw e; }
+  const text = await res.text();
+  let data = null;
+  if(text){ try { data = JSON.parse(text); } catch(_){ data = text; } }
+  if(!res.ok){
+    const msg = data && (data.error && (data.error.message || data.error)) || ('HTTP ' + res.status);
+    const e = new Error(typeof msg === 'string' ? msg : JSON.stringify(msg)); e.status = res.status; e.body = data; throw e;
+  }
+  return data;
+}
+function pcsFbDbUrl(path){ return `${pcsFb.cfg.databaseURL}/${path}.json?auth=${encodeURIComponent(pcsFb.idToken)}`; }
+
+/* ---------- 인증 ---------- */
+function pcsFbSetTokens(idToken, refreshToken, expiresIn){
+  pcsFb.idToken = idToken; if(refreshToken) pcsFb.refreshToken = refreshToken;
+  pcsFb.expiresAt = Date.now() + (Number(expiresIn) || 3600) * 1000;
+  clearTimeout(pcsFb.refreshTimer);
+  // 만료 5분 전(짧은 토큰이면 절반 지점)에 새로 받는다
+  const ms = Math.max(1000, Math.min((Number(expiresIn) || 3600) * 1000 - 300000, (Number(expiresIn) || 3600) * 500));
+  pcsFb.refreshTimer = setTimeout(() => { pcsFbRefresh().catch(err => console.warn('[공유] 토큰 갱신 실패', err)); }, ms);
+}
+async function pcsFbSignIn(email, password){
+  try {
+    const r = await pcsFbFetch(`${pcsFb.cfg.identityBase}/v1/accounts:signInWithPassword?key=${encodeURIComponent(pcsFb.cfg.apiKey)}`,
+      { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password, returnSecureToken: true }) });
+    pcsFb.email = r.email || email; pcsFb.uid = r.localId || '';
+    pcsFbSetTokens(r.idToken, r.refreshToken, r.expiresIn);
+    return r;
+  } catch(e){ if(!e.network) e.message = pcsFbAuthMessage(e.message); throw e; }
+}
+async function pcsFbRefresh(){
+  if(!pcsFb.refreshToken) throw new Error('다시 로그인하세요.');
+  const r = await pcsFbFetch(`${pcsFb.cfg.tokenBase}/v1/token?key=${encodeURIComponent(pcsFb.cfg.apiKey)}`,
+    { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: 'grant_type=refresh_token&refresh_token=' + encodeURIComponent(pcsFb.refreshToken) });
+  pcsFbSetTokens(r.id_token, r.refresh_token, r.expires_in);
+  return true;
+}
+/* 토큰이 만료됐으면(401) 한 번 새로 받고 다시 시도 */
+async function pcsFbWithAuth(work){
+  if(pcsFb.expiresAt && Date.now() > pcsFb.expiresAt - 30000) await pcsFbRefresh().catch(() => {});
+  try { return await work(); }
+  catch(e){
+    if(e.status !== 401) throw e;
+    try { await pcsFbRefresh(); } catch(_){ const a = new Error('로그인 세션이 만료되었습니다. 변경 내용을 파일로 내보낸 뒤 다시 로그인하세요.'); a.auth = true; throw a; }
+    return await work();
+  }
+}
+function pcsFbSignOut(){
+  clearTimeout(pcsFb.refreshTimer); clearInterval(pcsFb.watchTimer);
+  pcsFb.idToken = ''; pcsFb.refreshToken = ''; pcsFb.expiresAt = 0; pcsFb.watchTimer = null;
+}
+
+/* ---------- 저장 어댑터: Firebase Realtime Database ---------- */
+function pcsCreateFirebaseStorage(){
+  const readRev = () => pcsFbFetch(pcsFbDbUrl(PCS_FB_DOC_PATH + '/rev'));
+  return {
+    kind: 'firebase', base: pcsFb.cfg.databaseURL, autosaveMs: pcsFb.cfg.autosaveMs,
+    async load(){
+      const d = await pcsFbWithAuth(() => pcsFbFetch(pcsFbDbUrl(PCS_FB_DOC_PATH)));
+      if(!d) return null;
+      let data;
+      try { data = typeof d.json === 'string' ? JSON.parse(d.json) : d.data; } catch(_){ throw new Error('공유 데이터가 손상되어 읽을 수 없습니다.'); }
+      pcsFb.lastRemoteRev = d.rev || 0;
+      return { app: d.app, schemaVersion: d.schemaVersion, rev: d.rev || 0, savedAt: d.savedAt, data };
+    },
+    async save(next, expectedRev){
+      const exp = expectedRev == null ? null : (expectedRev || 0);
+      const put = async rev => pcsFbFetch(pcsFbDbUrl(PCS_FB_DOC_PATH), { method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ app: next.app, schemaVersion: next.schemaVersion, rev, savedAt: next.savedAt, savedBy: pcsFb.email, json: JSON.stringify(next.data) }) });
+      try {
+        let rev;
+        if(exp == null){
+          // 가져오기·초기화처럼 덮어쓰는 동작: 지금 rev를 읽어 그 다음 번호로
+          const cur = await pcsFbWithAuth(readRev);
+          rev = (cur || 0) + 1;
+        } else rev = exp + 1;
+        await pcsFbWithAuth(() => put(rev));
+        pcsFb.lastRemoteRev = rev;
+        return { rev };
+      } catch(e){
+        if(e.auth) throw e;
+        if(e.status === 401 || e.status === 403){
+          // 규칙에 거절됨: 다른 사람이 먼저 저장했는지(rev가 바뀜), 권한 문제인지 가린다
+          let readOk = true, remote = null;
+          try { remote = await readRev(); } catch(_){ readOk = false; }
+          const why = pcsFbClassifyReject(readOk, remote, exp);
+          if(why === 'conflict'){ const c = new Error('conflict'); c.conflict = true; c.rev = remote; throw c; }
+          if(why === 'auth'){ const a = new Error('공유 데이터베이스 쓰기 권한이 없습니다. 관리자에게 계정·보안 규칙을 확인해 달라고 하세요.'); a.auth = true; throw a; }
+          throw new Error('공유 데이터베이스가 저장을 거절했습니다(보안 규칙). docs/FIREBASE_SETUP.md의 규칙을 확인하세요.');
+        }
+        throw e;
+      }
+    },
+    async clear(){ await pcsFbWithAuth(() => pcsFbFetch(pcsFbDbUrl(PCS_FB_DOC_PATH), { method: 'DELETE' })); pcsFb.lastRemoteRev = 0; },
+  };
+}
+
+/* ---------- 다른 사람의 변경 반영 ---------- */
+function pcsFbStartWatch(){
+  clearInterval(pcsFb.watchTimer);
+  pcsFb.watchTimer = setInterval(pcsFbWatchTick, pcsFb.cfg.watchMs);
+}
+/* 입력 중이거나 끄는 중이면 다시 그리지 않고 다음 차례로 미룬다 */
+function pcsFbUserBusy(){
+  const a = document.activeElement;
+  if(pcsPersist.pointerDown || pcsPersist.saving) return true;
+  if(a && (a.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName))) return true;
+  if(typeof uiDialogIsOpen === 'function' && uiDialogIsOpen()) return true;
+  return false;
+}
+async function pcsFbWatchTick(){
+  const p = pcsPersist;
+  if(!pcsFb.idToken || p.status === 'blocked' || p.status === 'off') return;
+  let remote;
+  try { remote = await pcsFbWithAuth(() => pcsFbFetch(pcsFbDbUrl(PCS_FB_DOC_PATH + '/rev'))); }
+  catch(e){ if(e.auth) pcsSetSaveStatus('error', e.message); return; }
+  remote = remote || 0;
+  if(remote === p.rev){ pcsFb.pendingRemote = false; return; }
+  if(remote === 0 && p.rev > 0){ pcsSetSaveStatus('blocked', '관리자가 공유 데이터를 초기화했습니다. 새로고침하면 기본 데이터로 다시 시작합니다.'); return; }
+  pcsFb.pendingRemote = true;
+  if(JSON.stringify(DATA) !== p.lastJson) return;   // 내 쪽에 저장 안 한 변경이 있으면 자동 저장이 충돌을 알린다
+  if(pcsFbUserBusy()) return;
+  await pcsFbPullLatest(false);
+}
+/* 공유 DB의 최신본을 불러와 화면에 반영한다. discard=true면 내 쪽 미저장 변경을 버린다(충돌 해결). */
+async function pcsFbPullLatest(discard){
+  const p = pcsPersist;
+  if(!discard && JSON.stringify(DATA) !== p.lastJson) return false;
+  if(p.saving) await p.saving.catch(() => {});
+  let doc;
+  try { doc = await p.adapter.load(); } catch(e){ pcsSetSaveStatus('error', e.message); return false; }
+  if(!doc) return false;
+  const m = pcsMigrateDoc(doc);
+  if(!m.ok){ pcsSetSaveStatus('blocked', '공유 데이터를 읽지 못했습니다. ' + m.reason); return false; }
+  pcsApplyData(m.data);
+  p.rev = doc.rev || 0; p.savedAt = doc.savedAt || null; p.lastJson = JSON.stringify(DATA);
+  pcsFb.pendingRemote = false;
+  pcsSetSaveStatus('saved', '다른 사용자의 변경을 불러왔습니다' + (doc.savedAt ? ' (' + doc.savedAt.replace('T', ' ') + ')' : '') + '.');
+  if(STATE.auth && STATE.auth.loggedIn) render();
+  if(typeof pcsA11yAnnounce === 'function') pcsA11yAnnounce('다른 사용자의 변경을 불러왔습니다');
+  return true;
+}
+/* "다른 곳에서 변경됨" 상태에서: 내 변경을 버리고 최신본으로 */
+async function pcsFbResolveConflict(){
+  if(!(await uiConfirm('다른 사용자가 먼저 저장한 최신 데이터를 불러옵니다.\n이 화면에서 저장하지 못한 변경은 사라집니다. 필요하면 먼저 "파일로 내보내기"를 하세요.\n\n불러올까요?', { title:'최신 데이터 불러오기', okLabel:'불러오기' }))) return;
+  pcsPersist.status = 'saved';
+  await pcsFbPullLatest(true);
+}
+
+/* ---------- 로그인 ---------- */
+async function pcsFbSubmitLogin(email, pw, role){
+  const errEl = document.getElementById('loginError');
+  const btn = document.querySelector('.login-submit');
+  const showErr = msg => { if(errEl){ errEl.style.display = 'block'; errEl.textContent = msg; } if(btn) btn.disabled = false; };
+  if(btn) btn.disabled = true;
+  try { await pcsFbSignIn(email, pw); } catch(e){ return showErr(e.message); }
+  const res = await pcsPersistInit(pcsCreateFirebaseStorage());
+  if(!res.ok){ pcsFbSignOut(); return showErr('공유 데이터를 불러오지 못했습니다. ' + (res.reason || '')); }
+  pcsFbStartWatch();
+  const name = String(pcsFb.email || email).split('@')[0];
+  STATE.auth = { loggedIn: true, id: name, role: role || 'Admin', shared: true, email: pcsFb.email };
+  STATE.lastUsedRole = role;
+  const ls = document.getElementById('loginScreen'); if(ls) ls.innerHTML = '';
+  const root = document.getElementById('appRoot'); if(root) root.style.display = '';
+  render();
+  updatePcsSaveBadges();
+}
+
+/* ---------- 사용자 설정: 공유 데이터(Firebase) ---------- */
+function pcsFbSaveStoredConfig(apiKey, databaseURL){
+  const msg = document.getElementById('pcsFbMsg');
+  const a = String(apiKey || '').trim(), d = String(databaseURL || '').trim();
+  if(!a && !d){ try { localStorage.removeItem(PCS_FB_STORED_KEY); } catch(_){}
+    if(msg){ msg.textContent = '공유 설정을 지웠습니다. 새로고침하면 이 브라우저에만 저장하는 방식으로 뜹니다.'; msg.className = 'pcs-import-msg'; } return true; }
+  const r = pcsFbNormalizeConfig({ apiKey: a, databaseURL: d });
+  if(!r.ok){ if(msg){ msg.textContent = r.reason; msg.className = 'pcs-import-msg error'; } return false; }
+  try { localStorage.setItem(PCS_FB_STORED_KEY, JSON.stringify({ apiKey: r.cfg.apiKey, databaseURL: r.cfg.databaseURL })); } catch(_){}
+  if(msg){ msg.textContent = '저장했습니다. 새로고침하면 공유 데이터 로그인 화면이 뜹니다.'; msg.className = 'pcs-import-msg'; }
+  return true;
+}
+function pcsFbSaveStoredFromInputs(){
+  const a = document.getElementById('pcsFbApiKey'), d = document.getElementById('pcsFbDbUrl');
+  return pcsFbSaveStoredConfig(a && a.value, d && d.value);
+}
+function renderPcsSharedSettings(){
+  if(pcsServerMode()) return '';
+  const on = pcsSharedMode();
+  const locked = pcsFb.source === 'config' || pcsFb.source === 'meta';
+  let stored = {}; try { stored = JSON.parse(localStorage.getItem(PCS_FB_STORED_KEY) || '{}') || {}; } catch(_){}
+  return `
+      <div class="field-group" style="margin-top:20px;" id="pcsSharedSettings">
+        <div class="field-label">${icon('globe')} 공유 데이터 (Firebase)</div>
+        <div class="pm-meta-grid" style="margin-bottom:12px;">
+          <div class="pm-meta-cell"><div class="pm-meta-label">방식</div><div class="pm-meta-val" data-shared-mode="${on ? 'on' : 'off'}">${on ? '공유(여러 사람이 같은 데이터)' : '이 브라우저에만 저장'}</div></div>
+          ${on ? `<div class="pm-meta-cell"><div class="pm-meta-label">데이터베이스</div><div class="pm-meta-val cell-mono" style="font-size:11px;">${escapeXml(pcsFb.cfg.databaseURL)}</div></div>
+          <div class="pm-meta-cell"><div class="pm-meta-label">계정</div><div class="pm-meta-val">${escapeXml(pcsFb.email || '-')}</div></div>
+          <div class="pm-meta-cell"><div class="pm-meta-label">다른 사용자 변경 확인</div><div class="pm-meta-val">${Math.round(pcsFb.cfg.watchMs / 1000)}초마다</div></div>` : ''}
+        </div>
+        ${on && pcsPersist.status === 'conflict' ? `<p style="margin-bottom:10px;"><button class="btn btn-primary" data-on-click="pcsFbResolveConflict" id="pcsFbResolveBtn">최신 데이터 불러오기 (내 미저장 변경 버림)</button></p>` : ''}
+        ${locked ? `<p style="font-size:12px; color:var(--ink-500);">이 파일에는 공유 설정이 들어 있어 여기서 바꿀 수 없습니다.</p>` : `
+        <p style="font-size:12px; color:var(--ink-500); margin-bottom:8px;">Firebase 프로젝트의 웹 API 키와 Realtime Database 주소를 넣으면, 다음 접속부터 Firebase 계정으로 로그인하고 모두가 같은 데이터를 씁니다. 준비 방법: docs/FIREBASE_SETUP.md</p>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <input class="pfd-detail-input" id="pcsFbApiKey" style="flex:1; min-width:180px;" placeholder="apiKey (AIza…)" value="${escapeXmlAttr(stored.apiKey || '')}" aria-label="Firebase apiKey">
+          <input class="pfd-detail-input" id="pcsFbDbUrl" style="flex:2; min-width:240px;" placeholder="https://…firebasedatabase.app" value="${escapeXmlAttr(stored.databaseURL || '')}" aria-label="Realtime Database 주소">
+          <button class="btn btn-primary" data-on-click="pcsFbSaveStoredFromInputs">저장</button>
+        </div>`}
+        <p class="pcs-import-msg" id="pcsFbMsg"></p>
+      </div>`;
+}
+/* ============================================================================
    43_events.js — v101  이벤트 연결 (CSP 대응: 인라인 핸들러 없이)
    화면 HTML에는 onclick="코드" 대신 이름과 인자만 적는다.
        data-on-click="함수이름"  data-a-click='["인자1", 2]'
@@ -26356,6 +26668,8 @@ const PCS_CALLABLE = new Set([
   'pmListSetStatus',
   'goBack',
   'pfdEditorGoBack',
+  'pcsFbResolveConflict',
+  'pcsFbSaveStoredFromInputs',
   'addSuppSampleReq',
   'addSupplementalSample',
   'addUnitOperation',
