@@ -5,7 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="pcs-api-base" content="">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-VCBM01nQ4AE0B8mdBkbmk8IJICx9309j+dpQ/lojzdY=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-tA2rwKRNIy+9wZPw+doqDUFT47X/M23k9/Qep0aKEhI=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'none'">
 <title>PCS Platform · Process Control System</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -2278,8 +2278,8 @@ const DATA = {
     { id:'c31', name:'Client 31', products:3, active:true,
       address:'서울특별시 송파구 올림픽로 300', contact:'김영호 (사업개발팀) · yhkim@client31.com',
       region:'대한민국', notes:'mAb-119 CDMO 파트너. 분기별 QBR(Quarterly Business Review) 진행 중.' },
-    { id:'c_az', name:'AstraZeneca', products:1,
-      address:'Cambridge, UK', contact:'', region:'UK',
+    { id:'c_az', name:'DowonBio', products:1,
+      address:'-', contact:'', region:'대한민국',
       notes:'Tozorakimab (anti-IL-33 mAb) CDMO 기술이전.' },
   ],
   products: [
@@ -2288,7 +2288,7 @@ const DATA = {
     { id:'p_iv200', clientId:'c31', code:'LT-P119 IV 200 mg', name:'mAb-119 (IV 200 mg)', stage:'Production', batches:14, active:true,
       dosageForm:'Lyophilized Powder for IV Infusion', strength:'200 mg/vial', indication:'자가면역질환', regulatoryStatus:'상업 생산 승인 (BLA Approved)',
       notes:'주력 상업 생산 제품. USP/DSP PCS 모두 Approved 상태로 운영 중.' },
-    { id:'p_toz', clientId:'c_az', code:'AZ-TOZ', name:'Tozorakimab', stage:'Tech Transfer', batches:0,
+    { id:'p_toz', clientId:'c_az', code:'DW-TOZ', name:'Tozorakimab', stage:'Tech Transfer', batches:0,
       dosageForm:'Solution for IV Infusion', strength:'300 mg/vial', indication:'Respiratory (anti-IL-33)',
       regulatoryStatus:'Phase III', notes:'Anti-IL-33 단클론항체. USP 18페이지 / DSP 5페이지 PFD 기반 기술이전.' },
     { id:'p_sc100', clientId:'c31', code:'LT-P119 SC 100 mg', name:'mAb-119 (SC 100 mg)', stage:'Validation', batches:2,
@@ -2303,7 +2303,7 @@ const DATA = {
         { status:'Pending Approval', by:'박서연 (MSAT)', at:'2026-01-12 15:30' },
         { status:'Approved', by:'김도현 (TOM)', at:'2026-01-15 09:00' },
       ] },
-    { id:'pm_toz', productId:'p_toz', code:'AZ-TOZ', name:'Tozorakimab USP+DSP PCS', kind:'Upstream+Downstream', reviewedBy:'', approvedBy:'', status:'Draft', version:'v0.1',
+    { id:'pm_toz', productId:'p_toz', code:'DW-TOZ', name:'Tozorakimab USP+DSP PCS', kind:'Upstream+Downstream', reviewedBy:'', approvedBy:'', status:'Draft', version:'v0.1',
       description:'Tozorakimab (anti-IL-33) 전체 공정 — Media Prep부터 Bulk Fill까지 USP 18p + DSP 5p PFD 기반.',
       scope:'Media Prep → Cell Expansion → Wave BR → N-1 Seed → Production BR → ProA → DF → MMC → CEX → VF → UF/DF → Formulation → Bulk Fill',
       approvalHistory:[] },
@@ -20364,7 +20364,7 @@ function pfdBoardSetCallout(nodeId, textId, on){
 
 const PCS_APP_ID = 'pcs-platform';
 const PCS_SCHEMA_VERSION = 1;
-const PCS_DB_NAME = 'pcs_platform';
+const PCS_DB_NAME = 'pcs_platform_demo';
 const PCS_DB_STORE = 'documents';
 const PCS_DOC_KEY = 'main';
 const PCS_AUTOSAVE_INTERVAL_MS = 1200;
