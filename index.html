@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="pcs-api-base" content="">
 <meta name="pcs-firebase" content="{&quot;apiKey&quot;:&quot;AIzaSyASB4CKv15IwJUp8pIVKXFtOYwKlY7y1es&quot;,&quot;databaseURL&quot;:&quot;https://pcs-demo-18101-default-rtdb.asia-southeast1.firebasedatabase.app&quot;}">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-4dn4zB1SP8vrphJ6CBlGnLM2Tzc23GVjPa2ALC/aTng=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-L/T2SwllHh4LOZAz64qCaaZ01umIPtM1M8tnbV6fwSk=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'none'">
 <title>PCS Platform · Process Control System</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -2273,6 +2273,17 @@ textarea.ui-dialog-input{resize:vertical; min-height:72px;}
 .mb-uo-head{flex-wrap:wrap;}
 .mb-uo-head .btn{white-space:nowrap;}
 .mb-uo-table select.pfd-detail-select{min-width:128px;}
+
+/* v114 Process Map 키보드 편집 */
+.pm-inline-editor{position:absolute; z-index:40; background:#fff; border:2px solid #2F6FB5; border-radius:9px; box-shadow:0 8px 22px rgba(30,60,110,.18); padding:4px 6px 5px; display:flex; flex-direction:column; gap:2px;}
+.pm-inline-editor input{border:0; outline:0; font:600 13px 'Inter',sans-serif; color:#2A0810; padding:4px 2px; width:100%; background:transparent;}
+.pm-inline-kind{font-size:9.5px; font-weight:800; color:#2F6FB5; letter-spacing:.03em;}
+.pm-inline-hint{font-size:9.5px; color:var(--ink-400);}
+.pm-plus{cursor:pointer;}
+.pm-plus circle{fill:#fff; stroke:#2F6FB5; stroke-width:1.4px;}
+.pm-plus text{font-size:13px; font-weight:800; fill:#2F6FB5; pointer-events:none; font-family:'Inter',sans-serif;}
+.pm-plus:hover circle{fill:#E8F0FA;}
+.pm-node-g:focus-visible .pm-node-rect{stroke:#2F6FB5!important; stroke-width:2.4px!important;}
 </style>
 </head>
 <body>
@@ -4110,7 +4121,7 @@ function openInNewTab(title, initialPath, initialCtx) {
 
 /* Process Map 복제 범위 [INT-025, CLN-001] — cloneProcessMap이 이 정의를 따른다(tests/unit/urs-modules.test.cjs가 확인) */
 const PCS_CLONE_SCOPE = {
-  included: ['Process Map 정보(새 이름, 상태 Draft·v1.0)', 'UO 노드(계층·위치, 승인 상태 Draft v0)', '공정 흐름', 'UO 리스트', 'PFD 도면 전체와 마스터 연동', 'UO 간 도형 전달', 'Work Instruction(새 ID)', 'PFD 보드 배치', 'Mass Balance(새 ID, PFD 연동은 복제본으로)'],
+  included: ['Process Map 정보(새 이름, 상태 Draft·v1.0)', 'UO 노드(계층·위치, 승인 상태 Draft v0)', '공정 흐름', 'UO 리스트', 'PFD 도면 전체와 마스터 연동', 'UO 간 도형 전달', 'Work Instruction(새 ID)', 'PFD 보드 배치', 'Mass Balance(새 ID, PFD 연동·주인 UO는 복제본으로)', 'BOM 소요량 규칙'],
   excluded: ['승인 이력·기준선·버전 기록', 'UO 승인본(스냅샷)', '발행된 MBR', 'Batch Record', '추가 샘플 요청', '보고서 상태', '결재 묶음'],
 };
 /* 객체 안의 모든 id 필드를 새 ID로(sourceId 같은 마스터 참조는 그대로) */
@@ -4129,6 +4140,23 @@ function pcsCloneRemapArray(arr, remapId, idMap){
     if (copy.id) copy.id = remapId(copy.id);
     ['from', 'to', 'shapeId', 'fromNodeId', 'toNodeId'].forEach(k => { if (copy[k]) copy[k] = idMap[copy[k]] || copy[k]; });
     return copy;
+  });
+}
+/* massBalance — Step id는 새로, PFD 연동·주인 UO는 복제본으로(v113), BOM 소요량 규칙도(Step 참조는 복제본 Step) */
+function pcsCloneMassBalance(sourcePmId, newPmId, sourceNodes, remapId, idMap){
+  const srcMb = DATA.massBalance[sourcePmId];
+  if (srcMb) {
+    const mb = JSON.parse(JSON.stringify(srcMb));
+    (mb.streams || []).forEach(s => {
+      s.id = remapId(s.id);
+      if (s.nodeId) s.nodeId = idMap[s.nodeId] || s.nodeId;
+      (s.pfdMappings || []).forEach(m => { if (m.nodeId) m.nodeId = idMap[m.nodeId] || m.nodeId; if (m.edgeId) m.edgeId = idMap[m.edgeId] || m.edgeId; });
+    });
+    DATA.massBalance[newPmId] = mb;
+  }
+  sourceNodes.forEach(n => {
+    const rules = DATA.bomRules && DATA.bomRules[n.id];
+    if (rules && rules.length) DATA.bomRules[idMap[n.id]] = rules.map(r => Object.assign({}, r, r.streamId ? { streamId: idMap[r.streamId] || r.streamId } : {}));
   });
 }
 function cloneProcessMap(sourcePmId, newPmId, newName) {
@@ -4261,16 +4289,7 @@ function cloneProcessMap(sourcePmId, newPmId, newName) {
     };
   }
 
-  // massBalance — Step id는 새로, PFD 연동은 복제본의 노드·연결선을 가리키게
-  const srcMb = DATA.massBalance[sourcePmId];
-  if (srcMb) {
-    const mb = JSON.parse(JSON.stringify(srcMb));
-    (mb.streams || []).forEach(s => {
-      s.id = remapId(s.id);
-      (s.pfdMappings || []).forEach(m => { if (m.nodeId) m.nodeId = idMap[m.nodeId] || m.nodeId; if (m.edgeId) m.edgeId = idMap[m.edgeId] || m.edgeId; });
-    });
-    DATA.massBalance[newPmId] = mb;
-  }
+  pcsCloneMassBalance(sourcePmId, newPmId, sourceNodes, remapId, idMap);
 
   logAudit('Process Map', 'Clone', `${sourcePm.code} → ${newPmId} (${newName})`);
   validateData(DATA);
@@ -4691,6 +4710,7 @@ function render(){
   renderHeader();
   
   const viewEl = document.getElementById('view');
+  pmKeepCanvasScroll();   // v114: 화면을 다시 그리기 전에 Process Map 캔버스 스크롤 위치를 기억
   const current = getActivePath();
   let html = '';
   switch(current.view){
@@ -4735,14 +4755,24 @@ function render(){
 /* -------- DASHBOARD -------- */
 /* ============================================================================
    05b_release_notes.js — v111  앱 버전과 "이번 버전에서 바뀐 점"
-   · PCS_APP_VERSION은 build.sh가 빌드 번호로 바꿔 넣는다(v113 자리).
+   · PCS_APP_VERSION은 build.sh가 빌드 번호로 바꿔 넣는다(v114 자리).
    · PCS_RELEASE_NOTES 맨 앞 항목은 항상 이번 빌드 버전이어야 한다(tests/unit/release-notes.test.cjs가 검사).
      버전을 올릴 때 여기 맨 앞에 한 항목을 넣는다. 테스트하는 사람이 무엇을 눌러 보면 되는지(try)를 같이 쓴다.
    · 오른쪽 위 사용자 메뉴 → "버전 vN · 바뀐 점" 으로 열고, 새 버전으로 처음 열면 알림을 한 번 띄운다.
    ========================================================================== */
-var PCS_APP_VERSION = 'v113';
+var PCS_APP_VERSION = 'v114';
 
 const PCS_RELEASE_NOTES = [
+  { version: 'v114', date: '2026-11-19', title: 'Process Map 키보드 편집',
+    items: [
+      '노드를 고르고 Space(또는 Insert)를 누르면 하위 노드가 생기며 바로 이름을 씁니다. Enter로 확인하면 선택이 부모로 돌아와 Space로 계속 추가합니다.',
+      'Shift+Enter는 아래 형제, Ctrl+Enter는 앞 형제 추가. F2·두 번 누르기·글자를 바로 치면 이름 고치기, Esc로 취소. (Enter는 노드 열기, Tab은 다음 노드로 — 키보드만 쓰는 사람을 위해 그대로 둡니다)',
+      '방향키로 화면 위치대로 이동, Ctrl+↑↓로 순서 바꾸기, Delete로 가지 삭제(확인).',
+      'Ctrl+C·X·V로 가지를 통째 복사·잘라내기·붙여넣기(다른 Process Map에도, 붙인 UO는 새 ID·Draft, 도면·리스트·WI·Mass Balance 포함).',
+      'Ctrl+Z·Y로 구조 변경 실행취소·다시 실행(Audit Trail에는 "실행취소"로 남습니다). ? 키로 단축키 도움말.',
+      '노드를 고르면 둘레에 + 단추(아래 = 하위, 왼쪽·오른쪽 = 형제)가 나옵니다.',
+    ],
+    try: ['참고 PCS에서 UO 하나를 누르고 Space → 이름 → Enter → Space → 이름', 'Shift+Enter로 형제 추가', 'Ctrl+Z로 되돌리기', '? 키'] },
   { version: 'v113', date: '2026-11-19', title: 'Mass Balance를 UO 안으로 + BOM 소요량',
     items: [
       'Unit Operation 패널에 "Mass Balance" 탭이 생겼습니다. 그 UO의 Step(투입·회수, Sending/Receiving)을 여기서 넣고 고칩니다.',
@@ -6763,10 +6793,10 @@ function pmDeleteBranch(pmId, ids, mode){
   return { ok: true, plan };
 }
 var PM_DELETE_MODE_LABEL = { only: '선택한 가지만 (하위는 위로)', children: '하위 가지만', subtree: '하위 포함', siblings: '형제 포함' };
-async function pmDeleteBranchUi(pmId, mode, nodeId){
+async function pmDeleteBranchUi(pmId, mode, nodeId, explicitIds){
   closeProcessContextMenu();
   const sel = pmSelection().slice();
-  const ids = nodeId && !sel.includes(nodeId) ? [nodeId] : (sel.length ? sel : [nodeId]).filter(Boolean);
+  const ids = explicitIds && explicitIds.length ? explicitIds.slice() : nodeId && !sel.includes(nodeId) ? [nodeId] : (sel.length ? sel : [nodeId]).filter(Boolean);
   const nodes = getPmTreeNodes(pmId);
   const plan = pmPlanDelete(nodes, ids, mode, pmNodeLockReason);
   if(!plan.remove.length){ uoLockNotice('지울 노드가 없습니다.'); return; }
@@ -6882,6 +6912,420 @@ function seedPmHierarchy(){
   }
   pmTidyLayout(pmId);
   DATA.auditTrail.length = auditLen;
+}
+/* ============================================================================
+   07c_pm_keyboard.js — v114  Process Map 키보드 편집(ThinkWise 맵에서 직접 눌러 본 동작 기준)
+     Space·Insert 하위 가지 추가 → 그 자리에서 이름 입력. 끝내면 선택이 부모로 돌아와 Space로 계속 추가(연속 추가)
+     Shift+Enter  아래 형제 추가(입력을 끝내면 새 노드가 선택 — 계속 아래에 추가) / Ctrl+Enter 앞 형제 추가
+     Enter·Tab    접근성 동작 그대로: Enter = 노드 열기(패널), Tab = 다음 항목으로 초점(키보드 사용자가 갇히지 않게 — a11y 회귀 테스트)
+     F2·더블클릭 이름 고치기, 선택한 채 글자를 치면 이름을 그 글자부터 새로 입력 / Esc 입력 취소
+     방향키      화면에 보이는 위치대로 이동, Ctrl+↑↓ 형제 순서 바꾸기
+     Delete      선택한 가지 삭제(하위 포함, 확인 창), Ctrl+C·X·V 가지 복사·잘라내기·붙여넣기, Ctrl+Z·Y 실행취소·다시 실행
+     ?           단축키 도움말
+   구조 실행취소는 Process Map 범위 스냅샷(노드·흐름·딸린 도면·Mass Balance·보드)이다. 되돌리기도 기록을 지우지 않고
+   "실행취소"라는 새 변경으로 남긴다(GMP). 승인 상태가 바뀌었거나 UO 내용을 고친 뒤에는 그 이전으로 되돌리지 않는다.
+   ========================================================================== */
+
+/* ---------- 순수 함수 ---------- */
+/* 화면 위치로 다음 노드: boxes [{ id, cx, cy }], dir 'left'|'right'|'up'|'down'. 그 방향 반쯤(±60°) 안에서 가장 가까운 것 */
+function pmSpatialNext(boxes, fromId, dir){
+  const me = (boxes || []).find(b => b.id === fromId);
+  if(!me) return null;
+  const v = { left: [-1, 0], right: [1, 0], up: [0, -1], down: [0, 1] }[dir];
+  if(!v) return null;
+  let best = null, bestScore = Infinity;
+  boxes.forEach(b => {
+    if(b.id === fromId) return;
+    const dx = b.cx - me.cx, dy = b.cy - me.cy;
+    const along = dx * v[0] + dy * v[1];
+    if(along <= 0) return;
+    const across = Math.abs(dx * v[1] - dy * v[0]);
+    if(across > along * 1.8) return;   // 방향에서 너무 벗어남
+    const score = along + across * 2;
+    if(score < bestScore){ bestScore = score; best = b.id; }
+  });
+  return best;
+}
+/* 새 노드 종류의 기본값: 단계·루트 아래 → UO, UO·하위 단계 아래 → 하위 단계 */
+function pmDefaultChildKind(parentKind){ return parentKind === 'uo' || parentKind === 'step' ? 'step' : 'uo'; }
+/* 키 → 동작 이름(입력 중이 아닐 때). 순수: 화면 상태를 읽지 않는다 */
+function pmKeyAction(e){
+  const k = e.key, mod = e.ctrlKey || e.metaKey;
+  if(mod && !e.shiftKey && (k === 'z' || k === 'Z')) return 'undo';
+  if(mod && (k === 'y' || k === 'Y' || (e.shiftKey && (k === 'z' || k === 'Z')))) return 'redo';
+  if(mod && (k === 'c' || k === 'C')) return 'copy';
+  if(mod && (k === 'x' || k === 'X')) return 'cut';
+  if(mod && (k === 'v' || k === 'V')) return 'paste';
+  if(mod && k === 'Enter') return 'addBefore';
+  if(mod && k === 'ArrowUp') return 'moveUp';
+  if(mod && k === 'ArrowDown') return 'moveDown';
+  if(mod || e.altKey) return null;
+  if(k === ' ' || k === 'Insert') return e.shiftKey ? null : 'addChild';
+  if(k === 'Enter') return e.shiftKey ? 'addAfter' : null;   // Enter 혼자는 노드 열기(버튼 동작)
+  if(k === 'F2') return 'rename';
+  if(k === 'Delete' || k === 'Backspace') return 'delete';
+  if(k === 'ArrowLeft') return 'navLeft';
+  if(k === 'ArrowRight') return 'navRight';
+  if(k === 'ArrowUp') return 'navUp';
+  if(k === 'ArrowDown') return 'navDown';
+  if(k === '?') return 'help';
+  if(k.length === 1 && !/\s/.test(k)) return 'typeRename';
+  return null;
+}
+
+/* ---------- 구조 실행취소(Process Map 범위 스냅샷) ---------- */
+var PM_UNDO_MAX = 30;
+var pmStructDepth = 0;
+function pmUndoState(pmId){ if(!STATE.pmUndo) STATE.pmUndo = {}; return STATE.pmUndo[pmId] = STATE.pmUndo[pmId] || { undo: [], redo: [] }; }
+function pmScopeSnapshot(pmId){
+  const nodes = DATA.nodes.filter(n => n.pmId === pmId);
+  const ids = new Set(nodes.map(n => n.id));
+  const per = {};
+  PFD_NODE_SCOPED.concat(['nodeMeta', 'bomRules']).forEach(k => { per[k] = {}; Object.keys(DATA[k] || {}).forEach(id => { if(ids.has(id)) per[k][id] = DATA[k][id]; }); });
+  return JSON.stringify({ nodes, flows: (DATA.pmFlowEdges || {})[pmId] || [], per, mb: (DATA.massBalance || {})[pmId] || null, board: (DATA.pfdBoards || {})[pmId] || null,
+    transfers: (DATA.pfdTransfers || []).filter(t => ids.has(t.fromNodeId) || ids.has(t.toNodeId)),
+    ap: (DATA.approvalPackages || []).map(p => ({ id: p.id, nodeIds: (p.nodeIds || []).filter(id => ids.has(id)) })) });
+}
+/* 되돌려도 되는가: 스냅샷 이후 UO의 승인 상태·버전이 그대로여야 한다 */
+function pmStatusKey(nodes){ return JSON.stringify((nodes || []).filter(n => (n.kind || 'uo') === 'uo').map(n => [n.id, n.uoStatus || 'Draft', n.uoVersion || 0]).sort()); }
+function pmScopeRestore(pmId, snapStr){
+  const s = JSON.parse(snapStr);
+  const curIds = new Set(DATA.nodes.filter(n => n.pmId === pmId).map(n => n.id));
+  DATA.nodes = DATA.nodes.filter(n => n.pmId !== pmId).concat(s.nodes);
+  if(!DATA.pmFlowEdges) DATA.pmFlowEdges = {};
+  DATA.pmFlowEdges[pmId] = s.flows;
+  Object.entries(s.per).forEach(([k, m]) => {
+    if(!DATA[k]) DATA[k] = {};
+    curIds.forEach(id => { delete DATA[k][id]; });
+    Object.assign(DATA[k], m);
+  });
+  if(s.mb) DATA.massBalance[pmId] = s.mb; else delete DATA.massBalance[pmId];
+  if(!DATA.pfdBoards) DATA.pfdBoards = {};
+  if(s.board) DATA.pfdBoards[pmId] = s.board; else delete DATA.pfdBoards[pmId];
+  const snapIds = new Set(s.nodes.map(n => n.id));
+  DATA.pfdTransfers = (DATA.pfdTransfers || []).filter(t => !(curIds.has(t.fromNodeId) || curIds.has(t.toNodeId) || snapIds.has(t.fromNodeId) || snapIds.has(t.toNodeId))).concat(s.transfers);
+  (DATA.approvalPackages || []).forEach(p => {
+    const was = s.ap.find(x => x.id === p.id);
+    const others = (p.nodeIds || []).filter(id => !curIds.has(id) && !snapIds.has(id));
+    p.nodeIds = others.concat(was ? was.nodeIds : []);
+  });
+  _registerExistingIds();
+}
+/* 구조를 바꾸는 함수를 감싼다: 바뀌었으면 바꾸기 전 스냅샷을 실행취소에 쌓는다(가장 바깥 한 번만) */
+function pmWithUndo(pmId, run){
+  // 로드 중(시드)·로그인 전에는 쌓지 않는다 — 실행취소는 사람이 한 편집만
+  if(!pmId || pmStructDepth > 0 || !STATE.auth || !STATE.auth.loggedIn || !DATA.processMaps.some(m => m.id === pmId)) return run();
+  const before = pmScopeSnapshot(pmId);
+  pmStructDepth++;
+  let result;
+  try { result = run(); } finally { pmStructDepth--; }
+  if(result && typeof result.then === 'function') return result;   // 대화상자를 기다리는 함수는 안에서 부르는 store 함수가 기록한다
+  if(pmScopeSnapshot(pmId) !== before){
+    const st = pmUndoState(pmId);
+    st.undo.push(before); if(st.undo.length > PM_UNDO_MAX) st.undo.shift();
+    st.redo = [];
+  }
+  return result;
+}
+/* UO 내용(PFD·WI·리스트·Mass Balance)을 고치면 그 Process Map의 구조 실행취소를 비운다 — 되돌리면 그 편집까지 지워지므로 */
+function pmUndoInvalidate(pmId){ if(STATE.pmUndo && STATE.pmUndo[pmId]) STATE.pmUndo[pmId] = { undo: [], redo: [] }; }
+function pmUndoStep(pmId, dir){
+  if(!pmStructureEditable(pmId)){ uoLockNotice('Process Map이 Draft가 아니라 구조를 되돌릴 수 없습니다.'); return false; }
+  const st = pmUndoState(pmId);
+  const from = dir === 'undo' ? st.undo : st.redo, to = dir === 'undo' ? st.redo : st.undo;
+  if(!from.length){ uoLockNotice(dir === 'undo' ? '되돌릴 구조 변경이 없습니다.' : '다시 실행할 변경이 없습니다.'); return false; }
+  const snap = from[from.length - 1];
+  const target = JSON.parse(snap).nodes;
+  if(pmStatusKey(target.filter(n => DATA.nodes.some(x => x.id === n.id))) !== pmStatusKey(DATA.nodes.filter(n => n.pmId === pmId && target.some(t => t.id === n.id)))){
+    from.length = 0;
+    uoLockNotice('그 사이 Unit Operation 승인 상태가 바뀌어 되돌릴 수 없습니다.');
+    return false;
+  }
+  from.pop();
+  to.push(pmScopeSnapshot(pmId));
+  pmScopeRestore(pmId, snap);
+  logAudit('Process Map', dir === 'undo' ? '실행취소' : '다시 실행', `${(DATA.processMaps.find(m => m.id === pmId) || {}).code || pmId} 구조 ${dir === 'undo' ? '되돌림' : '다시 적용'}`, null, null, { pmId });
+  validateData(DATA);
+  return true;
+}
+
+/* ---------- store: 이름 바꾸기·형제 위치 지정 추가·붙여넣기 ---------- */
+/* [store] 이름 — UO는 UO 승인 잠금, 단계·하위 단계는 Process Map 구조 잠금 */
+function pmRenameNode(nodeId, name){
+  const n = DATA.nodes.find(x => x.id === nodeId);
+  const v = String(name || '').trim();
+  if(!n || !v || v === n.name) return false;
+  if(pmNodeKind(n) === 'uo' ? !uoGuard(nodeId) : !pmStructureGuard(n.pmId)) return false;
+  return pmWithUndo(n.pmId, () => { store.updateNode(nodeId, 'name', v); validateData(DATA); return true; });
+}
+/* [store] 형제 옆에 추가(before=true면 앞) — 종류는 기준 형제와 같다 */
+function pmAddSiblingNode(refId, name, before){
+  const ref = DATA.nodes.find(x => x.id === refId);
+  if(!ref) return null;
+  const kind = pmNodeKind(ref);
+  const id = pmAddChildNode(ref.parentId || 'ROOT', kind, name);
+  if(!id) return null;
+  const n = DATA.nodes.find(x => x.id === id);
+  n.order = (ref.order || 0) + (before ? -0.5 : 0.5);
+  n.x = ref.x + (before ? -1 : 1) * (PM_NODE_W + 40); n.y = ref.y;
+  normalizeSiblingOrders(ref.pmId, ref.parentId || null);
+  validateData(DATA);
+  return id;
+}
+/* 가지 복사본(클립보드): 맨 위 노드들과 그 하위 전체, 딸린 내용(도면·리스트·WI·Mass Balance·소요량 규칙) */
+function pmCopyBranch(pmId, ids){
+  const nodes = getPmTreeNodes(pmId);
+  const set = new Set(ids);
+  const tops = ids.filter(id => { let p = (nodes.find(n => n.id === id) || {}).parentId; while(p){ if(set.has(p)) return false; p = (nodes.find(n => n.id === p) || {}).parentId; } return true; });
+  const all = [];
+  tops.forEach(t => { all.push(t); pmDescendantIds(nodes, t).forEach(d => { if(!all.includes(d)) all.push(d); }); });
+  all.forEach(id => pfdMaterializeNode(id));
+  const per = {};
+  PFD_NODE_SCOPED.concat(['bomRules']).forEach(k => { per[k] = {}; all.forEach(id => { if(DATA[k] && DATA[k][id] != null) per[k][id] = DATA[k][id]; }); });
+  const mb = ((DATA.massBalance[pmId] || {}).streams || []).filter(s => all.includes(s.nodeId));
+  return JSON.parse(JSON.stringify({ pmId, tops, nodes: all.map(id => nodes.find(n => n.id === id)), per, mb }));
+}
+/* [store] 붙여넣기: 새 ID·Draft v0, 대상 아래(대상이 없으면 루트)로. 종류 규칙에 안 맞으면 막는다. 반환: 새 맨 위 id 목록 */
+function pmPasteBranch(targetParentId, clip){
+  const parent = targetParentId && targetParentId !== 'ROOT' ? DATA.nodes.find(n => n.id === targetParentId) : null;
+  const pmId = parent ? parent.pmId : getActiveTab().ctx.pmId;
+  if(!clip || !clip.nodes || !clip.nodes.length) return null;
+  const bad = clip.tops.map(id => clip.nodes.find(n => n.id === id)).find(n => !pmKindAllowed(pmNodeKind(n), parent ? pmNodeKind(parent) : null));
+  if(bad){ uoLockNotice(`"${bad.name}"(${PM_NODE_KINDS[pmNodeKind(bad)].label})은(는) 여기에 붙일 수 없습니다. ${pmKindRuleText(pmNodeKind(bad))}`); return null; }
+  const idMap = {};
+  const remap = old => { if(!old) return old; if(!idMap[old]) idMap[old] = genId(String(old).split('_')[0] || 'n'); return idMap[old]; };
+  clip.nodes.forEach(n => remap(n.id));
+  Object.values(clip.per).forEach(m => Object.values(m).forEach(arr => (Array.isArray(arr) ? arr : []).forEach(o => { if(o && o.id) remap(o.id); })));
+  clip.mb.forEach(s => remap(s.id));
+  const sibs = getProcessChildren(pmId, parent ? parent.id : null);
+  let order = sibs.length ? Math.max(...sibs.map(n => n.order || 0)) : 0;
+  const baseX = parent ? parent.x : 80, baseY = parent ? parent.y + 140 : 150;
+  const top0 = clip.nodes.find(n => n.id === clip.tops[0]);
+  clip.nodes.forEach(n => {
+    const isTop = clip.tops.includes(n.id);
+    const copy = Object.assign({}, n, uoResetFields(), { id: idMap[n.id], pmId, parentId: isTop ? (parent ? parent.id : null) : idMap[n.parentId],
+      x: baseX + ((n.x || 0) - (top0.x || 0)) + (isTop ? (++order - 1) * 0 : 0), y: baseY + ((n.y || 0) - (top0.y || 0)) });
+    if(isTop) copy.order = order;
+    delete copy.uoSnapshots;
+    store.addNode(copy);
+  });
+  Object.entries(clip.per).forEach(([k, m]) => {
+    if(!DATA[k]) DATA[k] = {};
+    Object.entries(m).forEach(([oldId, val]) => {
+      let v = JSON.parse(JSON.stringify(val));
+      if(k === 'bomRules') v = v.map(r => Object.assign({}, r, r.streamId ? { streamId: idMap[r.streamId] || '' } : {}));
+      else if(k === 'workInstructions') v = pcsRemapIdsDeep(v, id => idMap[id] || (idMap[id] = genId(String(id).split('_')[0] || 'wi')));
+      else if(Array.isArray(v)) v = pcsCloneRemapArray(val, id => idMap[id] || remap(id), idMap);
+      DATA[k][idMap[oldId]] = v;
+    });
+  });
+  clip.nodes.forEach(n => pcsRemapPfdRefs(idMap[n.id], idMap));
+  if(clip.mb.length){
+    const mb = ensureMb(pmId);
+    clip.mb.forEach(s => { const c = JSON.parse(JSON.stringify(s)); c.id = idMap[s.id]; c.nodeId = idMap[s.nodeId];
+      c.pfdMappings = (c.pfdMappings || []).map(m => ({ nodeId: idMap[m.nodeId] || m.nodeId, edgeId: idMap[m.edgeId] || m.edgeId })).filter(m => clip.nodes.some(n => idMap[n.id] === m.nodeId));
+      mb.streams.push(c); });
+  }
+  normalizeSiblingOrders(pmId, parent ? parent.id : null);
+  logAudit('Process Map', 'Paste Branch', `${clip.nodes.length}개 노드 붙여넣기 → ${parent ? parent.name : 'ROOT'}`, clip.pmId, pmId, { pmId });
+  validateData(DATA);
+  return clip.tops.map(id => idMap[id]);
+}
+
+/* ---------- 이름 입력 칸(캔버스 위) ---------- */
+/* STATE.pmInline = { pmId, mode:'child'|'after'|'before'|'rename', refId, kind, value } */
+function pmStartInline(mode, refId, initial){
+  const n = refId && refId !== 'ROOT' ? DATA.nodes.find(x => x.id === refId) : null;
+  const pmId = n ? n.pmId : getActiveTab().ctx.pmId;
+  if(mode === 'rename'){
+    if(!n) return;
+    if(pmNodeKind(n) === 'uo' ? !uoEditable(n.id) : !pmStructureEditable(pmId)){ pmNodeKind(n) === 'uo' ? uoGuard(n.id) : pmStructureGuard(pmId); return; }
+  } else if(!pmStructureGuard(pmId)) return;
+  if(mode === 'after' || mode === 'before'){ if(!n) return pmStartInline('child', 'ROOT'); }
+  const parentKind = mode === 'child' ? (n ? pmNodeKind(n) : null) : null;
+  if(mode === 'child' && n && !['uo', 'step', 'stage'].some(k => pmKindAllowed(k, parentKind))) return;
+  const kind = mode === 'child' ? pmDefaultChildKind(parentKind) : n ? pmNodeKind(n) : 'uo';
+  STATE.pmInline = { pmId, mode, refId: refId || 'ROOT', kind, value: initial != null ? initial : (mode === 'rename' ? n.name : '') };
+  pmRenderInline();
+}
+function pmInlineBox(st){
+  const wrap = document.getElementById('pmCanvasWrap');
+  const svg = wrap && wrap.querySelector('#pmCanvas');
+  if(!svg) return null;
+  const ref = st.refId === 'ROOT' ? PM_ROOT_BOX_NODE : DATA.nodes.find(n => n.id === st.refId);
+  if(!ref) return null;
+  const w = st.refId === 'ROOT' ? 220 : PM_NODE_W;
+  let x = ref.x, y = ref.y;
+  if(st.mode === 'child'){ const kids = getProcessChildren(st.pmId, st.refId === 'ROOT' ? null : st.refId); x = kids.length ? Math.max(...kids.map(k => k.x)) + PM_NODE_W + 40 : ref.x + (w - PM_NODE_W) / 2; y = ref.y + 140; }
+  else if(st.mode === 'after') x = ref.x + PM_NODE_W + 40;
+  else if(st.mode === 'before') x = ref.x - PM_NODE_W - 40;
+  const k = pmView.scale;
+  const sr = svg.getBoundingClientRect(), wr = wrap.getBoundingClientRect();
+  return { left: sr.left - wr.left + wrap.scrollLeft + x * k, top: sr.top - wr.top + wrap.scrollTop + y * k, w: PM_NODE_W * k, h: PM_NODE_H * k };
+}
+function pmRenderInline(){
+  const st = STATE.pmInline;
+  let el = document.getElementById('pmInlineEditor');
+  if(!st){ if(el) el.remove(); return; }
+  const wrap = document.getElementById('pmCanvasWrap');
+  const b = wrap && pmInlineBox(st);
+  if(!b){ STATE.pmInline = null; if(el) el.remove(); return; }
+  if(!el){
+    el = document.createElement('div'); el.id = 'pmInlineEditor'; el.className = 'pm-inline-editor';
+    el.innerHTML = `<div class="pm-inline-kind"></div><input type="text" aria-label="노드 이름" maxlength="120"><div class="pm-inline-hint">Enter 확인 · Esc 취소</div>`;
+    wrap.appendChild(el);
+    const inp = el.querySelector('input');
+    inp.addEventListener('keydown', ev => {
+      ev.stopPropagation();
+      if(ev.key === 'Escape'){ ev.preventDefault(); pmCancelInline(); }
+      else if(ev.key === 'Enter' || ev.key === 'Tab'){ ev.preventDefault(); pmCommitInline(); }
+    });
+    inp.addEventListener('input', () => { if(STATE.pmInline) STATE.pmInline.value = inp.value; });
+    inp.addEventListener('blur', () => { setTimeout(() => { if(STATE.pmInline && document.activeElement !== inp) pmCommitInline(); }, 0); });
+  }
+  Object.assign(el.style, { left: b.left + 'px', top: b.top + 'px', width: Math.max(150, b.w) + 'px', minHeight: b.h + 'px' });
+  el.setAttribute('data-mode', st.mode);
+  el.querySelector('.pm-inline-kind').textContent = `${{ child: '하위 추가', after: '아래 형제 추가', before: '앞 형제 추가', rename: '이름 고치기' }[st.mode]} · ${PM_NODE_KINDS[st.kind].label}`;
+  const inp = el.querySelector('input');
+  if(inp.value !== st.value) inp.value = st.value;
+  if(document.activeElement !== inp){ inp.focus(); const L = inp.value.length; inp.setSelectionRange(st.mode === 'rename' && st.value === (DATA.nodes.find(n => n.id === st.refId) || {}).name ? 0 : L, L); }
+}
+function pmCancelInline(){ const had = STATE.pmInline; STATE.pmInline = null; pmRenderInline(); if(had) pmFocusCanvas(); }
+function pmCommitInline(){
+  const st = STATE.pmInline;
+  if(!st) return;
+  STATE.pmInline = null;
+  pmRenderInline();
+  const name = String(st.value || '').trim();
+  const tab = getActiveTab();
+  if(!name){ pmFocusCanvas(); return; }
+  let newId = null;
+  if(st.mode === 'rename') pmRenameNode(st.refId, name);
+  else if(st.mode === 'child') newId = pmWithUndo(st.pmId, () => pmAddChildNode(st.refId, st.kind, name));
+  else newId = pmWithUndo(st.pmId, () => pmAddSiblingNode(st.refId, name, st.mode === 'before'));
+  if(newId){
+    // 하위 추가는 부모로 돌아가 Space로 계속, 형제 추가는 새 노드에 머물러 Enter로 계속
+    tab.ctx.selectedProcessNodeId = st.mode === 'child' ? st.refId : newId;
+    resolveSiblingCollisions(st.pmId, null);
+  }
+  renderPmCanvas();
+  pmFocusCanvas();
+}
+function pmFocusCanvas(){
+  const sel = getActiveTab().ctx.selectedProcessNodeId;
+  const g = sel && document.querySelector(`#pmCanvas [data-node-id="${CSS && CSS.escape ? CSS.escape(sel) : sel}"]`);
+  if(g && g.focus) g.focus({ preventScroll: true });
+}
+
+/* ---------- 키보드 ---------- */
+var pmClipboard = null;   // { clip, cut:boolean }
+var pmLastClick = { id: null, t: 0 };
+function pmIsDoubleClick(id){ const now = Date.now(); const dbl = pmLastClick.id === id && now - pmLastClick.t < 450; pmLastClick = dbl ? { id: null, t: 0 } : { id, t: now }; return dbl; }
+function pmKeyTargetOk(e){
+  if(!document.getElementById('pmCanvasWrap')) return false;
+  const t = e.target;
+  if(t && (t.closest && t.closest('input, textarea, select, [contenteditable="true"], .pm-side-panel, .modal-overlay, .wi-modal-overlay, #uiDialogLayer'))) return false;
+  if(document.querySelector('.modal-overlay, .wi-modal-overlay, #uiDialog')) return false;
+  if(document.getElementById('pfdEditor')) return false;
+  return true;
+}
+function pmVisibleBoxes(pmId){
+  return pmVisibleTreeNodes(pmId).map(n => ({ id: n.id, cx: n.x + PM_NODE_W / 2, cy: n.y + PM_NODE_H / 2 })).concat([{ id: 'ROOT', cx: 60 + 110, cy: 30 + PM_NODE_H / 2 }]);
+}
+function pmSelectNode(id){
+  const tab = getActiveTab();
+  tab.ctx.selectedProcessNodeId = id;
+  renderPmCanvas();
+  pmFocusCanvas();
+  const g = document.querySelector(`#pmCanvas [data-node-id="${id}"]`);
+  if(g && g.scrollIntoView) g.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+}
+async function pmOnKey(e){
+  if(!pmKeyTargetOk(e)) return;
+  const action = pmKeyAction(e);
+  if(!action) return;
+  const tab = getActiveTab();
+  const pmId = (document.getElementById('pmCanvasWrap') || {}).getAttribute ? document.getElementById('pmCanvasWrap').getAttribute('data-pmid') : tab.ctx.pmId;
+  const sel = tab.ctx.selectedProcessNodeId || null;
+  const selNode = sel && sel !== 'ROOT' ? DATA.nodes.find(n => n.id === sel && n.pmId === pmId) : null;
+  const multi = pmSelection().filter(id => DATA.nodes.some(n => n.id === id && n.pmId === pmId));
+  const ids = multi.length ? multi : (selNode ? [selNode.id] : []);
+  const stop = () => { e.preventDefault(); e.stopPropagation(); };
+  switch(action){
+    case 'help': stop(); pmShowKeyHelp(); return;
+    case 'undo': case 'redo': stop(); if(pmUndoStep(pmId, action)){ STATE.pmInline = null; render(); } return;
+    case 'navLeft': case 'navRight': case 'navUp': case 'navDown': {
+      stop();
+      if(!sel){ const first = pmVisibleTreeNodes(pmId)[0]; if(first) pmSelectNode(first.id); return; }
+      const next = pmSpatialNext(pmVisibleBoxes(pmId), sel, action.slice(3).toLowerCase());
+      if(next) pmSelectNode(next);
+      return;
+    }
+    case 'addChild': stop(); pmStartInline('child', sel || 'ROOT'); return;
+    case 'addAfter': case 'addBefore': stop(); if(!selNode) return pmStartInline('child', 'ROOT'); pmStartInline(action === 'addAfter' ? 'after' : 'before', selNode.id); return;
+    case 'rename': stop(); if(selNode) pmStartInline('rename', selNode.id); return;
+    case 'typeRename': if(!selNode) return; stop(); pmStartInline('rename', selNode.id, e.key); return;
+    case 'moveUp': case 'moveDown': stop(); if(selNode){ pmWithUndo(pmId, () => moveProcessNode(selNode.id, action === 'moveUp' ? -1 : 1)); pmFocusCanvas(); } return;
+    case 'delete': stop(); if(ids.length) await pmDeleteBranchUi(pmId, 'subtree', multi.length ? null : selNode.id); return;
+    case 'copy': case 'cut': {
+      if(!ids.length) return; stop();
+      pmClipboard = { clip: pmCopyBranch(pmId, ids), cut: action === 'cut' };
+      uiToast(`${pmClipboard.clip.nodes.length}개 노드를 ${action === 'cut' ? '잘라 두었습니다 — 붙일 곳을 고르고 Ctrl+V' : '복사했습니다 — 붙일 곳을 고르고 Ctrl+V'}`);
+      return;
+    }
+    case 'paste': {
+      if(!pmClipboard) return; stop();
+      const target = sel || 'ROOT';
+      const c = pmClipboard;
+      if(c.cut && c.clip.pmId === pmId){
+        // 같은 Process Map 안의 잘라내기·붙여넣기 = 옮기기(ID·승인 기록 그대로)
+        const ok = pmWithUndo(pmId, () => c.clip.tops.map(id => pmReparentNode(id, target === 'ROOT' ? null : target)).some(Boolean));
+        if(ok){ pmClipboard = null; pmTidyLayout(pmId); render(); }
+        return;
+      }
+      const tops = pmWithUndo(pmId, () => pmPasteBranch(target, c.clip));
+      if(tops && c.cut){ pmClipboard = null; await pmDeleteBranchUi(c.clip.pmId, 'subtree', null, c.clip.tops); }
+      if(tops){ tab.ctx.selectedProcessNodeId = tops[0]; resolveSiblingCollisions(pmId, null); render(); }
+      return;
+    }
+  }
+}
+function pmShowKeyHelp(){
+  const rows = [['Space · Insert', '하위 추가 → 이름 입력 (끝내면 부모로 돌아와 계속 추가)'], ['Shift+Enter', '아래 형제 추가'], ['Ctrl+Enter', '앞 형제 추가'], ['Enter', '노드 열기(오른쪽 패널)'], ['Tab', '다음 노드로 초점 이동'],
+    ['F2 · 더블클릭', '이름 고치기'], ['글자 입력', '이름을 그 글자부터 새로 입력'], ['Esc', '입력 취소 · 여러 선택 해제'], ['← ↑ → ↓', '화면 위치대로 이동'],
+    ['Ctrl+↑ / Ctrl+↓', '형제 순서 바꾸기'], ['Delete', '선택한 가지 삭제(하위 포함, 확인)'], ['Ctrl+C / X / V', '가지 복사 / 잘라내기 / 붙여넣기'],
+    ['Ctrl+Z / Ctrl+Y', '구조 실행취소 / 다시 실행'], ['Ctrl·Shift+클릭', '여러 노드 선택'], ['우클릭', '노드 메뉴(종류·가지 선택·가지 삭제)'], ['?', '이 도움말']];
+  apModalRoot().innerHTML = `<div class="modal-overlay" data-on-click="if_cb546e"><div class="modal-card" style="max-width:560px;" data-pm-keyhelp>
+    <div class="modal-header">Process Map 키보드</div>
+    <div class="modal-body"><table class="data-table" style="width:100%;">${rows.map(([k, d]) => `<tr><td class="mono" style="white-space:nowrap; font-weight:700;">${escapeXml(k)}</td><td>${escapeXml(d)}</td></tr>`).join('')}</table>
+    <p style="font-size:11.5px; color:var(--ink-500); margin:10px 0 0;">구조 편집은 Process Map이 Draft일 때만 됩니다. 실행취소도 Audit Trail에 "실행취소"로 남습니다.</p></div>
+    <div class="modal-actions"><button class="btn btn-primary" data-on-click="closeGlobalModal">닫기</button></div></div></div>`;
+}
+if(typeof document !== 'undefined' && document.addEventListener && !globalThis.__pmKeysBound){
+  globalThis.__pmKeysBound = true;
+  document.addEventListener('keydown', e => { pmOnKey(e); });
+  document.addEventListener('dblclick', e => {
+    // 첫 클릭이 패널을 열며 캔버스를 다시 그리면 이벤트 대상이 떨어져 나간다 → 그 자리의 요소를 다시 찾는다
+    const at = (e.target && e.target.isConnected) ? e.target : document.elementFromPoint(e.clientX, e.clientY);
+    const g = at && at.closest && at.closest('#pmCanvas .pm-node-g');
+    if(!g || g.getAttribute('data-node-id') === 'ROOT' || at.closest('[data-collapse-toggle],[data-add-handle],[data-plus]')) return;
+    e.preventDefault();
+    pmStartInline('rename', g.getAttribute('data-node-id'));
+  });
+}
+/* 선택한 노드 둘레의 + 단추(아래 = 하위, 왼쪽 = 앞 형제, 오른쪽 = 아래 형제) — Process Map이 Draft일 때 */
+function pmPlusHandlesSvg(n){
+  if(!pmStructureEditable(n.pmId)) return '';
+  const h = (mode, x, y, title) => `<g class="pm-plus" data-plus="${mode}" data-plus-node="${n.id}" transform="translate(${x},${y})" role="button" aria-label="${title}"><title>${title}</title><circle r="8"/><text text-anchor="middle" dominant-baseline="central">+</text></g>`;
+  const canChild = ['uo', 'step', 'stage'].some(k => pmKindAllowed(k, pmNodeKind(n)));
+  return (canChild ? h('child', PM_NODE_W / 2, PM_NODE_H + 16, '하위 추가 (Space)') : '') + h('before', -16, PM_NODE_H / 2, '앞 형제 추가 (Ctrl+Enter)') + h('after', PM_NODE_W + 16, PM_NODE_H / 2, '아래 형제 추가 (Shift+Enter)');
+}
+/* 지금 캔버스 스크롤 위치를 기억(스크롤 이벤트는 다음 프레임에 오므로 다시 그리기 직전에 직접 읽는다) */
+function pmKeepCanvasScroll(){
+  const w = typeof document !== 'undefined' && document.getElementById && document.getElementById('pmCanvasWrap');
+  if(!w || !w.querySelector('#pmCanvas')) return;
+  STATE.pmCanvasScroll = STATE.pmCanvasScroll || {};
+  STATE.pmCanvasScroll[w.getAttribute('data-pmid')] = { l: w.scrollLeft, t: w.scrollTop };
 }
 function openBomReport(pmId){
   goTo('bomReport', { reportPmId: pmId }, { label:'BOM Report', tag:'BOM' });
@@ -7580,6 +8024,7 @@ function renderPmCanvas(){
   const tab = getActiveTab();
   const isEditing = tab.isEditingProcessMap;
   const pm = DATA.processMaps.find(m=>m.id===pmId);
+  pmKeepCanvasScroll();
   resolveSiblingCollisions(pmId, pmDrag ? pmDrag.nodeId : null);
   // v112: 계층 전체 중 접힌 가지 아래는 그리지 않는다. 번호·종류·접기 단추는 줄 정보(pmTreeRows)에서
   const treeRows = pmTreeRows(getPmTreeNodes(pmId), pmCollapsedSet(pmId));
@@ -7602,14 +8047,19 @@ function renderPmCanvas(){
       ${wrapLabel(rootNode.name, 26).map((line, i, a)=>`<text class="pm-node-label" x="110" y="${PM_NODE_H/2+5 - (a.length-1)*8 + i*16}" text-anchor="middle" fill="#fff">${escapeXml(line)}</text>`).join('')}
     </g>`;
   const nodesSvg = pmNodesSvg(nodes, nodeDepth, selectedId, isEditing, rowById, pmCollapsedSet(pmId), new Set(pmSelection()));
-  const rootAddHandle = isEditing && selectedId===rootId
-    ? `<g class="pm-add-handle" data-add-handle="ROOT" transform="translate(110,${PM_NODE_H+18})"><circle r="9"/><text text-anchor="middle" dominant-baseline="central" font-size="16">+</text></g>`
+  const rootAddHandle = selectedId===rootId && pmStructureEditable(pmId)   // v114: 선택하면 + (하위 추가 → 이름 입력)
+    ? `<g class="pm-plus" data-plus="child" data-plus-node="ROOT" transform="translate(${60+110},${30+PM_NODE_H+16})" role="button" aria-label="하위 추가"><title>하위 추가 (Space)</title><circle r="8"/><text text-anchor="middle" dominant-baseline="central">+</text></g>`
     : '';
   const flowEdgesSvg = pmFlowEdgesSvg(pmId, allBoxes, rootId, nodes);
   wrap.innerHTML = pmCanvasHtml(pm, maxX, maxY, edges, rootSvg, rootAddHandle, nodesSvg, flowEdgesSvg);
+  // v114: 다시 그려도(노드를 눌러 패널이 열려도) 캔버스 스크롤 위치를 지킨다 — 전에는 0으로 돌아가 두 번째 클릭이 다른 노드에 맞았다
+  const sc = (STATE.pmCanvasScroll || {})[pmId];
+  if(sc){ wrap.scrollLeft = sc.l; wrap.scrollTop = sc.t; }
+  if(!wrap.__scrollKept){ wrap.__scrollKept = true; wrap.addEventListener('scroll', ()=>{ STATE.pmCanvasScroll = STATE.pmCanvasScroll || {}; STATE.pmCanvasScroll[wrap.getAttribute('data-pmid')] = { l: wrap.scrollLeft, t: wrap.scrollTop }; }, { passive:true }); }
   attachPmCanvasEvents(wrap, pmId);
   if(pmFlowEdgePopup && pmFlowEdgePopup.pmId===pmId) renderPmFlowEdgePopup();
   pmRenderSelectionBar();
+  if(STATE.pmInline) pmRenderInline();   // v114: 이름 입력 칸은 다시 그려도 유지
 }
 /* Process Map 노드 상자(루트는 폭 220) */
 function pmNodeBox(n, isRoot){ const w = isRoot?220:PM_NODE_W; return { x:n.x, y:n.y, w, h:PM_NODE_H, cx:n.x+w/2, cy:n.y+PM_NODE_H/2 }; }
@@ -7681,7 +8131,7 @@ function pmNodesSvg(nodes, nodeDepth, selectedId, isEditing, rowById, collapsed,
     const numSvg = showNum && row.number ? `<text class="pm-node-num" x="2" y="-5">${escapeXml(row.number)}</text>` : '';
     const kindTag = kind !== 'uo' ? `<text class="pm-node-kind" x="8" y="12">${PM_NODE_KINDS[kind].short.toUpperCase()}</text>` : '';
     const isCol = col.has(n.id);
-    const colSvg = row.childIds.length ? `<g class="pm-collapse-toggle ${isCol?'collapsed':''}" data-collapse-toggle="${n.id}" transform="translate(${PM_NODE_W/2 + (isEditing && isSelected ? 30 : 0)},${PM_NODE_H+9})" role="button" aria-label="${isCol?'펼치기':'접기'}"><title>${isCol?`펼치기 — 하위 ${row.descCount}개`:'접기'}</title>
+    const colSvg = row.childIds.length ? `<g class="pm-collapse-toggle ${isCol?'collapsed':''}" data-collapse-toggle="${n.id}" transform="translate(${PM_NODE_W/2 + (isSelected ? 30 : 0)},${PM_NODE_H+9})" role="button" aria-label="${isCol?'펼치기':'접기'}"><title>${isCol?`펼치기 — 하위 ${row.descCount}개`:'접기'}</title>
       ${isCol ? `<rect x="-15" y="-8" width="30" height="16" rx="8"/><text text-anchor="middle" dominant-baseline="central">+${row.descCount}</text>` : `<circle r="7"/><text text-anchor="middle" dominant-baseline="central">−</text>`}</g>` : '';
     if(kind !== 'uo'){
       const lines = wrapLabel(n.name, 20);
@@ -7693,7 +8143,7 @@ function pmNodesSvg(nodes, nodeDepth, selectedId, isEditing, rowById, collapsed,
       ${kindTag}${numSvg}
       ${lines.map((line,i)=>`<text class="pm-node-label" x="${PM_NODE_W/2}" y="${ly0 + i*15}" text-anchor="middle">${escapeXml(line)}</text>`).join('')}
       ${colSvg}
-      ${isEditing && isSelected ? `<g class="pm-add-handle" data-add-handle="${n.id}" transform="translate(${PM_NODE_W/2},${PM_NODE_H+18})"><circle r="9"/><text text-anchor="middle" dominant-baseline="central" font-size="16">+</text></g>` : ''}
+      ${isSelected ? pmPlusHandlesSvg(n) : ''}
     </g>`;
     }
     const isReparentTarget = pmDrag && pmDrag.reparentTargetId===n.id;
@@ -7717,7 +8167,7 @@ function pmNodesSvg(nodes, nodeDepth, selectedId, isEditing, rowById, collapsed,
       ${badgeChips}
       ${colSvg}
       ${flowHandles}
-      ${isEditing && isSelected ? `<g class="pm-add-handle" data-add-handle="${n.id}" transform="translate(${PM_NODE_W/2},${PM_NODE_H+18})"><circle r="9"/><text text-anchor="middle" dominant-baseline="central" font-size="16">+</text></g>` : ''}
+      ${isSelected ? pmPlusHandlesSvg(n) : ''}
     </g>`;
   }).join('');
   return nodesSvg;
@@ -7856,6 +8306,10 @@ function attachPmCanvasEvents(wrap, pmId){
   const tab = getActiveTab();
   const svgPoint = e => pmSvgPoint(svg, e);
 
+  svg.querySelectorAll('[data-plus]').forEach(h=>{   // v114: 노드 둘레 + → 그 자리에서 이름 입력
+    h.addEventListener('mousedown', e=>{ e.stopPropagation(); });
+    h.addEventListener('click', e=>{ e.stopPropagation(); pmStartInline(h.getAttribute('data-plus'), h.getAttribute('data-plus-node')); });
+  });
   svg.querySelectorAll('[data-add-handle]').forEach(handle=>{
     handle.addEventListener('click', (e)=>{
       e.stopPropagation();
@@ -7904,7 +8358,7 @@ function pmSvgPoint(svg, e){
 function pmAttachNodeEvents(svg, g, pmId, tab){
   const nodeId = g.getAttribute('data-node-id');
   g.addEventListener('mousedown', (e)=>{
-    if(e.target.closest('[data-add-handle]') || e.target.closest('[data-flow-handle]') || e.target.closest('[data-collapse-toggle]')) return;
+    if(e.target.closest('[data-add-handle]') || e.target.closest('[data-flow-handle]') || e.target.closest('[data-collapse-toggle]') || e.target.closest('[data-plus]')) return;
     if(e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey) return;
     if(!tab.isEditingProcessMap) return;
     if(nodeId === 'ROOT') return; // root는 고정
@@ -7940,6 +8394,8 @@ function pmAttachNodeEvents(svg, g, pmId, tab){
     }
     if(pmDrag) return; // 드래그 직후 클릭 무시
     if(pmFlowConnectFrom) return; // 흐름선 긋기 중 클릭은 mouseup에서 처리
+    // v114: 두 번 누르면 이름 고치기(첫 클릭이 캔버스를 다시 그려 브라우저 dblclick이 안 오므로 직접 잰다)
+    if(nodeId !== 'ROOT' && pmIsDoubleClick(nodeId)){ e.stopPropagation(); pmStartInline('rename', nodeId); return; }
     e.stopPropagation();
     closePmFlowEdgePopup();
     if(nodeId === 'ROOT'){
@@ -7954,6 +8410,9 @@ function pmAttachNodeEvents(svg, g, pmId, tab){
     tab.ctx.selectedProcessNodeId = nodeId;
     closeProcessContextMenu();
     render();
+    // v114: 패널이 열려 캔버스가 좁아져도 누른 노드가 가려지지 않게
+    const ng = document.querySelector(`#pmCanvas [data-node-id="${nodeId}"]`), wr = document.getElementById('pmCanvasWrap');
+    if(ng && wr){ const a = ng.getBoundingClientRect(), b = wr.getBoundingClientRect(); if(a.right > b.right - 8) wr.scrollLeft += a.right - b.right + 24; else if(a.left < b.left + 8) wr.scrollLeft -= b.left - a.left + 24; pmKeepCanvasScroll(); }
   });
 
   /* 흐름선을 긋는 중에 이 노드 위에서 마우스를 놓으면 화살표 연결 완료 */
@@ -21018,6 +21477,7 @@ function pfdRunEdit(name, target, run){
   let result;
   try { result = run(); } finally { pfdEditDepth--; pcsAuditCtx = prevCtx; }
   const contentChanged = isUo && uoHash(uoContentOf(target)) !== contentBefore;
+  if(contentChanged && typeof pmUndoInvalidate === 'function') pmUndoInvalidate(uoNode(target).pmId);   // v114: UO 내용을 고치면 구조 실행취소는 그 앞으로 못 간다
   if((contentChanged || pfdBoardSnapshot() !== before) && isUo && typeof pcsPresenceNoteEdit === 'function') pcsPresenceNoteEdit(target);
   // v109: WI·리스트·UO 이름처럼 PFD 도면 밖의 변경은 실행취소 대상은 아니지만 감사 기록은 남긴다
   if(contentChanged && pfdBoardSnapshot() === before && DATA.auditTrail.length === auditLen){
@@ -21053,7 +21513,7 @@ function installUoGuards(){
         if(document.getElementById('pfdEditorRightInner')) refreshPfdBoardRightPanel();   // 막힌 입력란을 원래 값으로 되돌린다
         return;
       }
-      if(table !== UO_CONTENT_MUTATORS) return orig.apply(this, args);
+      if(table !== UO_CONTENT_MUTATORS) return pmWithUndo(target, ()=>orig.apply(this, args));   // v114: 구조 편집은 실행취소에 쌓는다
       return pfdRunEdit(name, target, ()=>orig.apply(this, args));
     };
   });
@@ -27452,7 +27912,7 @@ seedReferenceBomRules();   // v113: 17b_uo_mass_balance.js
 /* ---------- Process Map ↔ PFD 경로 정리 ---------- */
 /* [store] UO 노드 삭제 — 노드와 그 노드에 딸린 것을 함께 지운다(남기면 아무 데서도 열 수 없는 데이터가 된다).
    승인 스냅샷(uoSnapshots)은 기록이므로 남긴다. 반환: 지운 노드 수 */
-const PFD_NODE_SCOPED = ['pfdShapes','pfdEdges','pfdLinks','pfdTexts','pfdZones','pfdImages','pfdTables','pfdPaths','pfdNodes','pfdCanvasStyle','pfdDocStyle','nodeLists','workInstructions'];
+var PFD_NODE_SCOPED = ['pfdShapes','pfdEdges','pfdLinks','pfdTexts','pfdZones','pfdImages','pfdTables','pfdPaths','pfdNodes','pfdCanvasStyle','pfdDocStyle','nodeLists','workInstructions'];
 function pmDeleteNodes(pmId, ids){
   const set = new Set(ids);
   const gone = DATA.nodes.filter(n=>set.has(n.id));
