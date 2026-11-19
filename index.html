@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="pcs-api-base" content="">
 <meta name="pcs-firebase" content="{&quot;apiKey&quot;:&quot;AIzaSyASB4CKv15IwJUp8pIVKXFtOYwKlY7y1es&quot;,&quot;databaseURL&quot;:&quot;https://pcs-demo-18101-default-rtdb.asia-southeast1.firebasedatabase.app&quot;}">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-d1f+NAWKtp6ivX+ZZadchQApTZ5gD+4NgcTu+koh1Uk=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-l1Kcgf5+Tpvkb7atvrVmYR7HxyeHDXmvssPYYwLUQs4=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'none'">
 <title>PCS Platform · Process Control System</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -2329,6 +2329,57 @@ textarea.ui-dialog-input{resize:vertical; min-height:72px;}
 .crit-badge.cpp{background:#C0182A; color:#fff;}
 .crit-badge.kpp{background:#FFF1D6; color:#8A5A00; border:1px solid #F0D8A0;}
 .crit-none{color:var(--ink-400); font-size:11.5px;}
+
+/* v117 배치·칸반·화면 도구 */
+.pm-layout-popup{top:50px; right:12px; display:block; min-width:300px; max-width:380px; grid-template-columns:none;}
+.pm-layout-head{font-size:11px; font-weight:800; color:var(--ink-500); margin:0 0 6px; letter-spacing:.02em;}
+.pm-layout-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:6px;}
+.pm-layout-opt{border:1px solid var(--line-soft); background:#fff; font-size:11px; color:var(--ink-700); text-align:center; font-family:inherit;}
+.pm-layout-opt.on{border-color:#C0182A; background:#FFF1F3; color:#7A1D2A; font-weight:700;}
+.pm-layout-ico{font-size:17px; line-height:1;}
+.pm-layout-freeze{display:block; width:100%; margin-top:8px; font-size:11.5px; padding:7px 8px; border:1px dashed #D9CFCE; background:#FBF8F8; border-radius:8px; cursor:pointer; font-family:inherit; color:var(--ink-700);}
+.pm-layout-freeze:hover{background:var(--pink-100);}
+.pm-layout-tip{font-size:11px; color:var(--ink-500); margin-top:8px; line-height:1.5;}
+.pm-zoom-btn.on{background:#FFF1F3; border-color:#E5B8BF; color:#7A1D2A;}
+.pm-image-menu{min-width:220px;}
+.pm-image-opt{display:flex; align-items:center; gap:8px; width:100%; padding:8px 10px; border:0; background:none; border-radius:8px; font-size:12.5px; cursor:pointer; font-family:inherit; color:var(--ink-700); text-align:left;}
+.pm-image-opt:hover{background:var(--pink-100);}
+.pm-band{fill:#FAF5F5; stroke:#EFE6E6; stroke-width:1;}
+.pm-band.odd{fill:#F6F0F0;}
+.pm-seq{fill:none; stroke:#C9B7BA; stroke-width:1.6; stroke-dasharray:4 4;}
+.pm-minimap{position:absolute; right:14px; top:52px; z-index:25; background:rgba(255,255,255,.94); border:1px solid var(--line); border-radius:8px; box-shadow:var(--shadow-sm); padding:4px; cursor:pointer;}
+.pm-minimap svg{display:block;}
+.pm-mm-nodes rect{fill:#E9D3D6;}
+.pm-mm-nodes .pm-mm-root{fill:#3D0C16;}
+.pm-mm-view{fill:rgba(192,24,42,.07); stroke:#C0182A; stroke-width:1.2;}
+.pm-view.pm-focus > .view-head, .pm-view.pm-focus > .pm-meta-grid, .pm-view.pm-focus > .uo-strip, .pm-view.pm-focus > .pm-legend, .pm-view.pm-focus > .pm-edit-hint{display:none;}
+.pm-view.pm-focus #pmCanvasWrap{min-height:calc(100vh - 150px);}
+.pm-focus-exit{position:absolute; top:12px; right:12px; z-index:30; font-size:12px; padding:6px 10px; border-radius:8px; border:1px solid var(--line); background:#fff; box-shadow:var(--shadow-sm); cursor:pointer; font-family:inherit;}
+#pmCanvasWrap.pm-kanban-mode{background:#F7F4F4;}
+.pm-kb{padding:62px 16px 18px;}
+.pm-kb-lock{font-size:12px; color:var(--ink-500); margin-bottom:10px; display:flex; align-items:center; gap:6px;}
+.pm-kb-cols{display:flex; gap:14px; align-items:flex-start; overflow-x:auto; padding-bottom:6px;}
+.pm-kb-col{flex:0 0 260px; background:#EFE9E9; border-radius:12px; padding:10px; min-height:200px; transition:background .12s, box-shadow .12s;}
+.pm-kb-col.drop{background:#F7DDE1; box-shadow:inset 0 0 0 2px #E5A3AD;}
+.pm-kb-col-head{margin-bottom:8px;}
+.pm-kb-col-title{display:flex; align-items:center; gap:6px; font-size:13px; font-weight:800; color:var(--burgundy-900);}
+.pm-kb-col-count{font-size:11px; color:var(--ink-500);}
+.pm-kb-bar{height:4px; border-radius:2px; background:#E0D5D6; margin-top:6px; overflow:hidden;}
+.pm-kb-bar span{display:block; height:100%; background:#3F8F5C;}
+.pm-kb-list{display:flex; flex-direction:column; gap:8px;}
+.pm-kb-card{background:#fff; border:1px solid #E6DCDD; border-left:4px solid #9A95A0; border-radius:9px; padding:8px 10px; cursor:pointer; box-shadow:0 1px 2px rgba(61,12,22,.05);}
+.pm-kb-card:hover{box-shadow:0 3px 10px rgba(61,12,22,.10);}
+.pm-kb-card:focus-visible{outline:2px solid #C0182A; outline-offset:2px;}
+.pm-kb-card.dragging{opacity:.45;}
+.pm-kb-card.status-in-review{border-left-color:#C98A1E;} .pm-kb-card.status-reviewed{border-left-color:#2F6FB5;} .pm-kb-card.status-qa-review{border-left-color:#7A4FB5;} .pm-kb-card.status-approved{border-left-color:#3F8F5C;}
+.pm-kb-card-top{display:flex; align-items:center; gap:6px;}
+.pm-kb-num{font-size:10.5px; font-weight:800; color:#8B6E72; font-variant-numeric:tabular-nums;}
+.pm-kb-ver{margin-left:auto; font-size:10.5px; color:var(--ink-500); font-family:ui-monospace, Menlo, monospace;}
+.pm-kb-name{font-size:13px; font-weight:700; color:var(--ink-900, #2B1A1D); margin:5px 0 3px;}
+.pm-kb-meta{font-size:11px; color:var(--ink-500);}
+.pm-kb-pkg{font-size:11px; color:#2F6FB5; margin-top:4px; display:flex; align-items:center; gap:4px;}
+.pm-kb-move{margin-top:6px; width:100%; font-size:11px; padding:3px 4px; border:1px solid var(--line-soft); border-radius:6px; background:#FBF9F9; color:var(--ink-700);}
+.pm-kb-empty{font-size:11.5px; color:var(--ink-400); padding:10px; text-align:center; border:1px dashed #D9CFCE; border-radius:8px;}
 </style>
 </head>
 <body>
@@ -3123,6 +3174,12 @@ function validateData(data){
   });
   (data.processMaps||[]).forEach(m=>{
     if(!productIds.has(m.productId)) errors.push(`[고아 참조] ProcessMap ${m.id} → Product ${m.productId} 미존재`);
+    // v117: 배치 설정(pm.layout)
+    const LM = ['flow','org','right','mind','table','free'];
+    if(m.layout){
+      if(m.layout.mode !== undefined && !LM.includes(m.layout.mode)) errors.push(`[배치] ProcessMap ${m.id} 배치 ${m.layout.mode} 모름`);
+      Object.entries(m.layout.byStage || {}).forEach(([sid, mode])=>{ if(!LM.includes(mode) || mode === 'free') errors.push(`[배치] ProcessMap ${m.id} 단계 ${sid} 배치 ${mode} 모름`); });
+    }
   });
   (data.nodes||[]).forEach(n=>{
     if(!pmIds.has(n.pmId)) errors.push(`[고아 참조] Node ${n.id} → ProcessMap ${n.pmId} 미존재`);
@@ -4802,14 +4859,23 @@ function render(){
 /* -------- DASHBOARD -------- */
 /* ============================================================================
    05b_release_notes.js — v111  앱 버전과 "이번 버전에서 바뀐 점"
-   · PCS_APP_VERSION은 build.sh가 빌드 번호로 바꿔 넣는다(v116 자리).
+   · PCS_APP_VERSION은 build.sh가 빌드 번호로 바꿔 넣는다(v117 자리).
    · PCS_RELEASE_NOTES 맨 앞 항목은 항상 이번 빌드 버전이어야 한다(tests/unit/release-notes.test.cjs가 검사).
      버전을 올릴 때 여기 맨 앞에 한 항목을 넣는다. 테스트하는 사람이 무엇을 눌러 보면 되는지(try)를 같이 쓴다.
    · 오른쪽 위 사용자 메뉴 → "버전 vN · 바뀐 점" 으로 열고, 새 버전으로 처음 열면 알림을 한 번 띄운다.
    ========================================================================== */
-var PCS_APP_VERSION = 'v116';
+var PCS_APP_VERSION = 'v117';
 
 const PCS_RELEASE_NOTES = [
+  { version: 'v117', date: '2026-11-20', title: '배치 5가지·칸반·화면 도구',
+    items: [
+      '도구 막대의 배치 단추로 좌→우 공정 흐름, 위→아래 조직도, 오른쪽 트리, 양쪽 마인드맵, 표(단계 × UO), 자유 배치를 고릅니다. 공정 단계를 고르면 그 단계만 다른 배치로 바꿀 수 있습니다.',
+      '배치는 접기·펼치기·노드 추가에 맞춰 늘 다시 정렬됩니다. 계산된 배치에서 노드를 끌어 다른 노드 위에 놓으면 부모가 바뀝니다. 손으로 옮기려면 "지금 배치를 자유 배치로 고정".',
+      '"맵 | 아웃라인 | 칸반"의 칸반: 공정 단계 = 열, UO = 카드(승인 상태·버전·최근 처리·결재 묶음). 카드를 다른 열로 끌거나 "단계 옮기기"로 단계를 바꿉니다.',
+      '화면 도구: 화면 맞추기(⤢), 선택한 가지 가운데(◎), 미니맵(▣), 집중 모드(⛶, Esc로 끝), 맵 PNG·SVG·PDF 내보내기.',
+      '새 Process Map은 좌→우 공정 흐름으로 시작합니다. 기존 맵은 손으로 놓은 자리(자유 배치) 그대로입니다.',
+    ],
+    try: ['참고 PCS → 배치 단추 → "표 (단계 × UO)"', 'A02 단계를 누르고 배치 단추 → "이 단계만" 조직도', '칸반에서 카드를 다른 단계로 끌기', '⛶ 집중 모드 → Esc'] },
   { version: 'v116', date: '2026-11-20', title: '구조 내보내기·가져오기 (Markdown·텍스트)',
     items: [
       'Process Map 도구 막대의 ⤓ 단추로 구조를 .md(제목·목록)나 .txt(탭 들여쓰기)로 내려받습니다. 번호, 상태·버전, 장비·자재·파라미터를 넣을지 고르고 미리 봅니다.',
@@ -6005,7 +6071,7 @@ async function createNewProcessMap(productId){
   const code = product.code.split(' ')[0] || 'LT-NEW';
   const id = genId('pm');
   const rootId = genId('root');
-  store.addProcessMap({ id, productId, code, name:name.trim(), kind:kind.trim(), reviewedBy:'', approvedBy:'', status:'Draft', version:'v1.0', description:'', scope:'', approvalHistory:[] });
+  store.addProcessMap({ id, productId, code, name:name.trim(), kind:kind.trim(), reviewedBy:'', approvedBy:'', status:'Draft', version:'v1.0', description:'', scope:'', approvalHistory:[], layout:{ mode:'flow' } });   // v117: 새 Process Map은 좌→우 공정 흐름
   store.addNode({ id:rootId, pmId:id, name:name.trim(), parentId:null, x:100, y:80 });
   ensurePmFlowEdges(id);
   openProcessMapInNewTab(id);   // v105: 레인·목록에서 여는 것과 같이 새 탭 [DSH-009]
@@ -6043,7 +6109,7 @@ function renderProcessMap(){
 
   const sidePanel = panel ? renderPmPanel(pm.id, panel) : '';
 
-  return `
+  return `<div class="pm-view ${STATE.pmFocus ? 'pm-focus' : ''}">
     <div class="view-head"><div><span class="view-eyebrow">${escapeXml(product.code)}</span><h1 class="view-title">${escapeXml(pm.code)} ${escapeXml(pm.kind || 'Upstream')} PCS</h1><p class="view-sub">각 공정 노드를 클릭하면 우측 패널에서 Process Flow Design, 장비/자재/파라미터 리스트, Work Instruction을 확인하거나 추가할 수 있습니다. 편집 모드에서는 노드를 자유롭게 드래그해 배치할 수 있습니다.</p></div>
       <div class="view-actions">
         <button class="btn ${isEditing ? 'btn-primary' : ''}" data-on-click="toggleProcessMapEdit"><span>${isEditing ? icon('check') : icon('plus')}</span>${isEditing ? '편집 완료' : '공정 커스텀'}</button>
@@ -6074,7 +6140,8 @@ function renderProcessMap(){
       <span class="pm-legend-sep"></span>
       ${Object.entries(PM_NODE_STATUS_COLOR).map(([st,color])=>`<span class="pm-legend-item"><span class="pm-legend-dot" style="background:${color}"></span>${st}</span>`).join('')}
     </div>
-    ${isEditing ? `<p style="font-size:12px; color:var(--ink-500); margin-top:14px;">${icon('move')} 노드를 드래그해 위치를 자유롭게 배치하세요. 연결선(트리 구조)은 그대로 유지됩니다.</p>` : ''}
+    ${isEditing ? `<p class="pm-edit-hint" style="font-size:12px; color:var(--ink-500); margin-top:14px;">${icon('move')} 노드를 드래그해 위치를 자유롭게 배치하세요. 연결선(트리 구조)은 그대로 유지됩니다.</p>` : ''}
+    </div>
   `;
 }
 
@@ -6931,6 +6998,8 @@ function renderPmPanelGroup(node){
 function pmVisibleTreeNodes(pmId){ return pmTreeRows(getPmTreeNodes(pmId), pmCollapsedSet(pmId)).filter(r => !r.hidden).map(r => r.node); }
 /* 묶기·삭제처럼 구조가 크게 바뀐 뒤 트리 모양으로 다시 배치(배치는 상태와 상관없이 된다 — PM-031) */
 function pmTidyLayout(pmId){
+  const pm = DATA.processMaps.find(m => m.id === pmId);
+  if(pm && pm.layout && pm.layout.mode && pm.layout.mode !== 'free') return;   // v117: 계산 배치는 그릴 때 정렬된다(손 위치는 그대로)
   getPmTreeNodes(pmId).forEach(n => { delete n.x; delete n.y; });
   ensureNodeLayout(pmId);
 }
@@ -7203,11 +7272,11 @@ function pmInlineBox(st){
   const wrap = document.getElementById('pmCanvasWrap');
   const svg = wrap && wrap.querySelector('#pmCanvas');
   if(!svg) return null;
-  const ref = st.refId === 'ROOT' ? PM_ROOT_BOX_NODE : DATA.nodes.find(n => n.id === st.refId);
+  const ref = pmViewPos(st.pmId, st.refId);   // v117: 화면 배치 기준
   if(!ref) return null;
   const w = st.refId === 'ROOT' ? 220 : PM_NODE_W;
   let x = ref.x, y = ref.y;
-  if(st.mode === 'child'){ const kids = getProcessChildren(st.pmId, st.refId === 'ROOT' ? null : st.refId); x = kids.length ? Math.max(...kids.map(k => k.x)) + PM_NODE_W + 40 : ref.x + (w - PM_NODE_W) / 2; y = ref.y + 140; }
+  if(st.mode === 'child'){ const kids = getProcessChildren(st.pmId, st.refId === 'ROOT' ? null : st.refId).map(k => pmViewPos(st.pmId, k.id)).filter(Boolean); x = kids.length ? Math.max(...kids.map(k => k.x)) + PM_NODE_W + 40 : ref.x + (w - PM_NODE_W) / 2; y = ref.y + 140; }
   else if(st.mode === 'after') x = ref.x + PM_NODE_W + 40;
   else if(st.mode === 'before') x = ref.x - PM_NODE_W - 40;
   const k = pmView.scale;
@@ -7281,7 +7350,8 @@ function pmKeyTargetOk(e){
   return true;
 }
 function pmVisibleBoxes(pmId){
-  return pmVisibleTreeNodes(pmId).map(n => ({ id: n.id, cx: n.x + PM_NODE_W / 2, cy: n.y + PM_NODE_H / 2 })).concat([{ id: 'ROOT', cx: 60 + 110, cy: 30 + PM_NODE_H / 2 }]);
+  const v = pmViewLayout(pmId);   // v117: 화면 배치 기준
+  return pmVisibleTreeNodes(pmId).map(n => { const p = v.pos[n.id] || n; return { id: n.id, cx: p.x + PM_NODE_W / 2, cy: p.y + PM_NODE_H / 2 }; }).concat([{ id: 'ROOT', cx: v.root.x + 110, cy: v.root.y + PM_NODE_H / 2 }]);
 }
 function pmSelectNode(id){
   const tab = getActiveTab();
@@ -7387,7 +7457,7 @@ function pmKeepCanvasScroll(){
        빈 줄에서 Backspace 그 줄 지우기(하위·내용이 없을 때) · Esc 편집 끝(그 다음 Tab은 화면의 다음 요소로)
      · 공정 흐름 한 줄 보기(단계별 UO 순서), 전체 글 복사, 검색(일치 줄 강조, 접힌 곳은 펼쳐 보여 줌)
    ========================================================================== */
-var PM_VIEW_MODES = [['map', '맵'], ['outline', '아웃라인']];
+var PM_VIEW_MODES = [['map', '맵'], ['outline', '아웃라인'], ['kanban', '칸반']];   // v117 칸반
 
 /* ---------- 순수 함수 ---------- */
 /* 들여쓰기 글(복사·내보내기용). numbers: 번호를 붙일지 */
@@ -7892,7 +7962,7 @@ function pmImportApply(){
   if(s.target === 'new'){
     const src = DATA.processMaps.find(m => m.id === s.pmId);
     const id = genId('pm');
-    store.addProcessMap({ id, productId: src.productId, code: src.code, name: a.parsed.title || `${src.name} (가져옴)`, kind: src.kind, reviewedBy: '', approvedBy: '', status: 'Draft', version: 'v1.0', description: '', scope: '', approvalHistory: [] });
+    store.addProcessMap({ id, productId: src.productId, code: src.code, name: a.parsed.title || `${src.name} (가져옴)`, kind: src.kind, reviewedBy: '', approvedBy: '', status: 'Draft', version: 'v1.0', description: '', scope: '', approvalHistory: [], layout: { mode: 'flow' } });
     ensurePmFlowEdges(id);
     pmImportOutline(id, 'ROOT', a.res.items, false);
     STATE.pmImport = null; closeGlobalModal();
@@ -7918,6 +7988,541 @@ if(typeof document !== 'undefined' && document.addEventListener && !globalThis._
     e.preventDefault();
     pmImportOpen(document.getElementById('pmCanvasWrap').getAttribute('data-pmid'), text, 'branch');
   });
+}
+/* ============================================================================
+   07f_pm_layout.js — v117  Process Map 배치와 보기
+   · 배치 5가지(ThinkWise "진행 방향"을 공정 문서에 맞게 줄임) + 자유 배치:
+       flow  좌→우 공정 흐름(기본·새 Process Map) — 공정 단계는 위 띠, UO는 공정 순서대로 왼쪽→오른쪽, 하위 단계는 UO 아래 목록
+       org   위→아래 조직도 — 가지마다 아래로 퍼지는 트리
+       right 오른쪽 트리 — 루트가 왼쪽, 깊어질수록 오른쪽
+       mind  양쪽 마인드맵 — 루트가 가운데, 1레벨 가지를 왼쪽·오른쪽에 나눠
+       table 표(단계 × UO) — 단계 한 줄에 UO가 칸으로
+       free  자유 배치 — 손으로 옮긴 위치(노드 x·y)를 그대로
+     배치는 Process Map 설정(pm.layout = { mode, byStage:{ 단계 ID: mode } })이고 위치는 그릴 때 계산한다(순수 함수).
+     그래서 접기·펼치기·노드 추가에 맞춰 늘 다시 정렬되고, 자유 배치의 손 위치(DATA)는 건드리지 않는다.
+     공정 단계마다 다른 배치를 고를 수 있다(ThinkWise처럼 가지 단위).
+   · 계산된 배치에서 노드를 끌면 "다른 노드 위에 놓아 부모 바꾸기"만 하고 제자리로 돌아간다. 마음대로 옮기려면 "지금 배치를 자유 배치로 고정".
+   · 연결선은 배치를 따라 아래·오른쪽·왼쪽·목록·줄 모양으로 그린다(pmEdgeDs).
+   ========================================================================== */
+var PM_LAYOUT_MODES = [
+  { id: 'flow',  label: '좌→우 공정 흐름', icon: '⇢', desc: '단계는 위, UO는 공정 순서대로 왼쪽→오른쪽, 하위 단계는 UO 아래 목록' },
+  { id: 'org',   label: '위→아래 조직도', icon: '⊤', desc: '가지마다 아래로 퍼지는 트리' },
+  { id: 'right', label: '오른쪽 트리',   icon: '⊢', desc: '루트가 왼쪽, 깊어질수록 오른쪽' },
+  { id: 'mind',  label: '양쪽 마인드맵', icon: '⟺', desc: '루트가 가운데, 1레벨 가지를 양쪽에' },
+  { id: 'table', label: '표 (단계 × UO)', icon: '▦', desc: '단계 한 줄에 UO가 칸으로' },
+  { id: 'free',  label: '자유 배치',     icon: '✥', desc: '손으로 옮긴 위치 그대로' },
+];
+var PM_ROOT_W = 220;
+const PM_LAYOUT_IDS = PM_LAYOUT_MODES.map(m => m.id);
+const PM_MAIN_AXIS = { flow: 'x', org: 'x', right: 'y', mind: 'y', table: 'y' };
+
+/* ---------- 순수 함수: 트리 ---------- */
+/* rows(pmTreeRows) 중 보이는 줄 → { kids: { 부모|'ROOT': [id…] }, kind: { id: kind } } */
+function pmLayoutTree(rows){
+  const kids = { ROOT: [] }, kind = {};
+  (rows || []).filter(r => !r.hidden).forEach(r => {
+    kind[r.id] = r.kind;
+    const p = r.parentId || 'ROOT';
+    (kids[p] = kids[p] || []).push(r.id);
+  });
+  return { kids, kind };
+}
+const pmLKids = (t, id) => t.kids[id] || [];
+function pmLSubtree(t, id){ const out = [id]; pmLKids(t, id).forEach(k => out.push(...pmLSubtree(t, k))); return out; }
+
+/* ---------- 배치 계산(상대 좌표 — 맨 위 루트(rid)를 0,0 근처에) ---------- */
+/* 위→아래 조직도: 잎 수만큼 폭을 나눠 가운데 맞춤 */
+function pmLayoutOrg(t, rid, rw){
+  const W = PM_NODE_W, gapX = W + 46, gapY = 136, pos = {};
+  const units = {};
+  const calc = id => { const k = pmLKids(t, id); units[id] = k.length ? k.reduce((s, c) => s + calc(c), 0) : 1; return units[id]; };
+  calc(rid);
+  const place = (id, x0, depth) => {
+    let cur = x0;
+    pmLKids(t, id).forEach(c => { const w = units[c] * gapX; pos[c] = { x: cur + w / 2 - W / 2, y: depth * gapY }; place(c, cur, depth + 1); cur += w; });
+  };
+  place(rid, 0, 1);
+  const k = pmLKids(t, rid);
+  const cx = k.length ? (pos[k[0]].x + pos[k[k.length - 1]].x + W) / 2 : rw / 2;
+  pos[rid] = { x: cx - rw / 2, y: 0 };
+  return { pos, list: [], row: [], seq: [], bands: [] };
+}
+/* 좌→우 공정 흐름: 단계는 위쪽 줄(단계 깊이만큼), 단계가 아닌 첫 노드가 한 칸(공정 순서), 그 아래 자손은 들여쓴 목록 */
+function pmLayoutFlow(t, rid, rw){
+  const W = PM_NODE_W, H = PM_NODE_H, rowY = 116, ind = 22, colGap = 46, pos = {}, list = [], seq = [];
+  const stageDepth = (id, d) => pmLKids(t, id).reduce((m, c) => t.kind[c] === 'stage' ? Math.max(m, stageDepth(c, d + 1)) : m, d);
+  const uoY = (stageDepth(rid, 0) + 1) * rowY;
+  let cursor = 0, prevHead = null;
+  const column = head => {
+    pos[head] = { x: cursor, y: uoY };
+    let y = uoY + H + 16, maxRel = 0;
+    const walk = (id, rel) => pmLKids(t, id).forEach(c => {
+      if(!list.includes(id)) list.push(id);
+      pos[c] = { x: cursor + ind * rel, y }; y += H + 14; maxRel = Math.max(maxRel, rel);
+      walk(c, rel + 1);
+    });
+    walk(head, 1);
+    if(prevHead) seq.push([prevHead, head]);
+    prevHead = head;
+    cursor += W + ind * maxRel + colGap;
+  };
+  const group = (id, level) => {   // id 아래 칸을 차례로 만들고 [시작 x, 끝 x]
+    const start = cursor;
+    pmLKids(t, id).forEach(c => {
+      if(t.kind[c] === 'stage'){
+        const s = cursor;
+        const span = group(c, level + 1);
+        const x = span ? (span[0] + span[1]) / 2 - W / 2 : s;
+        if(!span) cursor += W + colGap;
+        pos[c] = { x, y: level * rowY };
+      } else column(c);
+    });
+    return cursor > start ? [start, cursor - colGap] : null;
+  };
+  const span = group(rid, 1);
+  pos[rid] = { x: span ? (span[0] + span[1]) / 2 - rw / 2 : 0, y: 0 };
+  return { pos, list, row: [], seq, bands: [] };
+}
+/* 오른쪽(dir 1)·왼쪽(dir -1) 트리: 잎마다 한 줄, 부모는 첫·끝 자식 가운데 */
+function pmLayoutSide(t, rid, rw, dir, only){
+  const W = PM_NODE_W, rowH = PM_NODE_H + 20, colW = W + 60, pos = {};
+  let leaf = 0;
+  const place = (id, depth) => {
+    const k = pmLKids(t, id);
+    k.forEach(c => place(c, depth + 1));
+    const x = dir > 0 ? rw + 60 + (depth - 1) * colW : -depth * colW;
+    pos[id] = { x, y: k.length ? (pos[k[0]].y + pos[k[k.length - 1]].y) / 2 : (leaf++) * rowH };
+  };
+  const top = only || pmLKids(t, rid);
+  top.forEach(c => place(c, 1));
+  pos[rid] = { x: 0, y: top.length ? (pos[top[0]].y + pos[top[top.length - 1]].y) / 2 : 0 };
+  return { pos, list: [], row: [], seq: [], bands: [] };
+}
+function pmLayoutRight(t, rid, rw){ return pmLayoutSide(t, rid, rw, 1); }
+/* 양쪽 마인드맵: 1레벨 가지를 잎 수가 반반이 되게 앞쪽은 오른쪽, 뒤쪽은 왼쪽 */
+function pmLayoutMind(t, rid, rw){
+  const top = pmLKids(t, rid);
+  const leaves = id => { const k = pmLKids(t, id); return k.length ? k.reduce((s, c) => s + leaves(c), 0) : 1; };
+  const total = top.reduce((s, c) => s + leaves(c), 0);
+  let acc = 0, cut = 0;
+  while(cut < top.length && (acc < total / 2 || cut === 0)){ acc += leaves(top[cut]); cut++; }
+  if(top.length > 1 && cut === top.length) cut = top.length - 1;
+  const R = pmLayoutSide(t, rid, rw, 1, top.slice(0, cut));
+  const L = top.length > cut ? pmLayoutSide(t, rid, rw, -1, top.slice(cut)) : { pos: { [rid]: { x: 0, y: 0 } } };
+  const pos = {};
+  const shiftR = -R.pos[rid].y, shiftL = -L.pos[rid].y;
+  Object.keys(R.pos).forEach(id => { pos[id] = { x: R.pos[id].x, y: R.pos[id].y + shiftR }; });
+  Object.keys(L.pos).forEach(id => { if(id !== rid) pos[id] = { x: L.pos[id].x, y: L.pos[id].y + shiftL }; });
+  pos[rid] = { x: 0, y: 0 };
+  return { pos, list: [], row: [], seq: [], bands: [] };
+}
+/* 표(단계 × UO): 1레벨 단계마다 한 줄 — 맨 앞 칸은 단계, 그 뒤 칸은 단계 안의 UO(안쪽 단계도 한 칸)를 공정 순서대로, 칸 아래는 하위 목록.
+   단계가 아닌 1레벨 노드는 자기 줄의 맨 앞 칸. 칸 너비는 표 전체에서 같게 맞춘다 */
+function pmLayoutTable(t, rid, rw){
+  const W = PM_NODE_W, H = PM_NODE_H, ind = 22, pos = {}, list = [], row = [], bands = [];
+  const heads = id => { const out = []; pmLKids(t, id).forEach(c => { out.push(c); if(t.kind[c] === 'stage') out.push(...heads(c)); }); return out; };
+  const relDepth = id => { const k = pmLKids(t, id); return k.length ? 1 + Math.max(...k.map(relDepth)) : 0; };
+  const rows = pmLKids(t, rid).map(r => ({ id: r, cells: t.kind[r] === 'stage' ? heads(r) : [] }));
+  let maxRel = 0;
+  rows.forEach(r => { const cs = r.cells.length ? r.cells.filter(c => t.kind[c] !== 'stage') : [r.id]; cs.forEach(c => { maxRel = Math.max(maxRel, relDepth(c)); }); });
+  const colW = W + ind * Math.max(0, maxRel - 1) + 40, x0 = 30, cx = j => x0 + W + 56 + j * colW;
+  let y = PM_NODE_H + 54;
+  rows.forEach(r => {
+    let bottom = y + H;
+    const stack = (head, x) => {
+      let yy = y + H + 14;
+      const walk = (id, rel) => pmLKids(t, id).forEach(c => {
+        if(t.kind[c] === 'stage' || (r.cells.includes(c) && t.kind[r.id] === 'stage')) return;
+        if(!list.includes(id)) list.push(id);
+        pos[c] = { x: x + ind * rel, y: yy }; yy += H + 14; walk(c, rel + 1);
+      });
+      walk(head, 1); bottom = Math.max(bottom, yy - 14);
+    };
+    pos[r.id] = { x: x0, y };
+    if(t.kind[r.id] === 'stage'){ r.cells.forEach((c, j) => { pos[c] = { x: cx(j), y }; if(t.kind[c] !== 'stage') stack(c, cx(j)); }); row.push(r.id); r.cells.filter(c => t.kind[c] === 'stage').forEach(s => row.push(s)); }
+    else stack(r.id, x0);
+    bands.push({ id: r.id, y: y - 16, h: bottom - y + 32 });
+    y = bottom + 46;
+  });
+  list.push(rid);
+  pos[rid] = { x: 0, y: 0 };
+  return { pos, list, row, seq: [], bands, colW, cols: Math.max(0, ...rows.map(r => r.cells.length)), cellX0: cx(0) };
+}
+const PM_LAYOUT_FNS = { flow: pmLayoutFlow, org: pmLayoutOrg, right: pmLayoutRight, mind: pmLayoutMind, table: pmLayoutTable };
+
+/* 상자 범위 */
+function pmLBounds(pos, ids, rid, rw){
+  let x1 = Infinity, y1 = Infinity, x2 = -Infinity, y2 = -Infinity;
+  ids.forEach(id => { const p = pos[id]; if(!p) return; const w = id === rid ? rw : PM_NODE_W; x1 = Math.min(x1, p.x); y1 = Math.min(y1, p.y); x2 = Math.max(x2, p.x + w); y2 = Math.max(y2, p.y + PM_NODE_H); });
+  return { x1, y1, x2, y2 };
+}
+/* 전체 배치: 맵의 배치(mode) + 단계별 배치(byStage) → { pos, root, list:Set, row:Set, seq, bands, mode }
+   단계 배치는 바깥 단계부터 — 그 가지만 다른 배치로 다시 계산해 단계 자리에 붙이고, 커지거나 줄어든 만큼 맵의 진행 축으로 뒤쪽을 민다 */
+function pmComputeLayout(rows, mode, byStage){
+  if(!PM_LAYOUT_FNS[mode]) return null;
+  const t = pmLayoutTree(rows);
+  const R = PM_LAYOUT_FNS[mode](t, 'ROOT', PM_ROOT_W);
+  const pos = R.pos, list = new Set(R.list), row = new Set(R.row);
+  let bands = R.bands.slice(), seq = R.seq.slice();
+  const axis = PM_MAIN_AXIS[mode];
+  const order = (rows || []).filter(r => !r.hidden && r.kind === 'stage').map(r => r.id);
+  order.forEach(sid => {
+    const m = (byStage || {})[sid];
+    if(!m || m === mode || !PM_LAYOUT_FNS[m] || !pos[sid]) return;
+    const sub = pmLayoutTree(rows.filter(r => pmLSubtree(t, sid).includes(r.id)).map(r => r.id === sid ? Object.assign({}, r, { parentId: null }) : r));
+    const ids = pmLSubtree(t, sid);
+    if(ids.length < 2) return;
+    const before = pmLBounds(pos, ids, null, 0);
+    const S = PM_LAYOUT_FNS[m](sub, sid, PM_NODE_W);
+    const dx0 = pos[sid].x - S.pos[sid].x, dy0 = pos[sid].y - S.pos[sid].y;
+    ids.forEach(id => { pos[id] = { x: S.pos[id].x + dx0, y: S.pos[id].y + dy0 }; });
+    // 단계 앞쪽으로 넘치면 가지째 뒤로, 뒤쪽은 늘어난 만큼 민다
+    let after = pmLBounds(pos, ids, null, 0);
+    const k = axis === 'x' ? 'x' : 'y';
+    const lead = (k === 'x' ? before.x1 - after.x1 : before.y1 - after.y1);
+    if(lead > 0){ ids.forEach(id => { pos[id][k] += lead; }); after = pmLBounds(pos, ids, null, 0); }
+    // 진행 축과 다른 쪽(흐름이면 위, 표면 왼쪽)으로 넘쳐도 가지째 옮긴다(단계도 함께 — 부모 선이 길어질 뿐)
+    const c = k === 'x' ? 'y' : 'x', cross = c === 'x' ? before.x1 - after.x1 : before.y1 - after.y1;
+    if(cross > 0){ ids.forEach(id => { pos[id][c] += cross; }); after = pmLBounds(pos, ids, null, 0); }
+    const grow = k === 'x' ? after.x2 - before.x2 : after.y2 - before.y2;
+    const edge = k === 'x' ? before.x2 : before.y2;
+    const inSub = new Set(ids);
+    Object.keys(pos).forEach(id => { if(!inSub.has(id) && id !== 'ROOT' && pos[id][k] >= edge - 1) pos[id][k] += grow; });
+    bands = bands.map(b => k === 'y' && b.y >= edge - 1 ? Object.assign({}, b, { y: b.y + grow }) : b);
+    // 그 가지 안의 선 모양은 단계 배치를 따른다
+    ids.forEach(id => { list.delete(id); row.delete(id); });
+    S.list.forEach(id => { if(id !== 'ROOT') list.add(id); });
+    S.row.forEach(id => row.add(id));
+    seq = seq.filter(([a, b]) => !inSub.has(a) && !inSub.has(b)).concat(S.seq);
+    const band = bands.find(b => b.id === sid); if(band && k === 'y'){ const bb = pmLBounds(pos, ids, null, 0); band.h = bb.y2 - band.y + 16; }
+  });
+  // 여백 맞추기(왼쪽 위 30)
+  const all = Object.keys(pos);
+  const b = pmLBounds(pos, all, 'ROOT', PM_ROOT_W);
+  const ox = 30 - b.x1, oy = 30 - b.y1;
+  all.forEach(id => { pos[id] = { x: Math.round(pos[id].x + ox), y: Math.round(pos[id].y + oy) }; });
+  const root = pos.ROOT; delete pos.ROOT;
+  bands = bands.map(x => Object.assign({}, x, { y: x.y + oy }));
+  return { mode, pos, root, list, row, seq, bands, table: mode === 'table' ? { colW: R.colW, cols: R.cols, cellX0: R.cellX0 + ox } : null };
+}
+
+/* ---------- 순수 함수: 연결선 ---------- */
+/* 부모 상자 → 자식 상자들. style: 'list'(부모 왼쪽 아래로 내려가며 가지) | 'row'(한 줄로 잇기) | 없음(자리에 따라 아래·오른쪽·왼쪽 버스) */
+function pmEdgeDs(pb, cbs, style){
+  if(!cbs.length) return [];
+  const out = [];
+  if(style === 'list'){
+    const x0 = pb.x + 16, y0 = pb.y + pb.h;
+    out.push(`M${x0},${y0} L${x0},${Math.max(...cbs.map(c => c.cy))}`);
+    cbs.forEach(c => out.push(`M${x0},${c.cy} L${c.x},${c.cy}`));
+    return out;
+  }
+  if(style === 'row'){
+    const s = cbs.slice().sort((a, b) => a.x - b.x);
+    let px = pb.x + pb.w, py = pb.cy;
+    s.forEach(c => { out.push(py === c.cy ? `M${px},${py} L${c.x},${c.cy}` : `M${px},${py} L${(px + c.x) / 2},${py} L${(px + c.x) / 2},${c.cy} L${c.x},${c.cy}`); px = c.x + c.w; py = c.cy; });
+    return out;
+  }
+  const right = cbs.filter(c => c.x >= pb.x + pb.w - 2), left = cbs.filter(c => c.x + c.w <= pb.x + 2 && !right.includes(c));
+  const down = cbs.filter(c => !right.includes(c) && !left.includes(c));
+  [[right, 1], [left, -1]].forEach(([g, d]) => {
+    if(!g.length) return;
+    const sx = d > 0 ? pb.x + pb.w : pb.x, near = d > 0 ? Math.min(...g.map(c => c.x)) : Math.max(...g.map(c => c.x + c.w));
+    const bx = sx + (near - sx) / 2;
+    const ys = g.map(c => c.cy).concat([pb.cy]);
+    out.push(`M${sx},${pb.cy} L${bx},${pb.cy}`, `M${bx},${Math.min(...ys)} L${bx},${Math.max(...ys)}`);
+    g.forEach(c => out.push(`M${bx},${c.cy} L${d > 0 ? c.x : c.x + c.w},${c.cy}`));
+  });
+  if(down.length){
+    const sx = pb.x + pb.w / 2, sy = pb.y + pb.h;
+    if(down.length === 1){ const c = down[0]; const my = sy + (c.y - sy) * 0.45; out.push(`M${sx},${sy} L${sx},${my} L${c.cx},${my} L${c.cx},${c.y}`); }
+    else {
+      const busY = sy + (Math.min(...down.map(c => c.y)) - sy) * 0.45;
+      out.push(`M${sx},${sy} L${sx},${busY}`, `M${Math.min(sx, ...down.map(c => c.cx))},${busY} L${Math.max(sx, ...down.map(c => c.cx))},${busY}`);
+      down.forEach(c => out.push(`M${c.cx},${busY} L${c.cx},${c.y}`));
+    }
+  }
+  return out;
+}
+
+/* ---------- 데이터 ---------- */
+function pmLayoutOf(pm){ const l = (pm && pm.layout) || {}; return { mode: PM_LAYOUT_IDS.includes(l.mode) ? l.mode : 'free', byStage: l.byStage || {}, root: l.root || { x: 60, y: 30 } }; }
+/* 화면에 그릴 위치: 계산 배치면 pmComputeLayout, 자유 배치면 노드 x·y. renderPmCanvas가 부르고 결과를 pmViewCache에 둔다 */
+var pmViewCache = null;
+function pmViewLayout(pmId, rows){
+  const pm = DATA.processMaps.find(m => m.id === pmId);
+  const L = pmLayoutOf(pm);
+  const r = rows || pmTreeRows(getPmTreeNodes(pmId), pmCollapsedSet(pmId));
+  const c = L.mode === 'free' ? null : pmComputeLayout(r, L.mode, L.byStage);
+  const pos = {};
+  r.filter(x => !x.hidden).forEach(x => { pos[x.id] = c && c.pos[x.id] ? c.pos[x.id] : { x: x.node.x || 0, y: x.node.y || 0 }; });
+  pmViewCache = { pmId, mode: L.mode, computed: !!c, pos, root: c ? c.root : L.root, list: c ? c.list : new Set(), row: c ? c.row : new Set(), seq: c ? c.seq : [], bands: c ? c.bands : [], table: c ? c.table : null };
+  return pmViewCache;
+}
+/* 노드(또는 'ROOT')의 화면 위치 */
+function pmViewPos(pmId, id){
+  const v = pmViewCache && pmViewCache.pmId === pmId ? pmViewCache : pmViewLayout(pmId);
+  if(id === 'ROOT') return v.root;
+  if(v.pos[id]) return v.pos[id];
+  const n = DATA.nodes.find(x => x.id === id);
+  return n ? { x: n.x || 0, y: n.y || 0 } : null;
+}
+/* 그릴 노드: DATA 노드에 화면 위치를 얹은 복사본 */
+function pmViewNode(n, v){ const p = v.pos[n.id]; return p && (p.x !== n.x || p.y !== n.y) ? Object.assign({}, n, { x: p.x, y: p.y }) : n; }
+
+/* ---------- store ---------- */
+/* [store] 맵의 배치 바꾸기. 'free'는 손 위치 그대로, keepCurrent면 지금 화면 배치를 손 위치로 고정 */
+function pmSetLayout(pmId, mode, keepCurrent){
+  const pm = DATA.processMaps.find(m => m.id === pmId);
+  if(!pm || !PM_LAYOUT_IDS.includes(mode)) return false;
+  const old = pmLayoutOf(pm);
+  if(mode === 'free' && keepCurrent){
+    const v = pmViewLayout(pmId, pmTreeRows(getPmTreeNodes(pmId)));   // 접힌 가지도 포함해 고정
+    getPmTreeNodes(pmId).forEach(n => { const p = v.pos[n.id]; if(p){ n.x = p.x; n.y = p.y; } });
+    pm.layout = Object.assign({}, pm.layout || {}, { mode: 'free', root: { x: v.root.x, y: v.root.y } });
+  } else pm.layout = Object.assign({}, pm.layout || {}, { mode });
+  logAudit('Process Map', 'Set Layout', `${pm.code} ${PM_LAYOUT_MODES.find(m => m.id === mode).label}${keepCurrent ? ' (지금 배치를 고정)' : ''}`, old.mode, mode, { pmId });
+  validateData(DATA);
+  return true;
+}
+/* [store] 공정 단계 하나의 배치(빈 값 = 맵 배치를 따름) */
+function pmSetStageLayout(pmId, stageId, mode){
+  const pm = DATA.processMaps.find(m => m.id === pmId);
+  const st = DATA.nodes.find(n => n.id === stageId && n.pmId === pmId);
+  if(!pm || !st || pmNodeKind(st) !== 'stage') return false;
+  if(mode && (!PM_LAYOUT_FNS[mode])) return false;
+  const byStage = Object.assign({}, pmLayoutOf(pm).byStage);
+  const old = byStage[stageId] || '';
+  if(mode) byStage[stageId] = mode; else delete byStage[stageId];
+  pm.layout = Object.assign({}, pm.layout || {}, { byStage });
+  logAudit('Process Map', 'Set Stage Layout', `${st.name}: ${mode ? PM_LAYOUT_MODES.find(m => m.id === mode).label : '맵 배치를 따름'}`, old, mode || '', { pmId, nodeId: stageId });
+  validateData(DATA);
+  return true;
+}
+
+/* ---------- 화면: 배치 고르기 ---------- */
+function openPmLayoutPopup(){ STATE.pmLayoutPopup = !STATE.pmLayoutPopup; render(); }
+function pmApplyLayoutUi(pmId, mode, keepCurrent){
+  pmKeepCanvasScroll();
+  if(pmSetLayout(pmId, mode, !!keepCurrent)){ STATE.pmLayoutPopup = false; render(); }
+}
+function pmApplyStageLayoutUi(pmId, stageId, mode){
+  pmKeepCanvasScroll();
+  if(pmSetStageLayout(pmId, stageId, mode)) render();
+}
+function pmLayoutPopupHtml(pm){
+  const L = pmLayoutOf(pm);
+  const sel = getActiveTab().ctx.selectedProcessNodeId;
+  const stage = sel && DATA.nodes.find(n => n.id === sel && n.pmId === pm.id && pmNodeKind(n) === 'stage');
+  const opt = (m, on, args, extra) => `<button class="pm-layout-opt ${on ? 'on' : ''}" data-layout="${m.id}" data-on-click="${extra || 'pmApplyLayoutUi'}" data-a-click="${pcsArgs(args)}" title="${escapeXmlAttr(m.desc)}" aria-pressed="${on}"><span class="pm-layout-ico">${m.icon}</span><span>${escapeXml(m.label)}</span></button>`;
+  return `<div class="pm-layout-popup" data-pm-layout-popup>
+    <div class="pm-layout-head">맵 배치</div>
+    <div class="pm-layout-grid">${PM_LAYOUT_MODES.map(m => opt(m, L.mode === m.id, [pm.id, m.id])).join('')}</div>
+    ${L.mode !== 'free' ? `<button class="pm-layout-freeze" id="pmLayoutFreeze" data-on-click="pmApplyLayoutUi" data-a-click="${pcsArgs([pm.id, 'free', true])}">✥ 지금 배치를 자유 배치로 고정 — 그 뒤 손으로 옮기기</button>` : ''}
+    ${stage ? `<div class="pm-layout-head" style="margin-top:10px;">이 단계만 — ${escapeXml(stage.name)}</div>
+      <div class="pm-layout-grid" data-stage-layout="${stage.id}">
+        <button class="pm-layout-opt ${!L.byStage[stage.id] ? 'on' : ''}" data-layout="" data-on-click="pmApplyStageLayoutUi" data-a-click="${pcsArgs([pm.id, stage.id, ''])}"><span class="pm-layout-ico">↺</span><span>맵 배치를 따름</span></button>
+        ${PM_LAYOUT_MODES.filter(m => m.id !== 'free').map(m => opt(m, L.byStage[stage.id] === m.id, [pm.id, stage.id, m.id], 'pmApplyStageLayoutUi')).join('')}
+      </div>` : `<div class="pm-layout-tip">공정 단계를 고르면 그 단계만 다른 배치로 바꿀 수 있습니다.</div>`}
+    ${L.mode !== 'free' ? `<div class="pm-layout-tip">계산된 배치에서 노드를 끌어 다른 노드 위에 놓으면 부모가 바뀝니다. 위치는 배치가 정합니다.</div>` : ''}
+  </div>`;
+}
+
+/* ======================= 칸반 보기 =======================
+   ThinkWise 칸반보드(1레벨 = 열, 하위 = 카드)처럼: 1레벨 공정 단계 = 열, 그 안의 Unit Operation = 카드.
+   카드: 번호·이름·승인 상태·버전·최근 처리(누가 무엇을)·진행 중 결재 묶음. 다른 열로 끌면(또는 카드의 "단계 옮기기") 그 단계로 옮긴다(구조 편집 — Draft Process Map만, 실행취소·감사 기록). */
+/* 순수: rows → [{ id: 단계 ID|'' , title, uos:[row…] }] — 단계 없이 맨 위에 있는 UO는 '' 열 */
+function pmKanbanColumns(rows){
+  const cols = [], byId = {};
+  (rows || []).forEach(r => { byId[r.id] = r; });
+  const topOf = r => { let x = r; while(x.parentId && byId[x.parentId]) x = byId[x.parentId]; return x; };
+  const loose = { id: '', title: '단계 없음', uos: [] };
+  (rows || []).filter(r => !r.parentId && r.kind === 'stage').forEach(r => { const c = { id: r.id, title: r.node.name, number: r.number, uos: [] }; cols.push(c); byId['col:' + r.id] = c; });
+  (rows || []).filter(r => r.kind === 'uo').forEach(r => { const t = topOf(r); (t.kind === 'stage' ? byId['col:' + t.id] : loose).uos.push(r); });
+  if(loose.uos.length || !cols.length) cols.push(loose);
+  return cols;
+}
+function pmKanbanCardHtml(r, editable, cols){
+  const id = r.id, n = r.node;
+  const st = uoStatusOf(id), ver = uoVersionOf(id);
+  const last = (n.uoHistory || [])[n.uoHistory ? n.uoHistory.length - 1 : 0];
+  const pkg = apOpenPackageOf(DATA, id, apStatusOf);
+  const steps = r.childIds.filter(c => (DATA.nodes.find(x => x.id === c) || {}).kind === 'step').length;
+  const move = editable ? `<select class="pm-kb-move" aria-label="${escapeXmlAttr(n.name)} 단계 옮기기" ${pcsOn('change', 'pcsCallWithValue', ['pmKanbanMoveUi', id])}><option value="__">단계 옮기기…</option>${cols.map(c => `<option value="${escapeXmlAttr(c.id)}">${escapeXml(c.title)}</option>`).join('')}</select>` : '';
+  return `<div class="pm-kb-card status-${st.replace(/\s+/g, '-').toLowerCase()}" data-kb-card="${escapeXmlAttr(id)}" ${editable ? 'draggable="true"' : ''} tabindex="0" role="button" aria-label="${escapeXmlAttr((r.number || '') + ' ' + n.name + ' — ' + st)}">
+    <div class="pm-kb-card-top"><span class="pm-kb-num">${escapeXml(r.number)}</span>${uoBadge(st)}<span class="pm-kb-ver">v${ver}</span></div>
+    <div class="pm-kb-name">${escapeXml(n.name)}</div>
+    <div class="pm-kb-meta">${last ? `최근: ${escapeXml(last.status)} · ${escapeXml(last.by || '')}` : '승인 이력 없음'}${steps ? ` · 하위 단계 ${steps}` : ''}</div>
+    ${pkg ? `<div class="pm-kb-pkg" title="진행 중 결재 묶음">${icon('layers')} ${escapeXml(pkg.no)} ${escapeXml(pkg.title || '')}</div>` : ''}
+    ${move}
+  </div>`;
+}
+function renderPmKanban(wrap, pm){
+  wrap.classList.add('pm-kanban-mode');
+  const rows = pmTreeRows(getPmTreeNodes(pm.id));
+  const cols = pmKanbanColumns(rows);
+  const editable = pmStructureEditable(pm.id);
+  wrap.innerHTML = `<div class="pm-kb" data-pm-kanban>
+    ${editable ? '' : `<div class="pm-kb-lock">${icon('lock')} ${escapeXml(pm.status)} Process Map — 카드를 옮길 수 없습니다(보기만).</div>`}
+    <div class="pm-kb-cols">${cols.map(c => {
+      const ap = c.uos.filter(r => uoStatusOf(r.id) === 'Approved').length;
+      return `<section class="pm-kb-col" data-kb-col="${escapeXmlAttr(c.id)}" aria-label="${escapeXmlAttr(c.title)}">
+        <header class="pm-kb-col-head"><span class="pm-kb-col-title">${c.number ? `<span class="pm-kb-num">${escapeXml(c.number)}</span>` : ''}${escapeXml(c.title)}</span><span class="pm-kb-col-count">UO ${c.uos.length} · 승인 ${ap}</span>
+          <div class="pm-kb-bar"><span style="width:${c.uos.length ? Math.round(ap / c.uos.length * 100) : 0}%"></span></div></header>
+        <div class="pm-kb-list">${c.uos.map(r => pmKanbanCardHtml(r, editable, cols.filter(x => x.id !== c.id))).join('') || '<div class="pm-kb-empty">UO 없음</div>'}</div>
+      </section>`;
+    }).join('')}</div></div>`;
+  wrap.querySelectorAll('[data-kb-card]').forEach(card => {
+    const id = card.getAttribute('data-kb-card');
+    card.addEventListener('click', e => { if(e.target.closest('select')) return; openPmPanelMenu(id); });
+    card.addEventListener('keydown', e => { if(e.key === 'Enter' && e.target === card){ e.preventDefault(); openPmPanelMenu(id); } });
+    card.addEventListener('dragstart', e => { e.dataTransfer.setData('text/x-pcs-uo', id); e.dataTransfer.effectAllowed = 'move'; card.classList.add('dragging'); });
+    card.addEventListener('dragend', () => card.classList.remove('dragging'));
+  });
+  wrap.querySelectorAll('[data-kb-col]').forEach(col => {
+    col.addEventListener('dragover', e => { if(!editable) return; e.preventDefault(); col.classList.add('drop'); });
+    col.addEventListener('dragleave', () => col.classList.remove('drop'));
+    col.addEventListener('drop', e => {
+      e.preventDefault(); col.classList.remove('drop');
+      const id = e.dataTransfer.getData('text/x-pcs-uo');
+      if(id) pmKanbanMoveUi(id, col.getAttribute('data-kb-col'));
+    });
+  });
+}
+/* [store 경유] UO를 다른 단계(열)로 — 단계의 마지막 자식으로. '' = 맨 위(단계 없음) */
+function pmKanbanMove(uoId, stageId){
+  const n = DATA.nodes.find(x => x.id === uoId);
+  if(!n) return false;
+  const target = stageId || null;
+  if((n.parentId || null) === target) return false;
+  return pmReparentNode(uoId, target);
+}
+function pmKanbanMoveUi(uoId, stageId){
+  if(stageId === '__') return;
+  const n = DATA.nodes.find(x => x.id === uoId);
+  if(!n) return;
+  const ok = pmWithUndo(n.pmId, () => pmKanbanMove(uoId, stageId));
+  if(ok){ uiToast(`${n.name} → ${stageId ? (DATA.nodes.find(x => x.id === stageId) || {}).name : '단계 없음'}`, { kind: 'success' }); render(); }
+  else renderPmCanvas();
+}
+
+/* ======================= 화면 도구 ======================= */
+/* 순수: 맞추기 배율 — 내용(w·h)을 보이는 칸(vw·vh)에 넣는 배율(0.25~1.8) */
+function pmFitScale(w, h, vw, vh){ if(!(w > 0 && h > 0 && vw > 0 && vh > 0)) return 1; return Math.max(0.25, Math.min(1.8, +(Math.min((vw - 24) / w, (vh - 24) / h)).toFixed(2))); }
+function pmCanvasSize(){ const svg = document.getElementById('pmCanvas'); const vb = svg && svg.viewBox && svg.viewBox.baseVal; return vb ? { w: vb.width, h: vb.height } : null; }
+function pmFitToScreen(){
+  const wrap = document.getElementById('pmCanvasWrap'), sz = pmCanvasSize();
+  if(!wrap || !sz) return;
+  pmView.scale = pmFitScale(sz.w, sz.h, wrap.clientWidth, wrap.clientHeight);
+  STATE.pmCanvasScroll = STATE.pmCanvasScroll || {}; STATE.pmCanvasScroll[wrap.getAttribute('data-pmid')] = { l: 0, t: 0 };
+  renderPmCanvas();
+}
+/* 선택한 노드(가지)를 화면 가운데로 */
+function pmCenterSelected(){
+  const wrap = document.getElementById('pmCanvasWrap'); if(!wrap) return;
+  const pmId = wrap.getAttribute('data-pmid');
+  const sel = getActiveTab().ctx.selectedProcessNodeId || 'ROOT';
+  const p = pmViewPos(pmId, sel); if(!p) return;
+  const w = sel === 'ROOT' ? PM_ROOT_W : PM_NODE_W, k = pmView.scale;
+  wrap.scrollLeft = Math.max(0, (p.x + w / 2) * k - wrap.clientWidth / 2);
+  wrap.scrollTop = Math.max(0, (p.y + PM_NODE_H / 2) * k - wrap.clientHeight / 2);
+  STATE.pmCanvasScroll = STATE.pmCanvasScroll || {}; STATE.pmCanvasScroll[pmId] = { l: wrap.scrollLeft, t: wrap.scrollTop };
+  pmRenderMinimap();
+}
+/* 미니맵: 맵 전체를 작게, 지금 보이는 곳은 상자. 누르면 그곳으로 */
+function pmToggleMinimap(){ const v = pmViewPrefs(); v.minimap = !v.minimap; pmSaveViewPrefs(); renderPmCanvas(); }
+function pmRenderMinimap(){
+  const wrap = document.getElementById('pmCanvasWrap');
+  const card = wrap && wrap.parentElement;
+  let mm = document.getElementById('pmMinimap');
+  if(!wrap || !pmViewPrefs().minimap || pmViewMode() !== 'map' || !wrap.querySelector('#pmCanvas')){ if(mm) mm.remove(); return; }
+  const pmId = wrap.getAttribute('data-pmid');
+  const sz = pmCanvasSize(); const v = pmViewCache && pmViewCache.pmId === pmId ? pmViewCache : pmViewLayout(pmId);
+  const MW = 200, MH = Math.max(60, Math.min(160, Math.round(MW * sz.h / sz.w))), k = Math.min(MW / sz.w, MH / sz.h);
+  const rects = Object.keys(v.pos).map(id => `<rect x="${(v.pos[id].x * k).toFixed(1)}" y="${(v.pos[id].y * k).toFixed(1)}" width="${(PM_NODE_W * k).toFixed(1)}" height="${(PM_NODE_H * k).toFixed(1)}" rx="1"/>`).join('');
+  const s = pmView.scale;
+  const vp = { x: wrap.scrollLeft / s * k, y: wrap.scrollTop / s * k, w: wrap.clientWidth / s * k, h: wrap.clientHeight / s * k };
+  if(!mm){ mm = document.createElement('div'); mm.id = 'pmMinimap'; mm.className = 'pm-minimap'; mm.setAttribute('aria-label', '미니맵 — 누르면 그곳으로'); card.appendChild(mm); }
+  mm.innerHTML = `<svg width="${MW}" height="${MH}" viewBox="0 0 ${MW} ${MH}"><g class="pm-mm-nodes">${rects}<rect class="pm-mm-root" x="${v.root.x * k}" y="${v.root.y * k}" width="${PM_ROOT_W * k}" height="${PM_NODE_H * k}"/></g><rect class="pm-mm-view" data-mm-view x="${vp.x.toFixed(1)}" y="${vp.y.toFixed(1)}" width="${Math.min(MW, vp.w).toFixed(1)}" height="${Math.min(MH, vp.h).toFixed(1)}"/></svg>`;
+  mm.__k = k;
+  if(!mm.__bound){
+    mm.__bound = true;
+    const go = e => { const r = mm.getBoundingClientRect(), kk = mm.__k, sc = pmView.scale; wrap.scrollLeft = ((e.clientX - r.left) / kk) * sc - wrap.clientWidth / 2; wrap.scrollTop = ((e.clientY - r.top) / kk) * sc - wrap.clientHeight / 2; };
+    mm.addEventListener('mousedown', e => { e.preventDefault(); go(e); const mv = ev => go(ev); const up = () => { document.removeEventListener('mousemove', mv); document.removeEventListener('mouseup', up); }; document.addEventListener('mousemove', mv); document.addEventListener('mouseup', up); });
+  }
+  if(!wrap.__mmScroll){ wrap.__mmScroll = true; wrap.addEventListener('scroll', () => { const r = document.querySelector('#pmMinimap [data-mm-view]'), mk = (document.getElementById('pmMinimap') || {}).__k; if(!r || !mk) return; const sc = pmView.scale; r.setAttribute('x', (wrap.scrollLeft / sc * mk).toFixed(1)); r.setAttribute('y', (wrap.scrollTop / sc * mk).toFixed(1)); }, { passive: true }); }
+}
+/* 집중 모드: 머리글·메타·UO 줄·범례·도구 막대를 숨기고 캔버스만(Esc 또는 단추로 끝) */
+function pmToggleFocus(){ STATE.pmFocus = !STATE.pmFocus; render(); }
+if(typeof document !== 'undefined' && document.addEventListener && !globalThis.__pmFocusEscBound){
+  globalThis.__pmFocusEscBound = true;
+  document.addEventListener('keydown', e => {
+    if(e.key !== 'Escape' || !STATE.pmFocus || !document.getElementById('pmCanvasWrap')) return;
+    if(document.querySelector('.modal-overlay, #uiDialogLayer .ui-dialog, #pmInlineEditor') || pmSelection().length) return;
+    STATE.pmFocus = false; render();
+  });
+}
+
+/* ======================= 맵 이미지·PDF 내보내기 ======================= */
+function pmToggleImageMenu(){ STATE.pmImageMenu = !STATE.pmImageMenu; STATE.pmLayoutPopup = false; renderPmCanvas(); }
+function pmImageMenuHtml(pm){
+  return `<div class="pm-layout-popup pm-image-menu" data-pm-image-menu>
+    <div class="pm-layout-head">맵 내보내기 (보이는 그대로 — 접힌 가지 제외)</div>
+    <button class="pm-image-opt" id="pmExportPng" data-on-click="pmExportImage" data-a-click="${pcsArgs([pm.id, 'png'])}">${icon('image')} PNG 이미지</button>
+    <button class="pm-image-opt" id="pmExportSvg" data-on-click="pmExportImage" data-a-click="${pcsArgs([pm.id, 'svg'])}">${icon('penTool')} SVG (벡터)</button>
+    <button class="pm-image-opt" id="pmExportPdf" data-on-click="pmExportImage" data-a-click="${pcsArgs([pm.id, 'pdf'])}">${icon('fileText')} PDF (A3 가로 한 쪽)</button>
+  </div>`;
+}
+/* 지금 그린 캔버스(배율 1)를 독립 SVG 문자열로 — 선택·+ 단추·미리보기 선은 빼고, Process Map 화면 스타일만 담는다 */
+let pmExportCssCache = null;
+function pmExportCss(){
+  if(pmExportCssCache) return pmExportCssCache;
+  const out = [];
+  [...document.styleSheets].forEach(ss => { let rules; try { rules = ss.cssRules; } catch(e){ return; } [...(rules || [])].forEach(r => { if(r.selectorText && /\.pm-(node|edge|kind|flow|badge|band|seq|collapse)|pm-node-num|pm-node-label/.test(r.selectorText) && !/hover|focus|selected|dragging|plus|reparent|multi/.test(r.selectorText)) out.push(r.cssText); }); });
+  pmExportCssCache = out.join('\n');
+  return pmExportCssCache;
+}
+function pmBuildExportSvg(){
+  const svg = document.getElementById('pmCanvas'); if(!svg) return null;
+  const c = svg.cloneNode(true);
+  c.querySelectorAll('.pm-plus, #pmFlowConnectPreview, [data-flow-handle], [data-add-handle]').forEach(e => e.remove());
+  c.querySelectorAll('.pm-selected, .pm-multi').forEach(e => e.classList.remove('pm-selected', 'pm-multi'));
+  const vb = svg.viewBox.baseVal, w = Math.round(vb.width), h = Math.round(vb.height);
+  c.setAttribute('xmlns', 'http://www.w3.org/2000/svg'); c.setAttribute('width', w); c.setAttribute('height', h);
+  c.removeAttribute('id'); c.setAttribute('font-family', "Pretendard, 'Malgun Gothic', Arial, sans-serif");
+  const style = document.createElementNS('http://www.w3.org/2000/svg', 'style'); style.textContent = pmExportCss();
+  c.insertBefore(style, c.firstChild);
+  const bg = document.createElementNS('http://www.w3.org/2000/svg', 'rect'); bg.setAttribute('width', w); bg.setAttribute('height', h); bg.setAttribute('fill', '#FFFFFF');
+  c.insertBefore(bg, style.nextSibling);
+  return { svg: new XMLSerializer().serializeToString(c), w, h };
+}
+async function pmExportImage(pmId, format){
+  const pm = DATA.processMaps.find(m => m.id === pmId); if(!pm) return;
+  STATE.pmImageMenu = false;
+  const prev = pmView.scale; pmView.scale = 1; renderPmCanvas();   // 배율 1로 그린 것을 내보낸다
+  const out = pmBuildExportSvg();
+  pmView.scale = prev; renderPmCanvas();
+  if(!out) return;
+  const base = pmExportFileName(pm, 'x').replace(/_structure\.x$/, '_map');
+  try {
+    if(format === 'svg') pfdDownloadBlob(new Blob([out.svg], { type: 'image/svg+xml' }), `${base}.svg`);
+    else if(format === 'png'){ const r = await pfdSvgToRaster(out.svg, out.w, out.h, 2, 'image/png'); pfdDownloadBlob(r.blob, `${base}.png`); }
+    else {
+      const r = await pfdSvgToRaster(out.svg, out.w, out.h, 2, 'image/jpeg');
+      const jpeg = new Uint8Array(await r.blob.arrayBuffer());
+      pfdDownloadBlob(new Blob([pfdBuildPdf([{ jpeg, w: r.w, h: r.h }], 1191, 842)], { type: 'application/pdf' }), `${base}.pdf`);
+    }
+    logAudit('Process Map', 'Export Map Image', `${pm.code} 맵 .${format}`, null, null, { pmId });
+  } catch(e){ uiToast(`내보내기 실패: ${e.message}`, { kind: 'error' }); }
+}
+
+/* 배치 장식: 표 줄 띠(단계 이름은 노드가 맡는다)·공정 흐름 순서 화살표 */
+function pmLayoutDecorSvg(view, nodes, maxX){
+  const out = [];
+  (view.bands || []).forEach((b, i) => out.push(`<rect class="pm-band ${i % 2 ? 'odd' : ''}" x="10" y="${b.y}" width="${Math.max(200, maxX - 20)}" height="${b.h}" rx="10"/>`));
+  const at = {}; nodes.forEach(n => { at[n.id] = n; });
+  (view.seq || []).forEach(([a, b]) => { const A = at[a], B = at[b]; if(!A || !B || A.y !== B.y) return; const y = A.y + PM_NODE_H / 2, x1 = A.x + PM_NODE_W + 4, x2 = B.x - 6; if(x2 - x1 > 8) out.push(`<path class="pm-seq" d="M${x1},${y} L${x2},${y}" marker-end="url(#pmSeqArrow)"/>`); });
+  return out;
 }
 function openBomReport(pmId){
   goTo('bomReport', { reportPmId: pmId }, { label:'BOM Report', tag:'BOM' });
@@ -8510,78 +9115,7 @@ function isPmAncestor(pmId, candidateAncestorId, nodeId){
   return false;
 }
 
-/* ===== Process Map 자동 레이아웃 — Thinkwise 스타일 방향 배치 ===== */
-const PM_LAYOUTS = [
-  { id:'td',   label:'↓ 위→아래', icon:'⬇' },
-  { id:'lr',   label:'→ 왼→오른', icon:'➡' },
-  { id:'bt',   label:'↑ 아래→위', icon:'⬆' },
-  { id:'rl',   label:'← 오른→왼', icon:'⬅' },
-  { id:'org',  label:'⊤ 조직도형', icon:'⊤' },
-  { id:'hlist',label:'═ 수평배열', icon:'═' },
-  { id:'vlist',label:'║ 수직배열', icon:'║' },
-  { id:'tree2',label:'⊨ 2단 트리', icon:'⊨' },
-  { id:'radial',label:'◎ 방사형',  icon:'◎' },
-];
-function openPmLayoutPopup(){
-  STATE.pmLayoutPopup = !STATE.pmLayoutPopup;
-  render();
-}
-function applyPmLayout(pmId, layoutId){
-  const nodes = getPmTreeNodes(pmId);
-  const root = nodes.find(n=>!n.parentId);
-  if(!root) return;
-  const children = nodes.filter(n=>n.parentId===root.id);
-  const gap = 40, nodeW = 180, nodeH = 80;
-  
-  if(layoutId==='td'||layoutId==='org'){
-    // 위→아래: root 상단, 자식들 아래로 수평 배열
-    root.x = 100 + (children.length*((nodeW+gap)/2)) - nodeW/2; root.y = 60;
-    children.forEach((c,i)=>{ c.x = 100 + i*(nodeW+gap); c.y = 200; });
-  } else if(layoutId==='lr'){
-    // 왼→오른: root 왼쪽, 자식들 오른쪽 수직 배열
-    root.x = 80; root.y = 60 + (children.length*((nodeH+gap)/2)) - nodeH/2;
-    children.forEach((c,i)=>{ c.x = 320; c.y = 60 + i*(nodeH+gap); });
-  } else if(layoutId==='bt'){
-    // 아래→위: root 하단
-    const baseY = 60 + children.length*(nodeH+gap);
-    root.x = 100 + (children.length*((nodeW+gap)/2)) - nodeW/2; root.y = baseY;
-    children.forEach((c,i)=>{ c.x = 100 + i*(nodeW+gap); c.y = baseY - 180; });
-  } else if(layoutId==='rl'){
-    // 오른→왼: root 오른쪽
-    const baseX = 100 + 240;
-    root.x = baseX; root.y = 60 + (children.length*((nodeH+gap)/2)) - nodeH/2;
-    children.forEach((c,i)=>{ c.x = 80; c.y = 60 + i*(nodeH+gap); });
-  } else if(layoutId==='hlist'){
-    // 수평 일렬: root 포함 모두 한 줄
-    const allNodes = [root, ...children];
-    allNodes.forEach((n,i)=>{ n.x = 80 + i*(nodeW+gap); n.y = 100; });
-  } else if(layoutId==='vlist'){
-    // 수직 일렬
-    const allNodes = [root, ...children];
-    allNodes.forEach((n,i)=>{ n.x = 200; n.y = 60 + i*(nodeH+gap); });
-  } else if(layoutId==='tree2'){
-    // 2단 트리: root → 2열로 자식 배열
-    root.x = 200; root.y = 60;
-    const half = Math.ceil(children.length/2);
-    children.forEach((c,i)=>{
-      const col = i < half ? 0 : 1;
-      const row = i < half ? i : i-half;
-      c.x = 80 + col*(nodeW+gap+40);
-      c.y = 200 + row*(nodeH+gap);
-    });
-  } else if(layoutId==='radial'){
-    // 방사형: root 중앙, 자식들 원형 배치
-    const cx = 350, cy = 300, radius = 200;
-    root.x = cx - nodeW/2; root.y = cy - nodeH/2;
-    children.forEach((c,i)=>{
-      const angle = (2*Math.PI*i/children.length) - Math.PI/2;
-      c.x = cx + radius*Math.cos(angle) - nodeW/2;
-      c.y = cy + radius*Math.sin(angle) - nodeH/2;
-    });
-  }
-  STATE.pmLayoutPopup = false;
-  renderPmCanvas();
-}
+/* v117: 배치는 07f_pm_layout.js(pm.layout 설정 + 그릴 때 계산, store 함수 pmSetLayout·pmSetStageLayout). 예전 applyPmLayout은 DATA 좌표를 직접 바꿔 지웠다 */
 function pmZoom(delta){ pmView.scale = Math.max(0.5, Math.min(1.8, +(pmView.scale+delta).toFixed(2))); renderPmCanvas(); }
 function pmZoomReset(){ pmView.scale = 1; renderPmCanvas(); }
 let pmScaleBeforeFullscreen = null;
@@ -8621,21 +9155,26 @@ function renderPmCanvas(){
   if(host) host.innerHTML = pmToolbarHtml(pm);
   if(pmViewMode() === 'outline'){ renderPmOutline(wrap, pm); return; }   // v115 아웃라인 보기
   wrap.classList.remove('pm-outline-mode');
-  resolveSiblingCollisions(pmId, pmDrag ? pmDrag.nodeId : null);
+  if(pmViewMode() === 'kanban'){ renderPmKanban(wrap, pm); return; }   // v117 칸반 보기
+  wrap.classList.remove('pm-kanban-mode');
+  if(pmLayoutOf(pm).mode === 'free') resolveSiblingCollisions(pmId, pmDrag ? pmDrag.nodeId : null);
   // v112: 계층 전체 중 접힌 가지 아래는 그리지 않는다. 번호·종류·접기 단추는 줄 정보(pmTreeRows)에서
   const treeRows = pmTreeRows(getPmTreeNodes(pmId), pmCollapsedSet(pmId));
   const rowById = {}; treeRows.forEach(r=>{ rowById[r.id] = r; });
-  const nodes = treeRows.filter(r=>!r.hidden).map(r=>r.node);
+  // v117: 위치는 배치(pm.layout)가 정한다 — 계산 배치면 그릴 때 계산한 자리, 자유 배치면 노드 x·y
+  const view = pmViewLayout(pmId, treeRows);
+  const nodes = treeRows.filter(r=>!r.hidden).map(r=>pmViewNode(r.node, view));
   const rootId = 'ROOT';
-  const rootNode = { id: rootId, x: 60, y: 30, name: `${pm.code} ${pm.kind} PCS` };
+  const rootNode = { id: rootId, x: view.root.x, y: view.root.y, name: `${pm.code} ${pm.kind} PCS` };
 
   let maxX = 400, maxY = 300;
   nodes.forEach(n=>{ maxX=Math.max(maxX, n.x+PM_NODE_W+80); maxY=Math.max(maxY, n.y+PM_NODE_H+80); });
-  maxX = Math.max(maxX, rootNode.x+260);
+  maxX = Math.max(maxX, rootNode.x+300); maxY = Math.max(maxY, rootNode.y+PM_NODE_H+80);
+  view.bands.forEach(b=>{ maxY = Math.max(maxY, b.y + b.h + 40); });
 
   const selectedId = tab.ctx.selectedProcessNodeId;
   const allBoxes = [pmNodeBox(rootNode,true), ...nodes.map(n=>pmNodeBox(n,false))];
-  const edges = pmTreeEdges(rootNode, nodes);
+  const edges = pmLayoutDecorSvg(view, nodes, maxX).concat(pmTreeEdges(rootNode, nodes, view));   // 표 줄 띠가 선·노드 뒤에
   const nodeDepth = pmNodeDepths(nodes);
   const rootSvg = `
     <g class="pm-node-g pm-node-root ${selectedId===rootId?'pm-selected':''}" data-node-id="${rootId}" tabindex="0" role="button" aria-label="${escapeXmlAttr(rootNode.name || 'Process Map')}" transform="translate(${rootNode.x},${rootNode.y})">
@@ -8644,7 +9183,7 @@ function renderPmCanvas(){
     </g>`;
   const nodesSvg = pmNodesSvg(nodes, nodeDepth, selectedId, isEditing, rowById, pmCollapsedSet(pmId), new Set(pmSelection()));
   const rootAddHandle = selectedId===rootId && pmStructureEditable(pmId)   // v114: 선택하면 + (하위 추가 → 이름 입력)
-    ? `<g class="pm-plus" data-plus="child" data-plus-node="ROOT" transform="translate(${60+110},${30+PM_NODE_H+16})" role="button" aria-label="하위 추가"><title>하위 추가 (Space)</title><circle r="8"/><text text-anchor="middle" dominant-baseline="central">+</text></g>`
+    ? `<g class="pm-plus" data-plus="child" data-plus-node="ROOT" transform="translate(${rootNode.x+110},${rootNode.y+PM_NODE_H+16})" role="button" aria-label="하위 추가"><title>하위 추가 (Space)</title><circle r="8"/><text text-anchor="middle" dominant-baseline="central">+</text></g>`
     : '';
   const flowEdgesSvg = pmFlowEdgesSvg(pmId, allBoxes, rootId, nodes);
   wrap.innerHTML = pmCanvasHtml(pm, maxX, maxY, edges, rootSvg, rootAddHandle, nodesSvg, flowEdgesSvg);
@@ -8653,54 +9192,25 @@ function renderPmCanvas(){
   if(sc){ wrap.scrollLeft = sc.l; wrap.scrollTop = sc.t; }
   if(!wrap.__scrollKept){ wrap.__scrollKept = true; wrap.addEventListener('scroll', ()=>{ STATE.pmCanvasScroll = STATE.pmCanvasScroll || {}; STATE.pmCanvasScroll[wrap.getAttribute('data-pmid')] = { l: wrap.scrollLeft, t: wrap.scrollTop }; }, { passive:true }); }
   attachPmCanvasEvents(wrap, pmId);
+  pmRenderMinimap();   // v117 미니맵(켜져 있으면)
   if(pmFlowEdgePopup && pmFlowEdgePopup.pmId===pmId) renderPmFlowEdgePopup();
   pmRenderSelectionBar();
   if(STATE.pmInline) pmRenderInline();   // v114: 이름 입력 칸은 다시 그려도 유지
 }
 /* Process Map 노드 상자(루트는 폭 220) */
 function pmNodeBox(n, isRoot){ const w = isRoot?220:PM_NODE_W; return { x:n.x, y:n.y, w, h:PM_NODE_H, cx:n.x+w/2, cy:n.y+PM_NODE_H/2 }; }
-/* 부모별로 자식 그룹을 모아 "버스" 커넥터(한 줄기에서 나눠지는 수평선)를 한 번에 그린다 — Thinkwise 스타일 */
-function pmBusEdgeDs(parentNode, children, isRoot){
-  if(!children.length) return [];
-  const pBox = pmNodeBox(parentNode, isRoot);
-  const startX = pBox.x + pBox.w/2;
-  const startY = pBox.y + pBox.h;
-
-  if(children.length === 1){
-    const cBox = pmNodeBox(children[0],false);
-    const endY = cBox.y;
-    const midY = startY + (endY - startY) * 0.45;
-    return [`M${startX},${startY} L${startX},${midY} L${cBox.cx},${midY} L${cBox.cx},${endY}`];
-  }
-
-  // 여러 자식: 버스 바 방식
-  const childBoxes = children.map(c=>pmNodeBox(c,false));
-  const minY = Math.min(...childBoxes.map(b=>b.y));
-  const busY = startY + (minY - startY) * 0.45;
-  const leftX = Math.min(startX, ...childBoxes.map(b=>b.cx));
-  const rightX = Math.max(startX, ...childBoxes.map(b=>b.cx));
-
-  const paths = [];
-  // 부모 → 버스 수직선
-  paths.push(`M${startX},${startY} L${startX},${busY}`);
-  // 버스 수평선
-  paths.push(`M${leftX},${busY} L${rightX},${busY}`);
-  // 버스 → 각 자식 수직선
-  childBoxes.forEach(cb=>{
-    paths.push(`M${cb.cx},${busY} L${cb.cx},${cb.y}`);
-  });
-  return paths;
-}
-/* 계층 트리 선 전체 */
-function pmTreeEdgeDs(rootNode, nodes){
+/* 계층 트리 선 전체 — v117: 배치가 정한 선 모양(목록·줄)이 있으면 그것, 아니면 자식 자리에 따라 아래·오른쪽·왼쪽(pmEdgeDs) */
+function pmTreeEdgeDs(rootNode, nodes, view){
   const parentChildMap = {};
   nodes.forEach(n=>{ const pKey = n.parentId || 'ROOT'; (parentChildMap[pKey]=parentChildMap[pKey]||[]).push(n); });
+  const v = view || { list:new Set(), row:new Set() };
+  const style = id => v.list.has(id) ? 'list' : v.row.has(id) ? 'row' : '';
   const ds = [];
-  if(parentChildMap['ROOT']) ds.push(...pmBusEdgeDs(rootNode, parentChildMap['ROOT'], true));
-  nodes.forEach(n=>{ if(parentChildMap[n.id]) ds.push(...pmBusEdgeDs(n, parentChildMap[n.id], false)); });
+  if(parentChildMap['ROOT']) ds.push(...pmEdgeDs(pmNodeBox(rootNode, true), parentChildMap['ROOT'].map(c=>pmNodeBox(c,false)), style('ROOT')));
+  nodes.forEach(n=>{ if(parentChildMap[n.id]) ds.push(...pmEdgeDs(pmNodeBox(n,false), parentChildMap[n.id].map(c=>pmNodeBox(c,false)), style(n.id))); });
   return ds;
 }
-function pmTreeEdges(rootNode, nodes){ return pmTreeEdgeDs(rootNode, nodes).map(d=>`<path class="pm-edge" d="${d}"/>`); }
+function pmTreeEdges(rootNode, nodes, view){ return pmTreeEdgeDs(rootNode, nodes, view).map(d=>`<path class="pm-edge" d="${d}"/>`); }
 /* 노드 계층 깊이 (색상 구분용) */
 function pmNodeDepths(nodes){
   const nodeDepth = {};
@@ -8835,6 +9345,7 @@ function pmFlowEdgesSvg(pmId, allBoxes, rootId, nodes){
 }
 /* v115: 도구 막대는 스크롤되는 캔버스 바깥(카드)에 그린다 — 가로로 스크롤해도 늘 보인다. 보기 전환(맵·아웃라인) 포함 */
 function pmToolbarHtml(pm){
+  if(STATE.pmFocus) return `<button class="pm-focus-exit" id="pmFocusExit" data-on-click="pmToggleFocus">⛶ 집중 모드 끝 (Esc)</button>`;   // v117
   const mode = pmViewMode();
   const isMap = mode === 'map';
   return `<div class="pm-canvas-toolbar" data-pm-toolbar>
@@ -8845,8 +9356,12 @@ function pmToolbarHtml(pm){
       <div class="pm-zoom-btn" data-on-click="pmZoom" data-a-click="${pcsArgs([0.15])}" title="확대">+</div>
       <div class="pm-zoom-btn" data-on-click="pmZoom" data-a-click="${pcsArgs([-0.15])}" title="축소">−</div>
       <div class="pm-zoom-btn" data-on-click="pmZoomReset" title="100%">1:1</div>
+      <div class="pm-zoom-btn" id="pmFitBtn" data-on-click="pmFitToScreen" title="화면에 맞추기">⤢</div>
+      <div class="pm-zoom-btn" id="pmCenterBtn" data-on-click="pmCenterSelected" title="선택한 가지를 가운데로">◎</div>
+      <div class="pm-zoom-btn ${pmViewPrefs().minimap?'on':''}" id="pmMinimapBtn" data-on-click="pmToggleMinimap" title="미니맵">▣</div>
       <div class="pm-zoom-btn" data-on-click="pmToggleFullscreen" title="전체화면">${icon('expand')}</div>
-      <div class="pm-zoom-btn" data-on-click="openPmLayoutPopup" title="레이아웃" style="font-size:10px; font-weight:800;">⊞</div>` : ''}
+      <div class="pm-zoom-btn ${STATE.pmLayoutPopup?'on':''}" id="pmLayoutBtn" data-on-click="openPmLayoutPopup" title="배치 — ${escapeXmlAttr(PM_LAYOUT_MODES.find(m=>m.id===pmLayoutOf(pm).mode).label)}" style="font-size:12px; font-weight:800;">${PM_LAYOUT_MODES.find(m=>m.id===pmLayoutOf(pm).mode).icon}</div>
+      <div class="pm-zoom-btn" id="pmImageBtn" data-on-click="pmToggleImageMenu" title="맵 이미지·PDF 내보내기">${icon('image')}</div>` : ''}
       <span class="pm-toolbar-sep"></span>
       <div class="pm-zoom-btn pm-tool-text ${pmViewPrefs().numbers?'on':''}" id="pmNumbersBtn" data-on-click="pmToggleNumbers" title="번호 표시 (1, 1.1, 1.1.2)">1.2</div>
       <select class="pm-level-select" id="pmLevelSelect" aria-label="레벨까지 펼치기" title="몇 레벨까지 펼칠지" ${pcsOn('change', 'pcsCallWithValue', ['pmExpandToLevelFor', pm.id])}>
@@ -8855,11 +9370,10 @@ function pmToolbarHtml(pm){
       <span class="pm-toolbar-sep"></span>
       <div class="pm-zoom-btn pm-tool-text" id="pmExportBtn" role="button" tabindex="0" data-on-click="pmExportOpen" data-a-click="${pcsArgs([pm.id])}" title="구조 내보내기 (.md · .txt)">${icon('download')}</div>
       <div class="pm-zoom-btn pm-tool-text" id="pmImportBtn" role="button" tabindex="0" data-on-click="pmImportOpen" data-a-click="${pcsArgs([pm.id, '', ''])}" title="구조 가져오기 (.md · .txt · 붙여넣기)">${icon('upload')}</div>
+      <span class="pm-toolbar-sep"></span>
+      <div class="pm-zoom-btn" id="pmFocusBtn" data-on-click="pmToggleFocus" title="집중 모드 — 도구 막대·머리글 숨기기">⛶</div>
     </div>
-    ${isMap && STATE.pmLayoutPopup ? `<div class="pm-layout-popup">
-      <div style="font-size:11px; font-weight:700; color:var(--ink-500); margin-bottom:6px;">진행 방향 / 레이아웃</div>
-      ${PM_LAYOUTS.map(l=>`<div class="pm-layout-opt" data-on-click="applyPmLayout" data-a-click="${pcsArgs([String(pm.id), String(l.id)])}" title="${escapeXmlAttr(l.label)}"><span style="font-size:16px;">${l.icon}</span><span style="font-size:10px;">${escapeXml(l.label)}</span></div>`).join('')}
-    </div>` : ''}`;
+    ${isMap && STATE.pmLayoutPopup ? pmLayoutPopupHtml(pm) : ''}${isMap && STATE.pmImageMenu ? pmImageMenuHtml(pm) : ''}`;
 }
 /* v116 Parameter 중요도(CPP·KPP) 표시 */
 function critBadge(v){ return v === 'CPP' ? '<span class="crit-badge cpp">CPP</span>' : v === 'KPP' ? '<span class="crit-badge kpp">KPP</span>' : `<span class="crit-none">${escapeXml(v || '-')}</span>`; }
@@ -8869,6 +9383,7 @@ function pmCanvasHtml(pm, maxX, maxY, edges, rootSvg, rootAddHandle, nodesSvg, f
     <svg id="pmCanvas" width="${maxX*pmView.scale}" height="${maxY*pmView.scale}" viewBox="0 0 ${maxX} ${maxY}">
       <defs>
         <marker id="pmFlowArrow" markerWidth="9" markerHeight="9" refX="7" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 Z" fill="#C0182A"/></marker>
+        <marker id="pmSeqArrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#B8A3A6"/></marker>
         <marker id="pmFlowArrowStart" markerWidth="9" markerHeight="9" refX="2" refY="3.5" orient="auto"><path d="M7,0 L0,3.5 L7,7 Z" fill="#C0182A"/></marker>
       </defs>
       <g>${edges.join('')}${rootSvg}${rootAddHandle}${nodesSvg}</g>
@@ -8971,11 +9486,13 @@ function pmAttachNodeEvents(svg, g, pmId, tab){
     if(!tab.isEditingProcessMap) return;
     if(nodeId === 'ROOT') return; // root는 고정
     e.preventDefault(); e.stopPropagation();
+    const free = !pmViewCache || pmViewCache.pmId !== pmId || !pmViewCache.computed;
     const node = DATA.nodes.find(n=>n.id===nodeId);
+    const at = free ? node : Object.assign({}, pmViewPos(pmId, nodeId));   // v117: 계산된 배치면 화면 자리만 움직이고 DATA 좌표는 그대로
     const ctm = svg.getScreenCTM();
     const startSvgX = (e.clientX - ctm.e) / ctm.a;
     const startSvgY = (e.clientY - ctm.f) / ctm.d;
-    pmDrag = { nodeId, offsetX: startSvgX - node.x, offsetY: startSvgY - node.y, pmId, moved:false, reparentTargetId:null };
+    pmDrag = { nodeId, offsetX: startSvgX - at.x, offsetY: startSvgY - at.y, pmId, moved:false, reparentTargetId:null, free, at };
     g.classList.add('dragging');
   });
 
@@ -9035,7 +9552,8 @@ function pmAttachNodeEvents(svg, g, pmId, tab){
 function pmCanvasMouseMove(svg, pmId, e){
   const svgPoint = ev => pmSvgPoint(svg, ev);
   if(pmFlowConnectFrom){
-    const fromNode = pmFlowConnectFrom==='ROOT' ? { x:60,y:30,w:220,h:PM_NODE_H } : DATA.nodes.find(n=>n.id===pmFlowConnectFrom);
+    const fp = pmViewPos(pmId, pmFlowConnectFrom);
+    const fromNode = fp ? { x:fp.x, y:fp.y, w:pmFlowConnectFrom==='ROOT'?220:PM_NODE_W, h:PM_NODE_H } : null;
     const preview = svg.querySelector('#pmFlowConnectPreview');
     if(fromNode && preview){
       const p = svgPoint(e);
@@ -9052,28 +9570,30 @@ function pmCanvasMouseMove(svg, pmId, e){
   const svgY = (e.clientY - ctm.f) / ctm.d;
   const node = DATA.nodes.find(n=>n.id===pmDrag.nodeId);
   if(!node) return;
-  node.x = Math.max(10, svgX - pmDrag.offsetX);
-  node.y = Math.max(10, svgY - pmDrag.offsetY);
+  const at = pmDrag.free ? node : pmDrag.at;
+  at.x = Math.max(10, svgX - pmDrag.offsetX);
+  at.y = Math.max(10, svgY - pmDrag.offsetY);
 
   // 드래그 중인 노드가 다른 노드 박스 위에 겹쳐지면 "여기에 놓으면 부모가 바뀜" 대상으로 표시(자기 자신/자손은 제외 — 순환 방지)
-  const allNodes = getPmTreeNodes(pmId);
-  const dragCx = node.x+PM_NODE_W/2, dragCy = node.y+PM_NODE_H/2;
+  const allNodes = pmVisibleTreeNodes(pmId);
+  const dragCx = at.x+PM_NODE_W/2, dragCy = at.y+PM_NODE_H/2;
   let target = null;
   for(const other of allNodes){
     if(other.id===node.id || other.id===node.parentId) continue;
     if(isPmAncestor(pmId, node.id, other.id)) continue; // node의 자손에는 못 떨어뜨림(순환 방지)
     if(!pmKindAllowed(pmNodeKind(node), pmNodeKind(other))) continue;   // v112: 종류 규칙(하위 단계는 UO 아래 등)
-    if(dragCx>other.x && dragCx<other.x+PM_NODE_W && dragCy>other.y && dragCy<other.y+PM_NODE_H){ target=other.id; break; }
+    const op = pmViewPos(pmId, other.id);
+    if(dragCx>op.x && dragCx<op.x+PM_NODE_W && dragCy>op.y && dragCy<op.y+PM_NODE_H){ target=other.id; break; }
   }
   if(!target){
-    const rootCx=60+110, rootCy=30+PM_NODE_H/2;
-    if(node.parentId && pmKindAllowed(pmNodeKind(node), null) && dragCx>60 && dragCx<280 && dragCy>30 && dragCy<30+PM_NODE_H) target='ROOT';
+    const rp = pmViewPos(pmId, 'ROOT');
+    if(node.parentId && pmKindAllowed(pmNodeKind(node), null) && dragCx>rp.x && dragCx<rp.x+220 && dragCy>rp.y && dragCy<rp.y+PM_NODE_H) target='ROOT';
   }
   pmDrag.reparentTargetId = pmStructureEditable(pmId) ? target : null;   // v80: 계층 변경은 Process Map이 Draft일 때만
   /* [추가 14] 부분 갱신: 드래그 중에는 전체 renderPmCanvas() 대신
      해당 노드의 transform + 관련 엣지만 패치한다. */
   const dragG = svg.querySelector(`[data-node-id="${pmDrag.nodeId}"]`);
-  if(dragG) dragG.setAttribute('transform', `translate(${node.x},${node.y})`);
+  if(dragG) dragG.setAttribute('transform', `translate(${at.x},${at.y})`);
   /* 부모→자식 트리 엣지를 다시 계산 (버스 커넥터) */
   pmUpdateEdgesPartial(svg, pmId);
   /* reparent 타겟 하이라이트 */
@@ -9088,7 +9608,9 @@ function pmUpdateEdgesPartial(svg, pmId){
   svg.querySelectorAll('.pm-edge').forEach(el=>el.remove());
   const defs = svg.querySelector('defs');
   const insertPoint = defs ? defs.nextSibling : svg.firstChild;
-  pmTreeEdgeDs(PM_ROOT_BOX_NODE, pmVisibleTreeNodes(pmId)).forEach(d=>{
+  const v = pmViewCache && pmViewCache.pmId === pmId ? pmViewCache : pmViewLayout(pmId);
+  const nodes = pmVisibleTreeNodes(pmId).map(n => pmDrag && !pmDrag.free && n.id === pmDrag.nodeId ? Object.assign({}, n, { x: pmDrag.at.x, y: pmDrag.at.y }) : pmViewNode(n, v));
+  pmTreeEdgeDs(Object.assign({}, PM_ROOT_BOX_NODE, v.root), nodes, v).forEach(d=>{
     const path = document.createElementNS('http://www.w3.org/2000/svg','path');
     path.setAttribute('class','pm-edge');
     path.setAttribute('d',d);
@@ -9100,10 +9622,15 @@ const PM_ROOT_BOX_NODE = { id:'ROOT', x:60, y:30, name:'ROOT' };
 function pmEndCanvasDrag(){
   if(pmFlowConnectFrom){ pmFlowConnectFrom = null; renderPmCanvas(); return; }
   if(!pmDrag) return;
-  const { moved, pmId, reparentTargetId, nodeId } = pmDrag;
+  const { moved, pmId, reparentTargetId, nodeId, free } = pmDrag;
   pmDrag = null;
   // 실제로 끌지 않았으면(단순 클릭) 다시 그리지 않는다 — 곧이어 오는 click이 같은 요소에서 일어나 노드 선택이 처리되도록
   if(!moved) return;
+  if(!free){   // v117 계산 배치: 부모 바꾸기만, 자리는 배치가 다시 정한다
+    if(reparentTargetId) pmWithUndo(pmId, () => pmReparentNode(nodeId, reparentTargetId === 'ROOT' ? null : reparentTargetId));
+    renderPmCanvas();
+    return;
+  }
   if(reparentTargetId && pmReparentNode(nodeId, reparentTargetId === 'ROOT' ? null : reparentTargetId)){
     // 새 부모 위에 겹쳐 놓인 채로 두지 않고 그 아래 줄로 내린다(새 노드를 만들 때와 같은 간격)
     const node = DATA.nodes.find(n=>n.id===nodeId), parent = DATA.nodes.find(n=>n.id===node.parentId);
@@ -28538,6 +29065,8 @@ function pmDeleteNodes(pmId, ids){
   if(mb) mb.streams.forEach(s=>{ s.pfdMappings = (s.pfdMappings || []).filter(m=>!set.has(m.nodeId)); });
   if(mb) mb.streams = mb.streams.filter(s=>!(s.nodeId && set.has(s.nodeId)));   // v113: 지운 UO의 Mass Balance Step·소요량 규칙도 함께
   if(DATA.bomRules) set.forEach(id=>{ delete DATA.bomRules[id]; });
+  const lpm = DATA.processMaps.find(m=>m.id===pmId);   // v117: 지운 단계의 단계별 배치도
+  if(lpm && lpm.layout && lpm.layout.byStage) set.forEach(id=>{ delete lpm.layout.byStage[id]; });
   const board = DATA.pfdBoards && DATA.pfdBoards[pmId];
   if(board && board.slides) board.slides = board.slides.filter(sl=>!set.has(sl.nodeId));
   logAudit('Process Map', 'Delete Node (with PFD)', `${gone.map(n=>n.name).join(', ')} · PFD·연동·전달·Mass Balance 연동 정리`);
@@ -29861,6 +30390,15 @@ const PCS_CALLABLE = new Set([
   'pmImportPickFile',
   'pmImportFromFileEl',
   'pmImportApply',
+  'pmApplyLayoutUi',
+  'pmApplyStageLayoutUi',
+  'pmFitToScreen',
+  'pmCenterSelected',
+  'pmToggleMinimap',
+  'pmToggleFocus',
+  'pmToggleImageMenu',
+  'pmExportImage',
+  'pmKanbanMoveUi',
   'pmAddChildUi',
   'pmSetNodeKindUi',
   'pmSelectBranch',
@@ -29900,7 +30438,6 @@ const PCS_CALLABLE = new Set([
   'aiWizStep2',
   'aiWizStep3',
   'aiWizStep4',
-  'applyPmLayout',
   'armPfdFormatBrush',
   'backToPmPanelMenu',
   'cancelPfdShapeInsert',
