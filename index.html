@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="pcs-api-base" content="">
 <meta name="pcs-firebase" content="{&quot;apiKey&quot;:&quot;AIzaSyASB4CKv15IwJUp8pIVKXFtOYwKlY7y1es&quot;,&quot;databaseURL&quot;:&quot;https://pcs-demo-18101-default-rtdb.asia-southeast1.firebasedatabase.app&quot;}">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-L/T2SwllHh4LOZAz64qCaaZ01umIPtM1M8tnbV6fwSk=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-mrtOcb18LiHHdntKO3RAYgtLCw2ldjuh3m95Umhxtlk=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'none'">
 <title>PCS Platform · Process Control System</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -2284,6 +2284,35 @@ textarea.ui-dialog-input{resize:vertical; min-height:72px;}
 .pm-plus text{font-size:13px; font-weight:800; fill:#2F6FB5; pointer-events:none; font-family:'Inter',sans-serif;}
 .pm-plus:hover circle{fill:#E8F0FA;}
 .pm-node-g:focus-visible .pm-node-rect{stroke:#2F6FB5!important; stroke-width:2.4px!important;}
+
+/* v115 보기 전환·아웃라인 */
+.pm-mode-switch{display:inline-flex; background:#fff; border:1px solid var(--line); border-radius:8px; padding:2px; box-shadow:var(--shadow-sm);}
+.pm-mode-btn{border:0; background:transparent; font-size:11.5px; font-weight:700; color:var(--ink-500); padding:4px 10px; border-radius:6px; cursor:pointer;}
+.pm-mode-btn.on{background:var(--burgundy-900, #3D0C16); color:#fff;}
+#pmCanvasWrap.pm-outline-mode{background:#fff;}
+.pm-ol{max-width:980px; margin:0 auto; padding:56px 24px 28px;}
+.pm-ol-head{display:flex; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap;}
+.pm-ol-title{flex:1; font-size:16px; font-weight:800; color:var(--burgundy-900); padding:6px 14px; border:1.5px solid var(--burgundy-900); border-radius:999px; display:inline-block; flex:0 1 auto;}
+.pm-ol-search{max-width:240px; margin:0 0 0 auto;}
+.pm-ol-flow{background:#FAF7F7; border:1px solid var(--line-soft); border-radius:8px; padding:9px 12px; font-size:12px; color:var(--ink-700); margin-bottom:12px; line-height:1.7;}
+.pm-ol-flow-stage{display:inline-block; font-weight:800; color:#6B1222; margin-right:8px;}
+.pm-ol-list{display:flex; flex-direction:column;}
+.pm-ol-row{display:flex; align-items:center; gap:8px; padding-top:3px; padding-bottom:3px; border-bottom:1px solid #F1ECEC; min-height:34px;}
+.pm-ol-row.sel{background:#F3F7FC;}
+.pm-ol-row.hit .pm-ol-name{background:#FFF4C2;}
+.pm-ol-tw{width:20px; height:20px; border:0; background:transparent; color:#8C6F74; cursor:pointer; font-size:12px; flex:none; border-radius:4px;}
+.pm-ol-tw:hover{background:#F4ECEE;}
+.pm-ol-tw.leaf{cursor:default; color:#D5C9CB;}
+.pm-ol-num{font-size:11px; color:var(--ink-400); min-width:44px; flex:none;}
+.pm-ol-name{flex:1; min-width:120px; border:0; outline:0; background:transparent; font:600 13px 'Inter',sans-serif; color:#2A0810; padding:4px 4px; border-radius:4px;}
+.pm-ol-name:focus{background:#fff; box-shadow:0 0 0 2px #2F6FB5;}
+.pm-ol-row.kind-stage .pm-ol-name{font-size:14.5px; font-weight:800; color:#3D0C16;}
+.pm-ol-row.kind-step .pm-ol-name{font-weight:500; font-size:12.5px; color:#4A3A3D;}
+.pm-ol-more{font-size:10.5px; font-weight:700; color:#fff; background:#6B1222; border-radius:8px; padding:0 6px;}
+.pm-ol-open{border:0; background:transparent; color:var(--ink-400); font-size:16px; cursor:pointer; width:24px; flex:none;}
+.pm-ol-open:hover{color:#6B1222;}
+.pm-ol-note{font-size:11.5px; color:var(--ink-500); padding:6px 2px;}
+.pm-ol-help{font-size:11px; color:var(--ink-400); margin-top:12px;}
 </style>
 </head>
 <body>
@@ -4755,14 +4784,22 @@ function render(){
 /* -------- DASHBOARD -------- */
 /* ============================================================================
    05b_release_notes.js — v111  앱 버전과 "이번 버전에서 바뀐 점"
-   · PCS_APP_VERSION은 build.sh가 빌드 번호로 바꿔 넣는다(v114 자리).
+   · PCS_APP_VERSION은 build.sh가 빌드 번호로 바꿔 넣는다(v115 자리).
    · PCS_RELEASE_NOTES 맨 앞 항목은 항상 이번 빌드 버전이어야 한다(tests/unit/release-notes.test.cjs가 검사).
      버전을 올릴 때 여기 맨 앞에 한 항목을 넣는다. 테스트하는 사람이 무엇을 눌러 보면 되는지(try)를 같이 쓴다.
    · 오른쪽 위 사용자 메뉴 → "버전 vN · 바뀐 점" 으로 열고, 새 버전으로 처음 열면 알림을 한 번 띄운다.
    ========================================================================== */
-var PCS_APP_VERSION = 'v114';
+var PCS_APP_VERSION = 'v115';
 
 const PCS_RELEASE_NOTES = [
+  { version: 'v115', date: '2026-11-19', title: '아웃라인(메모장) 보기',
+    items: [
+      'Process Map 오른쪽 위 "맵 | 아웃라인"으로 같은 내용을 글 목록으로 봅니다(ThinkWise 노트 모드처럼).',
+      '아웃라인에서 바로 고칩니다: Enter 다음 줄, Tab·Shift+Tab 들여쓰기·내어쓰기, Alt+↑↓ 줄 옮기기, 빈 줄에서 Backspace 지우기, Esc 편집 끝. 맵과 같은 기록·실행취소(Ctrl+Z).',
+      '맨 위에 "공정 흐름" 한 줄 보기(단계별 UO 순서)와 "전체 글 복사", 아웃라인 검색(일치 줄 강조, 접힌 곳도 펼쳐 보임).',
+      '도구 막대가 캔버스를 스크롤해도 늘 보이게 바뀌었습니다.',
+    ],
+    try: ['참고 PCS → 아웃라인 → 줄 끝에서 Enter로 새 줄 → Tab으로 들여쓰기', '"전체 글 복사"를 메모장에 붙여 보기'] },
   { version: 'v114', date: '2026-11-19', title: 'Process Map 키보드 편집',
     items: [
       '노드를 고르고 Space(또는 Insert)를 누르면 하위 노드가 생기며 바로 이름을 씁니다. Enter로 확인하면 선택이 부모로 돌아와 Space로 계속 추가합니다.',
@@ -5992,23 +6029,10 @@ function renderProcessMap(){
     <div class="pm-meta-grid"><div class="pm-meta-cell"><div class="pm-meta-label">Product Code</div><div class="pm-meta-val">${escapeXml(product.code)}</div></div><div class="pm-meta-cell"><div class="pm-meta-label">Reviewed by</div><div class="pm-meta-val">${escapeXml(pm.reviewedBy)}</div></div><div class="pm-meta-cell"><div class="pm-meta-label">Approved by</div><div class="pm-meta-val">${escapeXml(pm.approvedBy)}</div></div><div class="pm-meta-cell"><div class="pm-meta-label">버전</div><div class="pm-meta-val">${pm.version}</div></div></div>
     ${renderPmUoStrip(pm)}
     <div class="pm-container${sidePanel?' panel-open':''}">
-      <div class="card" style="padding:0; overflow:hidden;${sidePanel?` max-width:calc(100% - ${getPmPanelWidth()+48}px);`:''}">
-        <div id="pmCanvasWrap" data-pmid="${pm.id}">
-          <div class="pm-canvas-toolbar">
-            <div class="pm-zoom-btn" data-on-click="pmZoom" data-a-click="${pcsArgs([0.15])}">+</div>
-            <div class="pm-zoom-btn" data-on-click="pmZoom" data-a-click="${pcsArgs([-0.15])}">−</div>
-            <div class="pm-zoom-btn" data-on-click="pmZoomReset" title="100%">1:1</div>
-            <div class="pm-zoom-btn" data-on-click="pmToggleFullscreen" title="전체화면">${icon('expand')}</div>
-          <div class="pm-zoom-btn" data-on-click="openPmLayoutPopup" title="레이아웃" style="font-size:10px; font-weight:800;">⊞</div>
-        </div>
-        ${STATE.pmLayoutPopup ? `<div class="pm-layout-popup">
-          <div style="font-size:11px; font-weight:700; color:var(--ink-500); margin-bottom:6px;">진행 방향 / 레이아웃</div>
-          ${PM_LAYOUTS.map(l=>`<div class="pm-layout-opt" data-on-click="applyPmLayout" data-a-click="${pcsArgs([String(pm.id), String(l.id)])}" title="${escapeXmlAttr(l.label)}"><span style="font-size:16px;">${l.icon}</span><span style="font-size:10px;">${escapeXml(l.label)}</span></div>`).join('')}
-        </div>` : ''}
-        <div style="display:none;"><!-- toolbar end marker --></div>
-          </div>
-          <div id="nodeOverlay"></div>
-        </div>
+      <div class="card" style="padding:0; overflow:hidden; position:relative;${sidePanel?` max-width:calc(100% - ${getPmPanelWidth()+48}px);`:''}">
+        <div id="pmToolbarHost"></div>
+        <div id="pmCanvasWrap" data-pmid="${pm.id}"></div>
+      </div>
       ${sidePanel ? `<div class="pm-resize-handle" data-on-mousedown="startPmPanelResize_1e78b1" title="드래그하여 패널 폭 조절"></div>` : ''}
       ${sidePanel}
     </div>
@@ -7244,6 +7268,7 @@ async function pmOnKey(e){
   if(!pmKeyTargetOk(e)) return;
   const action = pmKeyAction(e);
   if(!action) return;
+  if(pmViewMode() !== 'map' && !['undo', 'redo', 'help'].includes(action)) return;   // v115: 아웃라인은 자기 키를 쓴다
   const tab = getActiveTab();
   const pmId = (document.getElementById('pmCanvasWrap') || {}).getAttribute ? document.getElementById('pmCanvasWrap').getAttribute('data-pmid') : tab.ctx.pmId;
   const sel = tab.ctx.selectedProcessNodeId || null;
@@ -7326,6 +7351,204 @@ function pmKeepCanvasScroll(){
   if(!w || !w.querySelector('#pmCanvas')) return;
   STATE.pmCanvasScroll = STATE.pmCanvasScroll || {};
   STATE.pmCanvasScroll[w.getAttribute('data-pmid')] = { l: w.scrollLeft, t: w.scrollTop };
+}
+/* ============================================================================
+   07d_pm_outline.js — v115  Process Map 아웃라인(메모장) 보기 — ThinkWise "노트" 모드처럼 같은 데이터를 글 목록으로
+     · 보기 전환(맵 ↔ 아웃라인)은 탭마다의 보기 설정. 아웃라인에서 고친 것은 맵과 같은 store 함수·감사 기록·실행취소.
+     · 줄 = 가지 하나. 들여쓰기·글자 굵기·번호로 레벨, 종류·UO 승인 상태 배지, ▸로 접기, 줄을 누르면 오른쪽 패널.
+     · 이름 칸에서: Enter 다음 줄(아래 형제) · Tab/Shift+Tab 들여쓰기·내어쓰기 · Alt+↑↓ 줄 옮기기 · ↑↓ 줄 이동 ·
+       빈 줄에서 Backspace 그 줄 지우기(하위·내용이 없을 때) · Esc 편집 끝(그 다음 Tab은 화면의 다음 요소로)
+     · 공정 흐름 한 줄 보기(단계별 UO 순서), 전체 글 복사, 검색(일치 줄 강조, 접힌 곳은 펼쳐 보여 줌)
+   ========================================================================== */
+var PM_VIEW_MODES = [['map', '맵'], ['outline', '아웃라인']];
+
+/* ---------- 순수 함수 ---------- */
+/* 들여쓰기 글(복사·내보내기용). numbers: 번호를 붙일지 */
+function pmOutlineText(rows, numbers){
+  return (rows || []).map(r => '  '.repeat(r.depth) + (numbers ? r.number + ' ' : '- ') + r.node.name + (r.kind !== 'uo' ? ` [${PM_NODE_KINDS[r.kind].short}]` : '')).join('\n');
+}
+/* 공정 흐름 한 줄: 공정 단계마다 그 아래 UO를 순서대로 "→"로 잇는다. 단계 밖 UO는 한 줄로 */
+function pmFlowLines(rows){
+  const out = [];
+  let cur = null;
+  const stageOf = r => { let p = r; const by = new Map((rows || []).map(x => [x.id, x])); while(p && p.parentId){ p = by.get(p.parentId); if(p && p.kind === 'stage') return p; } return null; };
+  (rows || []).filter(r => r.kind === 'uo').forEach(r => {
+    const st = stageOf(r);
+    const key = st ? st.id : '';
+    if(!cur || cur.key !== key){ cur = { key, stage: st ? `${st.number} ${st.node.name}` : '', items: [] }; out.push(cur); }
+    cur.items.push(`${r.number} ${r.node.name}`);
+  });
+  return out.map(g => ({ stage: g.stage, text: g.items.join(' → ') }));
+}
+/* 검색: 이름(대소문자 무시)이 맞는 줄과 그 조상은 보인다. 반환 { match:Set, show:Set } — query가 비면 null */
+function pmOutlineFilter(rows, query){
+  const q = String(query || '').trim().toLowerCase();
+  if(!q) return null;
+  const by = new Map((rows || []).map(r => [r.id, r]));
+  const match = new Set(), show = new Set();
+  (rows || []).forEach(r => {
+    if(!String(r.node.name || '').toLowerCase().includes(q) && !String(r.number).startsWith(q)) return;
+    match.add(r.id);
+    let p = r; while(p){ show.add(p.id); p = p.parentId ? by.get(p.parentId) : null; }
+  });
+  return { match, show };
+}
+/* 들여쓰기: 바로 앞 형제가 새 부모가 된다(종류 규칙). 내어쓰기: 부모의 부모 아래, 부모 바로 뒤로 */
+function pmIndentPlan(nodes, id){
+  const n = (nodes || []).find(x => x.id === id);
+  if(!n) return { ok: false, reason: '노드를 찾을 수 없습니다.' };
+  const sibs = (nodes || []).filter(x => (x.parentId || null) === (n.parentId || null)).sort((a, b) => (a.order || 0) - (b.order || 0));
+  const i = sibs.findIndex(x => x.id === id);
+  if(i <= 0) return { ok: false, reason: '첫 줄은 들여 쓸 수 없습니다(바로 위에 같은 레벨 줄이 없음).' };
+  const prev = sibs[i - 1];
+  if(!pmKindAllowed(pmNodeKind(n), pmNodeKind(prev))) return { ok: false, reason: pmKindRuleText(pmNodeKind(n)) };
+  return { ok: true, newParentId: prev.id };
+}
+function pmOutdentPlan(nodes, id){
+  const n = (nodes || []).find(x => x.id === id);
+  if(!n) return { ok: false, reason: '노드를 찾을 수 없습니다.' };
+  if(!n.parentId) return { ok: false, reason: '맨 위 레벨이라 더 내어 쓸 수 없습니다.' };
+  const parent = (nodes || []).find(x => x.id === n.parentId);
+  const gp = parent && parent.parentId ? (nodes || []).find(x => x.id === parent.parentId) : null;
+  if(!pmKindAllowed(pmNodeKind(n), gp ? pmNodeKind(gp) : null)) return { ok: false, reason: pmKindRuleText(pmNodeKind(n)) };
+  return { ok: true, newParentId: gp ? gp.id : null, afterId: parent ? parent.id : null };
+}
+
+/* ---------- 보기 설정 ---------- */
+function pmViewMode(){ const m = getActiveTab().ctx.pmViewMode; return PM_VIEW_MODES.some(([k]) => k === m) ? m : 'map'; }
+function pmSetViewMode(m){
+  if(!PM_VIEW_MODES.some(([k]) => k === m)) return;
+  getActiveTab().ctx.pmViewMode = m;
+  STATE.pmInline = null;
+  renderPmCanvas();
+}
+function pmOutlineSetQuery(v){ getActiveTab().ctx.pmOutlineQuery = v; renderPmCanvas(); const i = document.getElementById('pmOutlineSearch'); if(i){ i.focus(); i.setSelectionRange(i.value.length, i.value.length); } }
+
+/* ---------- store: 들여쓰기·내어쓰기 ---------- */
+function pmIndentNode(nodeId){
+  const n = DATA.nodes.find(x => x.id === nodeId);
+  if(!n) return false;
+  const plan = pmIndentPlan(getPmTreeNodes(n.pmId), nodeId);
+  if(!plan.ok){ uoLockNotice(plan.reason); return false; }
+  return pmReparentNode(nodeId, plan.newParentId);
+}
+function pmOutdentNode(nodeId){
+  const n = DATA.nodes.find(x => x.id === nodeId);
+  if(!n) return false;
+  const plan = pmOutdentPlan(getPmTreeNodes(n.pmId), nodeId);
+  if(!plan.ok){ uoLockNotice(plan.reason); return false; }
+  const parent = DATA.nodes.find(x => x.id === plan.afterId);
+  if(!pmReparentNode(nodeId, plan.newParentId)) return false;
+  n.order = (parent ? parent.order : 0) + 0.5;   // 부모 바로 뒤
+  normalizeSiblingOrders(n.pmId, plan.newParentId);
+  return true;
+}
+
+/* ---------- 화면 ---------- */
+function renderPmOutline(wrap, pm){
+  wrap.classList.add('pm-outline-mode');
+  const ctx = getActiveTab().ctx;
+  const nodes = getPmTreeNodes(pm.id);
+  const collapsed = pmCollapsedSet(pm.id);
+  const all = pmTreeRows(nodes);
+  const filt = pmOutlineFilter(all, ctx.pmOutlineQuery);
+  const hiddenByCollapse = new Set(pmTreeRows(nodes, collapsed).filter(r => r.hidden).map(r => r.id));
+  const rows = all.filter(r => filt ? filt.show.has(r.id) : !hiddenByCollapse.has(r.id));
+  const editable = pmStructureEditable(pm.id);
+  const sel = ctx.selectedProcessNodeId;
+  const showNum = pmViewPrefs().numbers;
+  const flow = pmFlowLines(all);
+  const rowHtml = r => {
+    const kind = r.kind, n = r.node;
+    const canEdit = kind === 'uo' ? uoEditable(n.id) : editable;
+    const isCol = collapsed.has(n.id) && !filt;
+    return `<div class="pm-ol-row kind-${kind} ${sel === n.id ? 'sel' : ''} ${filt && filt.match.has(n.id) ? 'hit' : ''}" data-ol-row="${escapeXmlAttr(n.id)}" style="padding-left:${12 + r.depth * 22}px;">
+      <button class="pm-ol-tw ${r.childIds.length ? '' : 'leaf'}" ${r.childIds.length ? `data-ol-toggle="${escapeXmlAttr(n.id)}" aria-label="${isCol ? '펼치기' : '접기'}" title="${isCol ? `펼치기 — 하위 ${r.descCount}개` : '접기'}"` : 'tabindex="-1" aria-hidden="true"'}>${r.childIds.length ? (isCol ? '▸' : '▾') : '·'}</button>
+      ${showNum ? `<span class="pm-ol-num mono">${escapeXml(r.number)}</span>` : ''}
+      <input class="pm-ol-name" value="${escapeXmlAttr(n.name)}" ${canEdit ? '' : 'readonly'} aria-label="${escapeXmlAttr(PM_NODE_KINDS[kind].label + ' ' + r.number + ' 이름')}" data-ol-name="${escapeXmlAttr(n.id)}" spellcheck="false">
+      ${kind !== 'uo' ? `<span class="pm-kind-tag kind-${kind}">${PM_NODE_KINDS[kind].short.toUpperCase()}</span>` : uoBadge(uoStatusOf(n.id))}
+      ${isCol ? `<span class="pm-ol-more">+${r.descCount}</span>` : ''}
+      <button class="pm-ol-open" data-ol-open="${escapeXmlAttr(n.id)}" title="패널 열기" aria-label="${escapeXmlAttr(n.name)} 패널 열기">›</button>
+    </div>`;
+  };
+  wrap.innerHTML = `
+    <div class="pm-ol" data-pm-outline>
+      <div class="pm-ol-head">
+        <div class="pm-ol-title">${escapeXml(pm.code)} ${escapeXml(pm.name)}</div>
+        <div class="search-bar pm-ol-search">${icon('search')}<input id="pmOutlineSearch" placeholder="아웃라인에서 찾기" value="${escapeXmlAttr(ctx.pmOutlineQuery || '')}" ${pcsOn('input', 'pcsCallWithValue', ['pmOutlineSetQuery'])}></div>
+        <button class="btn btn-sm" id="pmOutlineCopy" data-on-click="pmOutlineCopy" data-a-click="${pcsArgs([pm.id])}" title="들여쓰기 글로 복사">${icon('copy')} 전체 글 복사</button>
+      </div>
+      <div class="pm-ol-flow" data-pm-flow>
+        <b>공정 흐름</b>
+        ${flow.length ? flow.map(g => `<div class="pm-ol-flow-line">${g.stage ? `<span class="pm-ol-flow-stage">${escapeXml(g.stage)}</span>` : ''}${escapeXml(g.text)}</div>`).join('') : '<div class="pm-ol-flow-line">Unit Operation이 없습니다.</div>'}
+      </div>
+      ${filt ? `<div class="pm-ol-note" data-ol-hits>찾은 줄 ${filt.match.size}개${filt.match.size ? ' — 접힌 곳도 펼쳐 보여 줍니다' : ''}</div>` : ''}
+      <div class="pm-ol-list" role="tree" aria-label="Process Map 아웃라인">${rows.map(rowHtml).join('') || '<div class="pm-ol-note">노드가 없습니다.</div>'}</div>
+      <div class="pm-ol-help">${editable ? 'Enter 다음 줄 · Tab / Shift+Tab 들여쓰기·내어쓰기 · Alt+↑↓ 줄 옮기기 · ↑↓ 줄 이동 · 빈 줄 Backspace 지우기 · Esc 편집 끝' : 'Process Map이 Draft가 아니라 구조를 바꿀 수 없습니다(UO 이름은 그 UO가 Draft일 때 고칩니다).'}</div>
+    </div>`;
+  pmBindOutline(wrap, pm.id);
+  if(ctx.pmOutlineFocus){
+    const f = wrap.querySelector(`[data-ol-name="${CSS.escape(ctx.pmOutlineFocus)}"]`);
+    ctx.pmOutlineFocus = null;
+    if(f){ f.focus(); f.setSelectionRange(f.value.length, f.value.length); }
+  }
+}
+function pmBindOutline(wrap, pmId){
+  wrap.querySelectorAll('[data-ol-toggle]').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); pmToggleCollapse(pmId, b.getAttribute('data-ol-toggle')); }));
+  wrap.querySelectorAll('[data-ol-open]').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); openPmPanelMenu(b.getAttribute('data-ol-open')); }));
+  wrap.querySelectorAll('[data-ol-name]').forEach(inp => {
+    const id = inp.getAttribute('data-ol-name');
+    inp.addEventListener('focus', () => { const t = getActiveTab(); if(t.ctx.selectedProcessNodeId !== id){ t.ctx.selectedProcessNodeId = id; wrap.querySelectorAll('.pm-ol-row.sel').forEach(r => r.classList.remove('sel')); inp.closest('.pm-ol-row').classList.add('sel'); } });
+    inp.addEventListener('change', () => { if(inp.value.trim() && inp.value.trim() !== (DATA.nodes.find(n => n.id === id) || {}).name) pmRenameNode(id, inp.value); });
+    inp.addEventListener('keydown', e => pmOutlineKey(e, inp, id, pmId));
+  });
+}
+function pmOutlineCommitName(inp, id){ const v = inp.value.trim(); const n = DATA.nodes.find(x => x.id === id); if(n && v && v !== n.name && !inp.readOnly) pmRenameNode(id, v); }
+function pmOutlineFocusRow(id){ getActiveTab().ctx.pmOutlineFocus = id; getActiveTab().ctx.selectedProcessNodeId = id; renderPmCanvas(); }
+function pmOutlineKey(e, inp, id, pmId){
+  const k = e.key;
+  e.stopPropagation();   // 맵 키(Space 등)로 새지 않게
+  if(k === 'Escape'){ e.preventDefault(); pmOutlineCommitName(inp, id); inp.blur(); return; }
+  if(k === 'ArrowUp' || k === 'ArrowDown'){
+    if(e.altKey){ e.preventDefault(); pmOutlineCommitName(inp, id); pmWithUndo(pmId, () => moveProcessNode(id, k === 'ArrowUp' ? -1 : 1)); pmOutlineFocusRow(id); return; }
+    const list = [...document.querySelectorAll('#pmCanvasWrap [data-ol-name]')];
+    const i = list.indexOf(inp), nx = list[i + (k === 'ArrowUp' ? -1 : 1)];
+    if(nx){ e.preventDefault(); pmOutlineCommitName(inp, id); nx.focus(); nx.setSelectionRange(nx.value.length, nx.value.length); }
+    return;
+  }
+  if(!pmStructureEditable(pmId) && (k === 'Enter' || k === 'Tab' || k === 'Backspace')){
+    if(k === 'Enter'){ e.preventDefault(); pmOutlineCommitName(inp, id); }
+    return;   // Tab은 초점 이동 그대로(잠긴 Process Map)
+  }
+  if(k === 'Enter'){
+    e.preventDefault();
+    pmOutlineCommitName(inp, id);
+    const newId = pmWithUndo(pmId, () => pmAddSiblingNode(id, '새 줄', false));
+    if(newId){ resolveSiblingCollisions(pmId, null); pmOutlineFocusRow(newId); const f = document.querySelector(`[data-ol-name="${CSS.escape(newId)}"]`); if(f) f.select(); }
+    return;
+  }
+  if(k === 'Tab'){
+    e.preventDefault();
+    pmOutlineCommitName(inp, id);
+    if(e.shiftKey ? pmOutdentNode(id) : pmIndentNode(id)){ pmTidyLayout(pmId); }
+    pmOutlineFocusRow(id);
+    return;
+  }
+  if(k === 'Backspace' && inp.value === '' && !inp.readOnly){
+    const n = DATA.nodes.find(x => x.id === id);
+    if(!n || DATA.nodes.some(x => x.parentId === id) || pmNodeContentSummary(n) || pmNodeLockReason(n)) return;
+    e.preventDefault();
+    const list = [...document.querySelectorAll('#pmCanvasWrap [data-ol-name]')];
+    const prev = list[list.indexOf(inp) - 1];
+    const r = pmDeleteBranch(pmId, [id], 'subtree');
+    if(r && r.ok){ if(prev) pmOutlineFocusRow(prev.getAttribute('data-ol-name')); else renderPmCanvas(); }
+  }
+}
+async function pmOutlineCopy(pmId){
+  const txt = pmOutlineText(pmTreeRows(getPmTreeNodes(pmId)), pmViewPrefs().numbers);
+  try { await navigator.clipboard.writeText(txt); uiToast('아웃라인을 클립보드에 복사했습니다.', { kind: 'success' }); }
+  catch(_){ await uiAlert(txt, { title: '아웃라인 글 (직접 복사하세요)' }); }
+  STATE.pmOutlineLastCopy = txt;
 }
 function openBomReport(pmId){
   goTo('bomReport', { reportPmId: pmId }, { label:'BOM Report', tag:'BOM' });
@@ -8025,6 +8248,10 @@ function renderPmCanvas(){
   const isEditing = tab.isEditingProcessMap;
   const pm = DATA.processMaps.find(m=>m.id===pmId);
   pmKeepCanvasScroll();
+  const host = document.getElementById('pmToolbarHost');
+  if(host) host.innerHTML = pmToolbarHtml(pm);
+  if(pmViewMode() === 'outline'){ renderPmOutline(wrap, pm); return; }   // v115 아웃라인 보기
+  wrap.classList.remove('pm-outline-mode');
   resolveSiblingCollisions(pmId, pmDrag ? pmDrag.nodeId : null);
   // v112: 계층 전체 중 접힌 가지 아래는 그리지 않는다. 번호·종류·접기 단추는 줄 정보(pmTreeRows)에서
   const treeRows = pmTreeRows(getPmTreeNodes(pmId), pmCollapsedSet(pmId));
@@ -8237,27 +8464,34 @@ function pmFlowEdgesSvg(pmId, allBoxes, rootId, nodes){
   }).join('');
   return flowEdgesSvg;
 }
-/* 캔버스 틀(확대·축소 도구, 레이아웃 메뉴, SVG) */
+/* v115: 도구 막대는 스크롤되는 캔버스 바깥(카드)에 그린다 — 가로로 스크롤해도 늘 보인다. 보기 전환(맵·아웃라인) 포함 */
+function pmToolbarHtml(pm){
+  const mode = pmViewMode();
+  const isMap = mode === 'map';
+  return `<div class="pm-canvas-toolbar" data-pm-toolbar>
+      <div class="pm-mode-switch" role="tablist" aria-label="보기">
+        ${PM_VIEW_MODES.map(([k, l]) => `<button class="pm-mode-btn ${mode===k?'on':''}" role="tab" aria-selected="${mode===k}" data-pm-mode="${k}" data-on-click="pmSetViewMode" data-a-click="${pcsArgs([k])}">${escapeXml(l)}</button>`).join('')}
+      </div>
+      ${isMap ? `<span class="pm-toolbar-sep"></span>
+      <div class="pm-zoom-btn" data-on-click="pmZoom" data-a-click="${pcsArgs([0.15])}" title="확대">+</div>
+      <div class="pm-zoom-btn" data-on-click="pmZoom" data-a-click="${pcsArgs([-0.15])}" title="축소">−</div>
+      <div class="pm-zoom-btn" data-on-click="pmZoomReset" title="100%">1:1</div>
+      <div class="pm-zoom-btn" data-on-click="pmToggleFullscreen" title="전체화면">${icon('expand')}</div>
+      <div class="pm-zoom-btn" data-on-click="openPmLayoutPopup" title="레이아웃" style="font-size:10px; font-weight:800;">⊞</div>` : ''}
+      <span class="pm-toolbar-sep"></span>
+      <div class="pm-zoom-btn pm-tool-text ${pmViewPrefs().numbers?'on':''}" id="pmNumbersBtn" data-on-click="pmToggleNumbers" title="번호 표시 (1, 1.1, 1.1.2)">1.2</div>
+      <select class="pm-level-select" id="pmLevelSelect" aria-label="레벨까지 펼치기" title="몇 레벨까지 펼칠지" ${pcsOn('change', 'pcsCallWithValue', ['pmExpandToLevelFor', pm.id])}>
+        <option value="">레벨…</option><option value="1">1레벨까지</option><option value="2">2레벨까지</option><option value="3">3레벨까지</option><option value="0">모두 펼치기</option>
+      </select>
+    </div>
+    ${isMap && STATE.pmLayoutPopup ? `<div class="pm-layout-popup">
+      <div style="font-size:11px; font-weight:700; color:var(--ink-500); margin-bottom:6px;">진행 방향 / 레이아웃</div>
+      ${PM_LAYOUTS.map(l=>`<div class="pm-layout-opt" data-on-click="applyPmLayout" data-a-click="${pcsArgs([String(pm.id), String(l.id)])}" title="${escapeXmlAttr(l.label)}"><span style="font-size:16px;">${l.icon}</span><span style="font-size:10px;">${escapeXml(l.label)}</span></div>`).join('')}
+    </div>` : ''}`;
+}
+/* 캔버스(SVG·흐름선 층) */
 function pmCanvasHtml(pm, maxX, maxY, edges, rootSvg, rootAddHandle, nodesSvg, flowEdgesSvg){
   return `
-    <div class="pm-canvas-toolbar">
-      <div class="pm-zoom-btn" data-on-click="pmZoom" data-a-click="${pcsArgs([0.15])}">+</div>
-      <div class="pm-zoom-btn" data-on-click="pmZoom" data-a-click="${pcsArgs([-0.15])}">−</div>
-      <div class="pm-zoom-btn" data-on-click="pmZoomReset" title="100%">1:1</div>
-            <div class="pm-zoom-btn" data-on-click="pmToggleFullscreen" title="전체화면">${icon('expand')}</div>
-          <div class="pm-zoom-btn" data-on-click="openPmLayoutPopup" title="레이아웃" style="font-size:10px; font-weight:800;">⊞</div>
-          <span class="pm-toolbar-sep"></span>
-          <div class="pm-zoom-btn pm-tool-text ${pmViewPrefs().numbers?'on':''}" id="pmNumbersBtn" data-on-click="pmToggleNumbers" title="번호 표시 (1, 1.1, 1.1.2)">1.2</div>
-          <select class="pm-level-select" id="pmLevelSelect" aria-label="레벨까지 펼치기" title="몇 레벨까지 펼칠지" ${pcsOn('change', 'pcsCallWithValue', ['pmExpandToLevelFor', pm.id])}>
-            <option value="">레벨…</option><option value="1">1레벨까지</option><option value="2">2레벨까지</option><option value="3">3레벨까지</option><option value="0">모두 펼치기</option>
-          </select>
-        </div>
-        ${STATE.pmLayoutPopup ? `<div class="pm-layout-popup">
-          <div style="font-size:11px; font-weight:700; color:var(--ink-500); margin-bottom:6px;">진행 방향 / 레이아웃</div>
-          ${PM_LAYOUTS.map(l=>`<div class="pm-layout-opt" data-on-click="applyPmLayout" data-a-click="${pcsArgs([String(pm.id), String(l.id)])}" title="${escapeXmlAttr(l.label)}"><span style="font-size:16px;">${l.icon}</span><span style="font-size:10px;">${escapeXml(l.label)}</span></div>`).join('')}
-        </div>` : ''}
-        <div style="display:none;"><!-- toolbar end marker --></div>
-    </div>
     <svg id="pmCanvas" width="${maxX*pmView.scale}" height="${maxY*pmView.scale}" viewBox="0 0 ${maxX} ${maxY}">
       <defs>
         <marker id="pmFlowArrow" markerWidth="9" markerHeight="9" refX="7" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 Z" fill="#C0182A"/></marker>
@@ -21426,7 +21660,7 @@ const PM_STRUCTURE_MUTATORS = {
   // v112 계층 구조
   pmAddChildNode: args => { const p = uoNode(args[0]); return p ? p.pmId : getActiveTab().ctx.pmId; },
   pmAddChildUi: args => { const p = uoNode(args[0]); return p ? p.pmId : getActiveTab().ctx.pmId; },
-  pmSetNodeKind: pmOfNode(0), pmSetNodeKindUi: pmOfNode(0), pmGroupIntoStage: uoArg(0), pmGroupSelectionUi: uoArg(0), pmDeleteBranch: uoArg(0), pmDeleteBranchUi: uoArg(0),
+  pmSetNodeKind: pmOfNode(0), pmSetNodeKindUi: pmOfNode(0), pmIndentNode: pmOfNode(0), pmOutdentNode: pmOfNode(0), pmGroupIntoStage: uoArg(0), pmGroupSelectionUi: uoArg(0), pmDeleteBranch: uoArg(0), pmDeleteBranchUi: uoArg(0),
 };
 /* ---------------------------------------------------------------------------
    v83 : 편집 한 번 = (실행취소 기록 + audit trail + 검증) 한 묶음
@@ -29252,6 +29486,9 @@ const PCS_CALLABLE = new Set([
   'pmExpandToLevel',
   'pmExpandToLevelFor',
   'pmToggleNumbers',
+  'pmSetViewMode',
+  'pmOutlineSetQuery',
+  'pmOutlineCopy',
   'mbUiSetOwner',
   'mbUiAddStreamForUo',
   'bomUiSetRuleField',
