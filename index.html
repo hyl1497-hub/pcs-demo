@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="pcs-api-base" content="">
 <meta name="pcs-firebase" content="{&quot;apiKey&quot;:&quot;AIzaSyASB4CKv15IwJUp8pIVKXFtOYwKlY7y1es&quot;,&quot;databaseURL&quot;:&quot;https://pcs-demo-18101-default-rtdb.asia-southeast1.firebasedatabase.app&quot;}">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-z0cwO/XzdXu/fAVogSkfAZqHh/2JbVjOoZUMwAYAu4M=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-WRUifvJQTi/gNgJROZ+xO5SAAsny7SDqRUwrl+lh9TQ=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'none'">
 <title>PCS Platform · Process Control System</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -1789,6 +1789,8 @@ button:focus-visible, .crumb:focus-visible, [tabindex]:focus-visible, input:focu
 }
 .modal-body{padding:18px 20px; overflow-y:auto; flex:1;}
 .modal-footer{display:flex; align-items:center; gap:8px; padding:14px 20px; border-top:1px solid var(--line); background:#FAF8F8;}
+/* v111: 결재 묶음·바뀐 점 등 .modal-actions 단추 줄(스타일이 없어 단추가 카드 모서리에 붙어 있었다) */
+.modal-actions{display:flex; align-items:center; justify-content:flex-end; gap:8px; padding:12px 20px; border-top:1px solid var(--line); background:#FAF8F8; flex-shrink:0;}
 .import-list-scroll{display:flex; flex-direction:column; gap:6px; max-height:340px; overflow-y:auto;}
 .import-row{
   display:flex; align-items:center; gap:12px; padding:10px 12px; border:1px solid var(--line); border-radius:8px;
@@ -2202,6 +2204,21 @@ textarea.ui-dialog-input{resize:vertical; min-height:72px;}
 .pfd-board-canvas-wrap:focus-visible{outline:3px solid #1565C0; outline-offset:-3px;}
 .pcs-sr-only{position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;}
 @media (prefers-reduced-motion: reduce){ *, *::before, *::after{animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; scroll-behavior:auto !important;} }
+
+/* v111 버전·바뀐 점 */
+.pcs-version-toast{display:flex; align-items:center; gap:10px; pointer-events:auto;}
+.pcs-version-toast .btn{background:#fff; color:var(--ink-900);}
+.pcs-version-toast-x{background:none; border:0; color:#fff; cursor:pointer; padding:2px; display:inline-flex;}
+.pcs-version-toast-x svg{width:14px; height:14px;}
+.rn-item{border:1px solid var(--line-soft); border-radius:8px; margin-bottom:8px; background:#fff;}
+.rn-item summary{display:flex; align-items:center; gap:10px; padding:9px 12px; cursor:pointer; font-size:13px;}
+.rn-item[open] summary{border-bottom:1px solid var(--line-soft);}
+.rn-ver{font-weight:700; color:var(--brand-600, #B4232A); min-width:42px;}
+.rn-title{flex:1; font-weight:600;}
+.rn-date{color:var(--ink-400); font-size:11.5px;}
+.rn-list{margin:8px 0 6px; padding:0 14px 0 30px; font-size:12.5px; line-height:1.6;}
+.rn-try{margin:0 12px 10px; padding:8px 10px; background:var(--blue-50); border-radius:6px; font-size:12px;}
+.rn-try ul{margin:4px 0 0; padding-left:18px;}
 </style>
 </head>
 <body>
@@ -2221,7 +2238,7 @@ textarea.ui-dialog-input{resize:vertical; min-height:72px;}
     <div class="sidebar-toggle-btn" data-on-click="toggleSidebar" title="사이드바 접기/펼치기">
       <span class="sidebar-toggle-icon"></span>
     </div>
-    <div class="sidebar-foot">v1.0 Demo Build · 2026</div>
+    <div class="sidebar-foot" id="sidebarFootVersion">PCS Platform</div>
   </nav>
 
   <div class="main-col">
@@ -3939,6 +3956,8 @@ function closeUserMenuOnOutsideClick(e){
 function renderHeader(){
   const toggleEl = document.getElementById('headerToggle');
   if(toggleEl) toggleEl.innerHTML = icon('menuIcon');
+  const footEl = document.getElementById('sidebarFootVersion');   // v111: 사이드바 아래 실제 버전
+  if(footEl) footEl.textContent = `PCS Platform ${PCS_APP_VERSION}`;
   const userEl = document.getElementById('headerUser');
   if(!userEl) return;
   const { role } = STATE.auth;
@@ -3963,6 +3982,7 @@ function renderHeader(){
           </div>
         </div>
         <div class="header-user-dropdown-item" data-on-click="navSidebar_dc1d0e">${icon('sliders')}<span>사용자 설정</span></div>
+        <div class="header-user-dropdown-item" id="userMenuVersion" data-on-click="openReleaseNotes">${icon('history')}<span>버전 <b class="mono">${escapeXml(PCS_APP_VERSION)}</b> · 바뀐 점</span></div>
         <div class="header-user-dropdown-item logout" data-on-click="logout">${icon('close')}<span>로그아웃</span></div>
       </div>` : ''}
   `;
@@ -4584,6 +4604,7 @@ function render(){
   renderCrumbs();
   renderBackButton();
   if(STATE.auth && STATE.auth.loggedIn) pcsHistoryArm();
+  if(STATE.auth && STATE.auth.loggedIn && !pcsVersionChecked) setTimeout(pcsCheckNewVersion, 300);   // v111
   renderHeader();
   
   const viewEl = document.getElementById('view');
@@ -4629,6 +4650,115 @@ function render(){
    ========================================================= */
 
 /* -------- DASHBOARD -------- */
+/* ============================================================================
+   05b_release_notes.js — v111  앱 버전과 "이번 버전에서 바뀐 점"
+   · PCS_APP_VERSION은 build.sh가 빌드 번호로 바꿔 넣는다(v111 자리).
+   · PCS_RELEASE_NOTES 맨 앞 항목은 항상 이번 빌드 버전이어야 한다(tests/unit/release-notes.test.cjs가 검사).
+     버전을 올릴 때 여기 맨 앞에 한 항목을 넣는다. 테스트하는 사람이 무엇을 눌러 보면 되는지(try)를 같이 쓴다.
+   · 오른쪽 위 사용자 메뉴 → "버전 vN · 바뀐 점" 으로 열고, 새 버전으로 처음 열면 알림을 한 번 띄운다.
+   ========================================================================== */
+var PCS_APP_VERSION = 'v111';
+
+const PCS_RELEASE_NOTES = [
+  { version: 'v111', date: '2026-11-19', title: '사용성 정리',
+    items: [
+      '오른쪽 위 사용자 메뉴에 앱 버전과 버전별 바뀐 점(이 창)이 생겼습니다. 새 버전으로 처음 열면 한 번 알려 줍니다.',
+      'PFD 편집기 왼쪽·오른쪽 패널을 접고 펼쳐도 도면의 배율과 화면 위치가 그대로입니다(패널만 들어갔다 나옵니다).',
+      'PFD 빈 곳 우클릭 메뉴가 도면 안 다른 곳을 눌러도 닫힙니다.',
+    ],
+    try: ['PFD를 열고 왼쪽 ‹ 단추로 패널을 접었다 펴 보기', 'PFD 빈 곳을 우클릭한 뒤 도면의 다른 곳을 눌러 보기'] },
+  { version: 'v110', date: '2026-11-19', title: 'UO 패널 탭·전체화면',
+    items: [
+      'Unit Operation 패널 맨 위에 탭(개요·WI·변경 이력·리스트 5종)과 PFD ↗ 단추가 생겼습니다.',
+      '패널 전체화면(⤢)으로 Work Instruction 같은 문서를 넓게 작성할 수 있습니다. Esc로 돌아옵니다.',
+    ],
+    try: ['Process Map에서 UO를 눌러 패널 탭을 옮겨 다니기', '⤢ 단추로 전체화면 → Esc'] },
+  { version: 'v109', date: '2026-11-19', title: '함께 작업',
+    items: [
+      '같은 계정이어도 로그인할 때 쓴 표시 이름으로 누가 접속했는지 보입니다(머리글·Process Map 노드·UO 패널).',
+      'PFD는 여럿이 동시에 고칠 수 있고, 다른 사람의 커서와 선택이 이름과 함께 보입니다.',
+      'Unit Operation마다 변경 이력을 볼 수 있고, Audit Trail에 표시 이름·기기·UO가 남습니다.',
+    ],
+    try: ['두 브라우저(또는 두 PC)로 같은 PFD를 열어 커서 보기', 'UO 패널 → 변경 이력 탭'] },
+  { version: 'v108', date: '2026-11-19', title: '결재 묶음·중간 보고서',
+    items: [
+      '여러 Unit Operation을 골라 한 번에 상신하고, 검토·승인 서명도 묶음에서 한 번에 합니다(기록은 UO마다).',
+      '전부 승인되기 전에도 PCS Report·BOM을 "작업본"(Draft / In Approval 워터마크)으로 볼 수 있습니다.',
+    ],
+    try: ['Process Map 위 "여러 UO 상신"', 'PCS Report에서 승인본/작업본 전환'] },
+  { version: 'v107', date: '2026-11-18', title: '공유 모드',
+    items: ['데모 사이트에서 같은 데이터를 여럿이 함께 봅니다. 다른 사람이 저장하면 자동으로 반영되고, 동시에 고치면 합칩니다.'],
+    try: ['두 사람이 같은 Process Map을 열고 한쪽에서 고쳐 보기'] },
+  { version: 'v106', date: '2026-11-18', title: '이전 화면으로',
+    items: ['머리글 "← 뒤로"와 PFD 편집기 왼쪽 위 "← 들어오기 전 화면"으로 한 번에 돌아갑니다. 브라우저 뒤로도 됩니다.'],
+    try: ['PFD로 들어갔다가 왼쪽 위 단추로 돌아오기'] },
+  { version: 'v105', date: '2026-11-18', title: '대시보드와 Process Map 분리',
+    items: ['대시보드는 현황·검토·승인 대기·최근 변경, Process Map 메뉴는 공정 탐색과 전체 목록(검색·상태 필터)으로 나뉘었습니다.'],
+    try: ['왼쪽 메뉴 Dashboard / Process Map'] },
+  { version: 'v104', date: '2026-11-18', title: '전체 검색',
+    items: ['Ctrl+K로 Process Map·UO·자재·장비·문서를 한 번에 찾습니다.'],
+    try: ['Ctrl+K → 품목 이름 입력'] },
+];
+
+/* ---------- 순수 함수 ---------- */
+/* 'v111' → 111. 형식이 다르면 NaN */
+function pcsVersionNum(v){ const m = /^v?(\d+)$/.exec(String(v || '').trim()); return m ? Number(m[1]) : NaN; }
+/* 지난번에 본 버전(seen) 다음부터 지금 버전(current)까지의 기록. seen이 없으면(처음 쓰는 사람) 알릴 것이 없다. */
+function pcsUnseenReleaseNotes(notes, seen, current){
+  const s = pcsVersionNum(seen), c = pcsVersionNum(current);
+  if(!Number.isFinite(s) || !Number.isFinite(c) || c <= s) return [];
+  return (notes || []).filter(n => { const v = pcsVersionNum(n.version); return v > s && v <= c; });
+}
+
+/* ---------- 화면 ---------- */
+function pcsSeenVersion(){ try { return localStorage.getItem('pcs_seen_version') || ''; } catch(_){ return ''; } }
+function pcsMarkVersionSeen(){ try { localStorage.setItem('pcs_seen_version', PCS_APP_VERSION); } catch(_){} }
+
+/* 로그인 뒤 한 번: 지난번보다 새 버전이면 알림 한 번(처음 쓰는 사람에게는 띄우지 않고 지금 버전을 기억만 한다) */
+var pcsVersionChecked = false;
+function pcsCheckNewVersion(){
+  if(pcsVersionChecked) return;
+  pcsVersionChecked = true;
+  const seen = pcsSeenVersion();
+  const unseen = pcsUnseenReleaseNotes(PCS_RELEASE_NOTES, seen, PCS_APP_VERSION);
+  pcsMarkVersionSeen();
+  if(!unseen.length) return;
+  let host = document.getElementById('uiToastHost');
+  if(!host){ host = document.createElement('div'); host.id = 'uiToastHost'; host.setAttribute('aria-live','polite'); document.body.appendChild(host); }
+  const t = document.createElement('div');
+  t.className = 'ui-toast pcs-version-toast';
+  t.setAttribute('data-version-toast', PCS_APP_VERSION);
+  t.innerHTML = `<span><b>${escapeXml(PCS_APP_VERSION)}</b>로 업데이트되었습니다 — ${escapeXml(unseen[0].title)}${unseen.length > 1 ? ` 외 ${unseen.length - 1}개 버전` : ''}</span>
+    <button class="btn btn-sm" data-on-click="openReleaseNotesFromToast">바뀐 점 보기</button>
+    <button class="pcs-version-toast-x" aria-label="닫기" data-on-click="closeVersionToast">${icon('close')}</button>`;
+  host.appendChild(t);
+  setTimeout(() => closeVersionToast(), 15000);
+}
+function closeVersionToast(){ document.querySelectorAll('.pcs-version-toast').forEach(t => { t.classList.add('out'); setTimeout(() => t.remove(), 300); }); }
+function openReleaseNotesFromToast(){ closeVersionToast(); openReleaseNotes(); }
+
+/* 버전별 바뀐 점 창: 이번 버전은 펼치고 지난 버전은 접어 둔다 */
+function openReleaseNotes(){
+  if(STATE.userMenuOpen){ STATE.userMenuOpen = false; renderHeader(); }
+  const root = apModalRoot();
+  const block = (n, open) => `
+    <details class="rn-item" data-rn-version="${escapeXmlAttr(n.version)}" ${open ? 'open' : ''}>
+      <summary><span class="rn-ver mono">${escapeXml(n.version)}</span><span class="rn-title">${escapeXml(n.title)}</span><span class="rn-date mono">${escapeXml(n.date)}</span></summary>
+      <ul class="rn-list">${n.items.map(i => `<li>${escapeXml(i)}</li>`).join('')}</ul>
+      ${n.try && n.try.length ? `<div class="rn-try"><b>이렇게 확인해 보세요</b><ul>${n.try.map(i => `<li>${escapeXml(i)}</li>`).join('')}</ul></div>` : ''}
+    </details>`;
+  root.innerHTML = `
+    <div class="modal-overlay" data-on-click="if_cb546e">
+      <div class="modal-card" style="max-width:640px;" data-release-notes>
+        <div class="modal-header" style="display:flex; align-items:center; gap:10px;">바뀐 점 <span class="badge badge-blue" style="margin-left:auto;">현재 ${escapeXml(PCS_APP_VERSION)}</span></div>
+        <div class="modal-body" style="max-height:66vh; overflow:auto;">
+          <p style="font-size:12.5px; color:var(--ink-500); margin:0 0 10px;">테스트할 때 참고하세요. 지난 버전은 눌러서 펼칩니다.</p>
+          ${PCS_RELEASE_NOTES.map((n, i) => block(n, i === 0)).join('')}
+        </div>
+        <div class="modal-actions"><button class="btn btn-primary" data-on-click="closeGlobalModal">닫기</button></div>
+      </div>
+    </div>`;
+}
 /* Process Map 메뉴 화면(v105에서 대시보드와 나눔): Client → Product → Process Map 레인 + 전체 Process Map 목록 */
 function renderPmExplorer(){
   const tab = getActiveTab();
@@ -10141,7 +10271,7 @@ function togglePfdBoardBottom(){
     const t = panel.querySelector('.pfd-editor-bottompanel-toggle');
     if(t) t.textContent = pfdBoardUI.bottomCollapsed?'▲ 펼치기':'▼ 접기';
   }
-  requestAnimationFrame(()=>renderPfdBoardCanvas());
+  pfdFollowCanvasResize(null);   // v111: 높이가 바뀌는 동안 배율이 출렁이지 않게
 }
 /* 보드 에디터 좌측 콘텐츠 */
 function renderPfdBoardLeftContent(pmId){
@@ -11538,6 +11668,8 @@ function attachPfdBoardEvents(wrap, pmId){
   function endInteraction(e){
     for(const h of MOUSEUP) if(h(e, c)) return;
   }
+  /* v111: 빈 곳 우클릭 메뉴는 도면 안 다른 곳을 눌러도 닫힌다(왼쪽·가운데 단추) */
+  svg.addEventListener('mousedown', (e)=>{ if(e.button !== 2 && pfdBoardMenu) closePfdBoardMenu(); }, true);
   /* v82: 끄는 동안 캔버스 위 떠 있는 UI가 마우스를 받지 않게 한다 */
   svg.addEventListener('mousedown', ()=>{ wrap.classList.add('pfd-interacting'); }, true);
   const endAll = (e)=>{ wrap.classList.remove('pfd-interacting'); endInteraction(e); };
@@ -13261,8 +13393,46 @@ function refreshPfdBoardChrome(){
   // v61: 우측 속성 패널은 renderPfdBoardRightPanel이 선택 도형이면 Figma 인스펙터를 직접 렌더한다
 }
 /* 좌/우 사이드바 접기 토글 */
-function togglePfdBoardLeft(){ pfdBoardUI.leftCollapsed = !pfdBoardUI.leftCollapsed; const ed=document.getElementById('pfdEditor'); if(ed){ ed.classList.toggle('left-collapsed', pfdBoardUI.leftCollapsed); const b=ed.querySelector('.pfd-editor-collapse-btn.left'); if(b) b.textContent = pfdBoardUI.leftCollapsed?'›':'‹'; } setTimeout(()=>renderPfdBoardCanvas(),210); }
-function togglePfdBoardRight(){ pfdBoardUI.rightCollapsed = !pfdBoardUI.rightCollapsed; const ed=document.getElementById('pfdEditor'); if(ed){ ed.classList.toggle('right-collapsed', pfdBoardUI.rightCollapsed); const b=ed.querySelector('.pfd-editor-collapse-btn.right'); if(b) b.textContent = pfdBoardUI.rightCollapsed?'‹':'›'; } setTimeout(()=>renderPfdBoardCanvas(),210); }
+/* v111: 패널을 접고 펼쳐도 도면은 화면에서 그대로 — 캔버스 왼쪽 끝이 움직인 만큼 화면 이동(pan)을 되돌려 준다.
+   배율(zoom)은 건드리지 않는다. 패널이 미끄러지는 동안(0.2초) 매 프레임 맞춘다. */
+function pfdPanKeepScreen(panX, oldLeft, newLeft){ return panX + (oldLeft - newLeft); }
+function pfdTogglePanelKeepView(side){
+  const ed = document.getElementById('pfdEditor');
+  const wrap = document.getElementById('pfdBoardCanvasWrap');
+  const key = side === 'left' ? 'leftCollapsed' : 'rightCollapsed';
+  pfdBoardUI[key] = !pfdBoardUI[key];
+  if(!ed){ return; }
+  // 캔버스 왼쪽 끝 = 왼쪽 패널 폭. 화면 좌표(getBoundingClientRect().left)는 단추에 초점이 갈 때 바깥 상자가 잠깐 밀려 틀어지므로 패널 폭으로 잰다
+  const leftEdge = () => { const lp = ed.querySelector('.pfd-editor-left'); return lp ? lp.getBoundingClientRect().width : 0; };
+  const left0 = leftEdge(), pan0 = pfdBoardState.panX;
+  ed.classList.toggle(side === 'left' ? 'left-collapsed' : 'right-collapsed', pfdBoardUI[key]);
+  const b = ed.querySelector('.pfd-editor-collapse-btn.' + side);
+  if(b) b.textContent = side === 'left' ? (pfdBoardUI[key] ? '›' : '‹') : (pfdBoardUI[key] ? '‹' : '›');
+  if(!wrap){ return; }
+  pfdFollowCanvasResize(() => { pfdBoardState.panX = pfdPanKeepScreen(pan0, left0, leftEdge()); return leftEdge(); });
+}
+/* 캔버스 크기가 CSS 전환으로 바뀌는 동안 매 프레임 SVG 크기를 맞추고(adjust로 화면 이동도 보정), 멈추면 한 번 다시 그린다 */
+function pfdFollowCanvasResize(adjust){
+  const t0 = performance.now();
+  let last = "", still = 0;
+  const step = () => {
+    const w = document.getElementById('pfdBoardCanvasWrap');
+    if(!w) return;
+    const r = w.getBoundingClientRect();
+    const key = (adjust ? adjust() : '') + ',' + r.width + ',' + r.height;
+    // SVG는 viewBox 크기로 늘었다 줄었다 하므로(그게 배율이 바뀌어 보이던 원인) 지금 폭에 맞춰 viewBox를 바로 고친다
+    const svg = document.getElementById('pfdBoardSvg');
+    if(svg){ const W = Math.round(r.width) || 1000, H = Math.round(r.height) || 640; svg.setAttribute('width', W); svg.setAttribute('height', H); svg.setAttribute('viewBox', `0 0 ${W} ${H}`); }
+    still = key === last ? still + 1 : 0; last = key;   // 위치·크기가 그대로인 프레임 수
+    const t = performance.now() - t0;
+    // 패널이 다 미끄러질 때까지(위치가 몇 프레임 그대로이거나 0.8초) 매 프레임 맞춘 뒤 한 번 전체를 그린다
+    if(t < 800 && (t < 120 || still < 3)){ pfdPatchViewport(); requestAnimationFrame(step); }
+    else renderPfdBoardCanvas();
+  };
+  requestAnimationFrame(step);
+}
+function togglePfdBoardLeft(){ pfdTogglePanelKeepView('left'); }
+function togglePfdBoardRight(){ pfdTogglePanelKeepView('right'); }
 function setPfdBoardLeftTab(tab){
   pfdBoardUI.leftTab = tab;
   const c=document.getElementById('pfdEditorLeftContent');
@@ -18429,7 +18599,7 @@ function renderSettings(){
       <div class="field-group" style="margin-top:20px;">
         <div class="field-label">${icon('info')} 시스템 정보</div>
         <div class="pm-meta-grid">
-          <div class="pm-meta-cell"><div class="pm-meta-label">PCS Platform</div><div class="pm-meta-val">v1.0 Demo Build</div></div>
+          <div class="pm-meta-cell"><div class="pm-meta-label">PCS Platform</div><div class="pm-meta-val">${escapeXml(PCS_APP_VERSION)}</div></div>
           <div class="pm-meta-cell"><div class="pm-meta-label">빌드</div><div class="pm-meta-val">2026-06-27</div></div>
           <div class="pm-meta-cell"><div class="pm-meta-label">Process Maps</div><div class="pm-meta-val">${DATA.processMaps.filter(m=>!m._virtual).length}</div></div>
           <div class="pm-meta-cell"><div class="pm-meta-label">Batch Records</div><div class="pm-meta-val">${DATA.batchRecords.length}</div></div>
@@ -27634,6 +27804,9 @@ const PCS_CALLABLE = new Set([
   'openPmPanelHistory',
   'setUoHistoryArea',
   'togglePmPanelFull',
+  'openReleaseNotes',
+  'openReleaseNotesFromToast',
+  'closeVersionToast',
   'openPmPanelTab',
   'addSuppSampleReq',
   'addSupplementalSample',
