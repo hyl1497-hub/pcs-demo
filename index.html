@@ -5,7 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="pcs-api-base" content="">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-tA2rwKRNIy+9wZPw+doqDUFT47X/M23k9/Qep0aKEhI=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-ski2qT7C9gea9JsgdDVzQ2m8OIDp5+0PVexYZyQzNSk=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'none'">
 <title>PCS Platform · Process Control System</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -2280,7 +2280,7 @@ const DATA = {
       region:'대한민국', notes:'mAb-119 CDMO 파트너. 분기별 QBR(Quarterly Business Review) 진행 중.' },
     { id:'c_az', name:'DowonBio', products:1,
       address:'-', contact:'', region:'대한민국',
-      notes:'Tozorakimab (anti-IL-33 mAb) CDMO 기술이전.' },
+      notes:'Hyunseokimab (anti-IL-33 mAb) CDMO 기술이전.' },
   ],
   products: [
     { id:'p_iv100', clientId:'c31', code:'LT-P119 IV 100 mg', name:'mAb-119 (IV 100 mg)', stage:'Tech Transfer', batches:6,
@@ -2288,7 +2288,7 @@ const DATA = {
     { id:'p_iv200', clientId:'c31', code:'LT-P119 IV 200 mg', name:'mAb-119 (IV 200 mg)', stage:'Production', batches:14, active:true,
       dosageForm:'Lyophilized Powder for IV Infusion', strength:'200 mg/vial', indication:'자가면역질환', regulatoryStatus:'상업 생산 승인 (BLA Approved)',
       notes:'주력 상업 생산 제품. USP/DSP PCS 모두 Approved 상태로 운영 중.' },
-    { id:'p_toz', clientId:'c_az', code:'DW-TOZ', name:'Tozorakimab', stage:'Tech Transfer', batches:0,
+    { id:'p_toz', clientId:'c_az', code:'DW-TOZ', name:'Hyunseokimab', stage:'Tech Transfer', batches:0,
       dosageForm:'Solution for IV Infusion', strength:'300 mg/vial', indication:'Respiratory (anti-IL-33)',
       regulatoryStatus:'Phase III', notes:'Anti-IL-33 단클론항체. USP 18페이지 / DSP 5페이지 PFD 기반 기술이전.' },
     { id:'p_sc100', clientId:'c31', code:'LT-P119 SC 100 mg', name:'mAb-119 (SC 100 mg)', stage:'Validation', batches:2,
@@ -2303,8 +2303,8 @@ const DATA = {
         { status:'Pending Approval', by:'박서연 (MSAT)', at:'2026-01-12 15:30' },
         { status:'Approved', by:'김도현 (TOM)', at:'2026-01-15 09:00' },
       ] },
-    { id:'pm_toz', productId:'p_toz', code:'DW-TOZ', name:'Tozorakimab USP+DSP PCS', kind:'Upstream+Downstream', reviewedBy:'', approvedBy:'', status:'Draft', version:'v0.1',
-      description:'Tozorakimab (anti-IL-33) 전체 공정 — Media Prep부터 Bulk Fill까지 USP 18p + DSP 5p PFD 기반.',
+    { id:'pm_toz', productId:'p_toz', code:'DW-TOZ', name:'Hyunseokimab USP+DSP PCS', kind:'Upstream+Downstream', reviewedBy:'', approvedBy:'', status:'Draft', version:'v0.1',
+      description:'Hyunseokimab (anti-IL-33) 전체 공정 — Media Prep부터 Bulk Fill까지 USP 18p + DSP 5p PFD 기반.',
       scope:'Media Prep → Cell Expansion → Wave BR → N-1 Seed → Production BR → ProA → DF → MMC → CEX → VF → UF/DF → Formulation → Bulk Fill',
       approvalHistory:[] },
     { id:'pm_dsp', productId:'p_iv200', code:'LT-P119', name:'DSP PCS', kind:'Downstream', reviewedBy:'박서연 (MSAT)', approvedBy:'김도현 (TOM)', status:'Approved', version:'v1.1',
@@ -9737,7 +9737,7 @@ const PFD_SHAPE_LIBRARY = [
   { id:'tpl_tflask',     category:'bag', label:'T-플라스크',           defaultW:80,  defaultH:60,  primitives:[{type:'rect',x:0,y:0.3,w:1,h:0.7,rx:4},{type:'rect',x:0.3,y:0,w:0.4,h:0.4,rx:4}] },
   { id:'tpl_erlenflask', category:'bag', label:'삼각 플라스크',        defaultW:80,  defaultH:90,  primitives:[{type:'polygon',points:[[0.5,0],[0.85,0.95],[0.15,0.95]]},{type:'rect',x:0.35,y:0,w:0.3,h:0.15,rx:2}] },
   { id:'tpl_rollerbottle',category:'bag', label:'롤러 보틀',           defaultW:100, defaultH:60,  primitives:[{type:'rect',x:0,y:0.1,w:1,h:0.8,rx:20}] },
-  // ---- v77: Tozorakimab PFD 재현용 추가 심볼 ----
+  // ---- v77: Hyunseokimab PFD 재현용 추가 심볼 ----
   { id:'tpl_cell_stack',    category:'vessel', label:'Cell Stack',         defaultW:100, defaultH:80,  primitives:[{type:'cellstack'}] },
   { id:'tpl_balance',       category:'basic',  label:'저울 (Balance)',     defaultW:80,  defaultH:80,  primitives:[{type:'balance'}] },
   { id:'tpl_microscope',    category:'basic',  label:'현미경',             defaultW:70,  defaultH:90,  primitives:[{type:'microscope'}] },
@@ -12805,7 +12805,7 @@ function renderPfdBoardMenu(){
       ${!isSlide ? `<label class="pfd-board-menu-row"><input type="checkbox" ${board.showDots!==false?'checked':''} data-on-change="pfdToggleBoardDots_b61237"> 격자 점 표시</label>` : ''}
       ${isSlide ? `<div class="pfd-board-menu-sep"></div><div class="pfd-board-menu-item" data-on-click="pfdEditSlideTitle" data-a-click="${pcsArgs([String(pfdBoardMenu.nodeId)])}">슬라이드 타이틀 편집</div>
         <div class="pfd-board-menu-item" data-menu="frame" data-on-click="pfdSetSlideFrame_05f0dc" data-a-click="${pcsArgs([String(pfdBoardMenu.nodeId), String(pfdBoardMenu.nodeId)])}">${pfdFrameStyle(pfdBoardMenu.nodeId) === 'drawing' ? '✓ ' : ''}도면 틀 (타이틀 블록·범례·개정 표)</div>
-        ${pfdHasReference(pfdBoardMenu.nodeId) && pfdSlideIsEmpty(pfdBoardMenu.nodeId) ? `<div class="pfd-board-menu-item" data-menu="build-reference" data-on-click="pfdBoardBuildReference" data-a-click="${pcsArgs([String(pfdBoardMenu.nodeId)])}">참고 PFD 도면 그리기 (Tozorakimab)</div>` : ''}
+        ${pfdHasReference(pfdBoardMenu.nodeId) && pfdSlideIsEmpty(pfdBoardMenu.nodeId) ? `<div class="pfd-board-menu-item" data-menu="build-reference" data-on-click="pfdBoardBuildReference" data-a-click="${pcsArgs([String(pfdBoardMenu.nodeId)])}">참고 PFD 도면 그리기 (Hyunseokimab)</div>` : ''}
         ${(DATA.uoSnapshots[pfdBoardMenu.nodeId] || []).length ? `<div class="pfd-board-menu-item" data-menu="diff" data-on-click="pfdToggleDiffFromMenu" data-a-click="${pcsArgs([String(pfdBoardMenu.nodeId)])}">${pfdDiffBase && pfdDiffBase.nodeId === pfdBoardMenu.nodeId ? '✓ ' : ''}직전 승인본과 비교 표시</div>` : ''}
         <div class="pfd-board-menu-item" data-menu="frame-slide" data-on-click="pfdSetSlideFrame_0966cc" data-a-click="${pcsArgs([String(pfdBoardMenu.nodeId), String(pfdBoardMenu.nodeId)])}">${pfdFrameStyle(pfdBoardMenu.nodeId) === 'slide' ? '✓ ' : ''}발표 자료형 틀 (제목·로고·쪽 번호, A4 가로)</div>
         <div class="pfd-board-menu-item" data-menu="line-jumps" data-on-click="pfdSetLineJumps_cf9d37" data-a-click="${pcsArgs([String(pfdBoardMenu.nodeId), String(pfdBoardMenu.nodeId)])}">${pfdLineJumpsOn(pfdBoardMenu.nodeId) ? '✓ ' : ''}교차점 점프 표시</div>
@@ -20364,7 +20364,7 @@ function pfdBoardSetCallout(nodeId, textId, on){
 
 const PCS_APP_ID = 'pcs-platform';
 const PCS_SCHEMA_VERSION = 1;
-const PCS_DB_NAME = 'pcs_platform_demo';
+const PCS_DB_NAME = 'pcs_platform_demo2';
 const PCS_DB_STORE = 'documents';
 const PCS_DOC_KEY = 'main';
 const PCS_AUTOSAVE_INTERVAL_MS = 1200;
@@ -25211,12 +25211,12 @@ function pfdSymbolBodyMarkup(nodeId, tpl, s){
   return node && pfdFixedStrokeOn(node.pmId) ? pfdScaleStrokes(m, pfdStrokeFactor(tpl, s.w, s.h)) : m;
 }
 /* ============================================================================
-   39_pfd_reference.js — v96  참고 PFD(Tozorakimab Upstream/Downstream)를 실제 생성 로직으로 시드 도면화
+   39_pfd_reference.js — v96  참고 PFD(Hyunseokimab Upstream/Downstream)를 실제 생성 로직으로 시드 도면화
      · 도면은 손으로 적은 좌표 배열이 아니라, 사용자가 쓰는 것과 같은 store 함수로 만든다:
        심볼 배치(pfdNewShapeFromTemplate) · 연결(pfdConnectShapes → setPfdEdgeKind/setPfdEdgeNote/pfdReconnectEdge) ·
        붙이기(pfdAttachShapes) · 단계 잇기(pfdStageChain) · 표(pfdAddTableFromRows) · 텍스트 · 발표 자료형 틀.
      · 같은 모양의 장은 같은 생성 함수를 쓴다(바이오리액터 운전 장, DSP 단계 장).
-     · 앱을 처음 열 때 비어 있는 Tozorakimab 슬라이드에 한 번 그린다(MBR 시드와 같은 방식).
+     · 앱을 처음 열 때 비어 있는 Hyunseokimab 슬라이드에 한 번 그린다(MBR 시드와 같은 방식).
        저장 데이터를 쓰는 사용자는 슬라이드 메뉴 "참고 PFD 도면 그리기"로 언제든 다시 그릴 수 있다(빈 슬라이드만).
    ========================================================================== */
 
@@ -25481,7 +25481,7 @@ function pfdRefDspStep(nodeId, o){
   }
   k.text(ex + ew + 24, ey + eh * 0.18 + 26, 200, o.eq.spec || '', { fontStep:'note' });
   if(o.viralSplit) k.text(300, 600, 400, 'Pre Viral  ┆  Post Viral', { fontStep:'equipment', bold:true, textColor:'#C62828', textAlign:'center' });
-  k.text(40, 640, 500, 'Tozorakimab Downstream · Product Titer : 8 g/L', { fontStep:'note', textColor:'#6B6B6B' });
+  k.text(40, 640, 500, 'Hyunseokimab Downstream · Product Titer : 8 g/L', { fontStep:'note', textColor:'#6B6B6B' });
 }
 /* 노드 → 생성기. 같은 모양의 장은 같은 함수 */
 function pfdReferenceBuilders(){
@@ -25717,7 +25717,7 @@ function pfdSplitWarningHtml(pmId, nodeId, junctionId){
   return iss.map(x=>`<div class="pfd-edge-split-warn ${x.level}" data-split-issue="${escapeXmlAttr(x.code)}">${x.level === 'error' ? '⛔' : '⚠️'} ${escapeXml(x.msg)}</div>`).join('');
 }
 
-/* ---------- 시드: Tozorakimab Downstream Mass Balance(참고 PFD의 단계별 부피) ----------
+/* ---------- 시드: Hyunseokimab Downstream Mass Balance(참고 PFD의 단계별 부피) ----------
    실제 store 함수로 Step을 만들고, 참고 도면의 이송 라인(들어오는 TP)에 연동한다. */
 const MB_TOZ_SEED = [
   ['Protein A Capture', 'nt_chrom1', 15000, 3583],
