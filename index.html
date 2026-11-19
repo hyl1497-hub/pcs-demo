@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="pcs-api-base" content="">
 <meta name="pcs-firebase" content="{&quot;apiKey&quot;:&quot;AIzaSyASB4CKv15IwJUp8pIVKXFtOYwKlY7y1es&quot;,&quot;databaseURL&quot;:&quot;https://pcs-demo-18101-default-rtdb.asia-southeast1.firebasedatabase.app&quot;}">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-zCKVKfc44KxwdgK2R4O2G33/O1CEN4gV8ilhR4aVqO8=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-4dn4zB1SP8vrphJ6CBlGnLM2Tzc23GVjPa2ALC/aTng=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'none'">
 <title>PCS Platform · Process Control System</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -2253,6 +2253,26 @@ textarea.ui-dialog-input{resize:vertical; min-height:72px;}
 .pm-kind-tag.kind-stage{background:#6B1222; color:#fff;}
 .pm-kind-tag.kind-uo{background:#FBD9DC; color:#7A1D2A;}
 .pm-kind-tag.kind-step{background:#fff; border:1px dashed #B9A4A8;}
+
+/* v113 UO Mass Balance·BOM 소요량 */
+.mb-uo-head{display:flex; align-items:center; justify-content:space-between; gap:10px; margin:4px 0 8px; font-size:13px; color:var(--burgundy-900);}
+.mb-uo-sub{font-size:11.5px; color:var(--ink-500); font-weight:400;}
+.mb-uo-table{font-size:12px;}
+.mb-uo-table td, .mb-uo-table th{padding:6px 8px; vertical-align:top;}
+.mb-uo-table th.mb-s, .mb-uo-table td.mb-s{background:#F8FBFF;}
+.mb-uo-table th.mb-r, .mb-uo-table td.mb-r{background:#FCF8FF;}
+.mb-uo-in{font-size:11.5px; padding:4px 6px;}
+.mb-uo-src{font-size:11px; color:var(--ink-600); max-width:260px;}
+.mb-uo-warn{color:#B45309; font-size:10.5px; margin-top:2px;}
+.mb-grp-stage td{background:#F4ECEE; color:#3D0C16; font-weight:800; font-size:12px; padding:7px 10px!important;}
+.mb-grp-uo td{background:#FAF7F7; font-size:12px; padding:6px 10px!important; border-top:1px solid var(--line);}
+.mb-grp-none td{color:#92400E; background:#FFF8EB;}
+.mb-grp-total td{background:#fff; color:#3D0C16; font-size:11.5px; padding:6px 10px!important; border-bottom:2px solid #E7D6D9; text-align:right;}
+.bom-ctrl{display:flex; align-items:center; gap:8px; flex-wrap:wrap; padding:10px 14px; margin-bottom:14px; font-size:12.5px;}
+.bom-src{font-size:10.5px; color:var(--ink-500); max-width:240px;}
+.mb-uo-head{flex-wrap:wrap;}
+.mb-uo-head .btn{white-space:nowrap;}
+.mb-uo-table select.pfd-detail-select{min-width:128px;}
 </style>
 </head>
 <body>
@@ -3071,6 +3091,25 @@ function validateData(data){
   });
   (data.batchRecords||[]).forEach(b=>{
     if(!pmIds.has(b.pmId)) errors.push(`[고아 참조] BR ${b.id} → PM ${b.pmId} 미존재`);
+  });
+  // v113: Mass Balance Step의 주인 UO, BOM 소요량 규칙
+  Object.entries(data.massBalance||{}).forEach(([pmId, mb])=>{
+    (mb.streams||[]).forEach(s=>{
+      if(!s.nodeId) return;
+      const n = (data.nodes||[]).find(x=>x.id===s.nodeId);
+      if(!n) errors.push(`[고아 참조] MB Step ${s.id} → Node ${s.nodeId} 미존재`);
+      else if(n.pmId !== pmId || (n.kind||'uo') !== 'uo') errors.push(`[계층 규칙] MB Step ${s.id}의 주인 ${s.nodeId}는 ${pmId}의 Unit Operation이 아님`);
+    });
+  });
+  Object.entries(data.bomRules||{}).forEach(([nodeId, rules])=>{
+    const n = (data.nodes||[]).find(x=>x.id===nodeId);
+    if(!n){ if((rules||[]).length) errors.push(`[고아 참조] BOM 규칙 → Node ${nodeId} 미존재`); return; }
+    const streams = ((data.massBalance||{})[n.pmId]||{}).streams||[];
+    const mats = ((data.masterLists||{}).material)||[];
+    (rules||[]).forEach(r=>{
+      if(!mats.some(m=>m.id===r.materialId)) errors.push(`[고아 참조] BOM 규칙 ${nodeId} → Material ${r.materialId} 미존재`);
+      if(r.streamId && !streams.some(s=>s.id===r.streamId)) errors.push(`[고아 참조] BOM 규칙 ${nodeId}·${r.materialId} → MB Step ${r.streamId} 미존재`);
+    });
   });
   (data.approvalPackages||[]).forEach(p=>{   // v108 결재 묶음
     if(!pmIds.has(p.pmId)) errors.push(`[고아 참조] 결재 묶음 ${p.no||p.id} → PM ${p.pmId} 미존재`);
@@ -4696,14 +4735,23 @@ function render(){
 /* -------- DASHBOARD -------- */
 /* ============================================================================
    05b_release_notes.js — v111  앱 버전과 "이번 버전에서 바뀐 점"
-   · PCS_APP_VERSION은 build.sh가 빌드 번호로 바꿔 넣는다(v112 자리).
+   · PCS_APP_VERSION은 build.sh가 빌드 번호로 바꿔 넣는다(v113 자리).
    · PCS_RELEASE_NOTES 맨 앞 항목은 항상 이번 빌드 버전이어야 한다(tests/unit/release-notes.test.cjs가 검사).
      버전을 올릴 때 여기 맨 앞에 한 항목을 넣는다. 테스트하는 사람이 무엇을 눌러 보면 되는지(try)를 같이 쓴다.
    · 오른쪽 위 사용자 메뉴 → "버전 vN · 바뀐 점" 으로 열고, 새 버전으로 처음 열면 알림을 한 번 띄운다.
    ========================================================================== */
-var PCS_APP_VERSION = 'v112';
+var PCS_APP_VERSION = 'v113';
 
 const PCS_RELEASE_NOTES = [
+  { version: 'v113', date: '2026-11-19', title: 'Mass Balance를 UO 안으로 + BOM 소요량',
+    items: [
+      'Unit Operation 패널에 "Mass Balance" 탭이 생겼습니다. 그 UO의 Step(투입·회수, Sending/Receiving)을 여기서 넣고 고칩니다.',
+      'Mass Balance 메뉴(전체)는 UO를 계층·흐름 순서로 모아 보여 주고, 공정 단계마다 소계(누적 수율·손실)를 냅니다. Step마다 주인 UO를 고를 수 있습니다.',
+      'BOM 수량이 이제 계산됩니다: Material마다 기준(PFD 인스턴스 수 / 배치당 고정량 / MB Step 투입량·회수량 × 계수) + 준비 여유 %. 근거(어느 UO의 어느 값)가 함께 나옵니다.',
+      'BOM Report 위에서 Sending/Receiving과 배치 수를 바꾸면 다시 계산되고, "준비량" 장에서 Buffer·Media 등 물질 클래스별 준비량을 봅니다.',
+      'UO의 Mass Balance·소요량 규칙도 승인 대상입니다(승인된 UO는 잠김, 승인본 보고서는 승인 당시 값).',
+    ],
+    try: ['참고 PCS(Hyunseokimab) → 1st Chromatography 패널 → Mass Balance 탭', 'BOM Report(작업본)에서 Receiving · 배치 수 3으로 바꿔 보기'] },
   { version: 'v112', date: '2026-11-19', title: 'Process Map 계층 구조',
     items: [
       '노드 종류가 3가지가 되었습니다: 공정 단계(Stage, UO를 묶는 칸) · Unit Operation · 하위 단계(Step, UO 안의 작업 순서). 승인·PFD·WI는 지금처럼 Unit Operation만.',
@@ -6560,6 +6608,7 @@ function pmNodeContentSummary(n){
   if(c.wi.steps.length) parts.push(`WI ${c.wi.steps.length}단계`);
   const lists = Object.values(c.nodeList).reduce((s, a) => s + (a || []).length, 0);
   if(lists) parts.push(`리스트 ${lists}`);
+  if((c.massBalance || []).length) parts.push(`Mass Balance Step ${c.massBalance.length}`);   // v113
   return parts.join(', ');
 }
 
@@ -6842,7 +6891,7 @@ function openBomReport(pmId){
    Export BOM (Bill of Material) Report — 승인된(Approved) Process Map의 모든 Unit Operation에서
    실제 사용 중인(Material List에 등록된) Material을 모아 LBK BOM Level 정의(MSAT) 구조로 집계한다.
    Level 1: Unit Operation(노드) → Level 2: bomClass(Buffer/Media/Solution/Column/Membrane) → Level 3: 개별 Material(bomType 표시).
-   Unit Operation Material List 전체를 그대로 집계 대상으로 삼는다(PFD qty 연동과 무관, 기본 수량 1).
+   v113: 수량은 BOM 소요량 규칙(PFD 인스턴스 수·고정량·Mass Balance 연동)으로 계산한다(17b_uo_mass_balance.js).
    ========================================================= */
 function renderBomReport(){
   const ctx = getActiveTab().ctx;
@@ -6851,40 +6900,42 @@ function renderBomReport(){
   const product = DATA.products.find(p=>p.id===pm.productId);
   const client = product ? DATA.clients.find(c=>c.id===product.clientId) : null;
   const nodes = getProcessNodes(pm.id);
-
-  // Unit Operation(Level 1)별로 Material List를 가져와 bomClass(Level 2)로 그룹핑한다.
-  // 같은 Material이 여러 Unit Operation에 쓰이면 각 Unit Operation에서 별도 행(수량 1)으로 집계한다(BOM은 공정 단계별 소요량 합산이 원칙).
-  const uoBlocks = nodes.map(node=>{
-    const bucket = ensureNodeListBucket(node.id);
-    const mats = (bucket.material||[]).map(id=>getMasterItem('material', id)).filter(Boolean);
-    const classGroups = BOM_CLASS_ORDER.map(cls=>({
-      cls,
-      items: mats.filter(m=>(m.bomClass||'Other')===cls),
-    })).filter(g=>g.items.length);
-    const others = mats.filter(m=>!BOM_CLASS_ORDER.includes(m.bomClass));
-    if(others.length) classGroups.push({ cls:'Other', items:others });
-    /* v69: 수량을 "Unit Operation당 1"로 고정하지 않고 PFD 실제 인스턴스 수로 집계한다.
-       도형·연결선·분기점·인라인 부품(밸브/커넥터/필터)이 각각 별도 링크를 가지므로,
-       같은 소모품을 3곳에 달면 BOM 수량도 3이 된다. 링크가 없으면(마스터만 노드에 붙은 경우) 1. */
-    const qtyOf = m => pfdCountMaterialInstances(node.id, m.id);
-    const uoTotal = mats.reduce((sum,m)=> sum + qtyOf(m) * (typeof m.unitCost==='number' ? m.unitCost : 0), 0);
-    return { node, classGroups, matCount: mats.length, uoTotal, qtyOf };
-  }).filter(b=>b.matCount>0);
-
-  // 전체 종합 — Material별 사용 Unit Operation 수를 합쳐 전사 BOM 합계표를 만든다 (qty는 Unit Operation당 1로 합산)
-  const grandTotalsMap = {};
+  /* v113: 수량 = BOM 소요량 규칙(17b_uo_mass_balance.js) — PFD 인스턴스 수(기본) · 배치당 고정량 · Mass Balance Step 투입/회수량 × 계수 + 준비 여유.
+     Sending/Receiving과 배치 수를 바꾸면 다시 계산하고, 줄마다 근거(어느 UO의 어느 값)를 적는다. */
+  const site = ctx.bomSite === 'receiving' ? 'receiving' : 'sending';
+  const batches = Math.max(1, parseInt(ctx.bomBatches, 10) || 1);
+  const reqRows = bomRequirementRowsForPm(pm.id, site, batches);
+  const uoBlocks = [];
+  reqRows.forEach(r=>{
+    let b = uoBlocks.find(x=>x.node.id===r.node.id);
+    if(!b){ b = { node:r.node, number:r.number, rows:[], uoTotal:0 }; uoBlocks.push(b); }
+    b.rows.push(r);
+    b.uoTotal += r.cost || 0;
+  });
   uoBlocks.forEach(b=>{
-    b.classGroups.forEach(g=>g.items.forEach(m=>{
-      if(!grandTotalsMap[m.id]) grandTotalsMap[m.id] = { item:m, qty:0 };
-      grandTotalsMap[m.id].qty += b.qtyOf(m);   // v69: PFD 인스턴스 수 반영
-    }));
+    const cls = BOM_CLASS_ORDER.concat(['Other']);
+    b.classGroups = cls.map(c=>({ cls:c, items: b.rows.filter(r=>(BOM_CLASS_ORDER.includes(r.material.bomClass) ? r.material.bomClass : 'Other')===c) })).filter(g=>g.items.length);
+    b.matCount = b.rows.length;
+  });
+  // 전체 종합 — Material·단위별 합계(N배치)
+  const grandTotalsMap = {};
+  reqRows.forEach(r=>{
+    if(r.total == null) return;
+    const k = r.material.id + '|' + r.unit;
+    if(!grandTotalsMap[k]) grandTotalsMap[k] = { item:r.material, unit:r.unit, qty:0, cost:0, uos:[] };
+    grandTotalsMap[k].qty = bomRound(grandTotalsMap[k].qty + r.total);
+    grandTotalsMap[k].cost += r.cost || 0;
+    grandTotalsMap[k].uos.push(r.node.name);
   });
   const grandTotals = Object.values(grandTotalsMap).sort((a,b)=>{
     const ca = BOM_CLASS_ORDER.indexOf(a.item.bomClass), cb = BOM_CLASS_ORDER.indexOf(b.item.bomClass);
     if(ca!==cb) return (ca<0?99:ca)-(cb<0?99:cb);
     return a.item.name.localeCompare(b.item.name);
   });
-  const grandTotalCost = grandTotals.reduce((sum,g)=> sum + g.qty * (typeof g.item.unitCost==='number'?g.item.unitCost:0), 0);
+  const grandTotalCost = grandTotals.reduce((sum,g)=> sum + g.cost, 0);
+  const prep = bomPrepSummary(reqRows);
+  const fmt = v => v == null ? '–' : Number(v).toLocaleString('ko-KR', { maximumFractionDigits:3 });
+  const siteLabel = site === 'receiving' ? 'Receiving Site' : 'Sending Site';
 
   const generatedAt = new Date().toISOString().slice(0,16).replace('T',' ');
 
@@ -6902,6 +6953,12 @@ function renderBomReport(){
         <button class="btn btn-primary" data-on-click="print_b7805e">${icon('fileText')}<span style="margin-left:4px;">인쇄 / PDF로 저장</span></button>
       </div>
     </div>
+    <div class="card no-print bom-ctrl" data-bom-ctrl>
+      <b>소요량 계산</b>
+      <span>규모</span>${['sending','receiving'].map(v=>`<button class="btn btn-sm ${site===v?'btn-primary':''}" data-bom-site="${v}" data-on-click="bomReportSet" data-a-click="${pcsArgs(['bomSite', v])}">${v==='sending'?'Sending':'Receiving'}</button>`).join('')}
+      <span>배치 수</span><input class="pfd-detail-input" id="bomBatchesInput" style="width:70px;" type="number" min="1" step="1" value="${batches}" aria-label="배치 수" ${pcsOn('change', 'pcsCallWithValue', ['bomReportSet', 'bomBatches'])}>
+      <span class="mb-uo-sub">수량 기준은 UO 패널 → Mass Balance 탭의 "BOM 소요량"에서 Material마다 정합니다.</span>
+    </div>
 
     <div class="pcs-report-paper" id="bomReportPaper">
       <div class="pcs-report-header">
@@ -6917,6 +6974,7 @@ function renderBomReport(){
         <div class="pm-meta-cell"><div class="pm-meta-label">PCS Code</div><div class="pm-meta-val">${escapeXml(pm.code)}</div></div>
         <div class="pm-meta-cell"><div class="pm-meta-label">Version</div><div class="pm-meta-val">${pm.version}</div></div>
         <div class="pm-meta-cell"><div class="pm-meta-label">Unit Operation 수</div><div class="pm-meta-val">${nodes.length}</div></div>
+        <div class="pm-meta-cell"><div class="pm-meta-label">소요량 기준</div><div class="pm-meta-val" data-bom-basis>${siteLabel} · ${batches}배치</div></div>
         <div class="pm-meta-cell"><div class="pm-meta-label">Report Generated</div><div class="pm-meta-val mono">${generatedAt}</div></div>
       </div>
 
@@ -6924,45 +6982,55 @@ function renderBomReport(){
       <p class="pcs-report-p" style="font-size:11.5px; color:var(--ink-500);">Level 1 = Unit Operation · Level 2 = 물질 클래스(Buffer/Media/Solution/Column/Membrane) · Level 3 = 개별 Material(RM/Resin/Filter/Consumable)</p>
 
       ${uoBlocks.length ? uoBlocks.map((b,i)=>`
-        <div class="pcs-uo-card bom-uo-card">
-          <div class="pcs-uo-title">${i+1}. ${escapeXml(b.node.name)} <span style="font-weight:500; color:var(--ink-400); font-size:11.5px;">— Level 1 · Unit Operation</span></div>
+        <div class="pcs-uo-card bom-uo-card" data-bom-uo="${escapeXmlAttr(b.node.id)}">
+          <div class="pcs-uo-title">${escapeXml(b.number || String(i+1))}. ${escapeXml(b.node.name)} <span style="font-weight:500; color:var(--ink-400); font-size:11.5px;">— Level 1 · Unit Operation</span></div>
           ${b.classGroups.map(g=>`
             <div class="bom-class-block">
               <div class="bom-class-head"><span class="badge ${BOM_CLASS_BADGE[g.cls]||'badge-gray'}"><span class="badge-dot"></span>${g.cls}</span><span class="bom-class-sub">Level 2 · 물질 클래스 · ${g.items.length}개 Material</span></div>
               <table class="pcs-report-table bom-table">
-                <thead><tr><th>Material (Level 3)</th><th>BOM Type</th><th>Spec</th><th>Qty</th><th>Unit</th><th>Unit Cost (KRW)</th><th>Amount (KRW)</th><th>Vendor</th></tr></thead>
-                <tbody>${g.items.map(m=>`<tr>
-                  <td>${escapeXml(m.name)}</td>
-                  <td><span class="bom-type-tag">${m.bomType||'-'}</span></td>
-                  <td style="font-size:11.5px; color:var(--ink-500);">${escapeXml(m.spec||'-')}</td>
-                  <td class="mono">1</td>
-                  <td class="mono">${escapeXml(m.unit||'-')}</td>
-                  <td class="mono">${typeof m.unitCost==='number' ? m.unitCost.toLocaleString('ko-KR') : '-'}</td>
-                  <td class="mono">${typeof m.unitCost==='number' ? m.unitCost.toLocaleString('ko-KR') : '-'}</td>
-                  <td style="font-size:11.5px;">${escapeXml(m.vendor||'-')}</td>
+                <thead><tr><th>Material (Level 3)</th><th>BOM Type</th><th>배치당 Qty</th><th>Unit</th><th>근거</th><th>Unit Cost (KRW)</th><th>Amount ${batches}배치 (KRW)</th><th>Vendor</th></tr></thead>
+                <tbody>${g.items.map(r=>`<tr data-bom-row="${escapeXmlAttr(r.material.id)}">
+                  <td>${escapeXml(r.material.name)}</td>
+                  <td><span class="bom-type-tag">${escapeXml(r.material.bomType||'-')}</span></td>
+                  <td class="mono" data-bom-qty>${fmt(r.perBatch)}</td>
+                  <td class="mono">${escapeXml(r.unit||'-')}</td>
+                  <td class="bom-src">${escapeXml(r.source)}${r.warn ? `<div class="mb-uo-warn">⚠ ${escapeXml(r.warn)}</div>` : ''}</td>
+                  <td class="mono">${typeof r.material.unitCost==='number' ? r.material.unitCost.toLocaleString('ko-KR') : '-'}</td>
+                  <td class="mono">${r.cost == null ? '-' : r.cost.toLocaleString('ko-KR')}</td>
+                  <td style="font-size:11.5px;">${escapeXml(r.material.vendor||'-')}</td>
                 </tr>`).join('')}</tbody>
               </table>
             </div>
           `).join('')}
-          <div class="pcs-uo-row" style="margin-top:6px; justify-content:flex-end;"><span class="pcs-uo-label">Unit Operation 소계</span><span class="mono" style="font-weight:700; color:var(--burgundy-900);">₩${b.uoTotal.toLocaleString('ko-KR')}</span></div>
+          <div class="pcs-uo-row" style="margin-top:6px; justify-content:flex-end;"><span class="pcs-uo-label">Unit Operation 소계 (${batches}배치)</span><span class="mono" style="font-weight:700; color:var(--burgundy-900);">₩${Math.round(b.uoTotal).toLocaleString('ko-KR')}</span></div>
         </div>
       `).join('') : `<p class="pcs-report-p" style="color:var(--ink-400);">등록된 Material이 없습니다.</p>`}
 
-      <h3 class="pcs-report-h3">2. 전체 Material 종합표 (전사 BOM 합계)</h3>
+      <h3 class="pcs-report-h3">2. 전체 Material 종합표 (${batches}배치 합계 · ${siteLabel})</h3>
       ${grandTotals.length ? `
-        <table class="pcs-report-table">
-          <thead><tr><th>BOM Class</th><th>Material</th><th>BOM Type</th><th>Qty (사용 Unit Operation 수)</th><th>Unit</th><th>Unit Cost (KRW)</th><th>Amount (KRW)</th></tr></thead>
-          <tbody>${grandTotals.map(g=>`<tr>
-            <td><span class="badge ${BOM_CLASS_BADGE[g.item.bomClass]||'badge-gray'}"><span class="badge-dot"></span>${g.item.bomClass||'-'}</span></td>
+        <table class="pcs-report-table" data-bom-grand>
+          <thead><tr><th>BOM Class</th><th>Material</th><th>BOM Type</th><th>Qty (${batches}배치)</th><th>Unit</th><th>쓰는 Unit Operation</th><th>Unit Cost (KRW)</th><th>Amount (KRW)</th></tr></thead>
+          <tbody>${grandTotals.map(g=>`<tr data-bom-grand-row="${escapeXmlAttr(g.item.id)}">
+            <td><span class="badge ${BOM_CLASS_BADGE[g.item.bomClass]||'badge-gray'}"><span class="badge-dot"></span>${escapeXml(g.item.bomClass||'-')}</span></td>
             <td>${escapeXml(g.item.name)}</td>
-            <td><span class="bom-type-tag">${g.item.bomType||'-'}</span></td>
-            <td class="mono">${g.qty}</td>
-            <td class="mono">${escapeXml(g.item.unit||'-')}</td>
+            <td><span class="bom-type-tag">${escapeXml(g.item.bomType||'-')}</span></td>
+            <td class="mono">${fmt(g.qty)}</td>
+            <td class="mono">${escapeXml(g.unit||'-')}</td>
+            <td style="font-size:11px;">${escapeXml(g.uos.join(', '))}</td>
             <td class="mono">${typeof g.item.unitCost==='number' ? g.item.unitCost.toLocaleString('ko-KR') : '-'}</td>
-            <td class="mono">${typeof g.item.unitCost==='number' ? (g.qty*g.item.unitCost).toLocaleString('ko-KR') : '-'}</td>
+            <td class="mono">${Math.round(g.cost).toLocaleString('ko-KR')}</td>
           </tr>`).join('')}</tbody>
-          <tfoot><tr><td colspan="6" style="text-align:right; font-weight:700; color:var(--burgundy-900);">총 합계 (Grand Total)</td><td class="mono" style="font-weight:700; color:var(--burgundy-900);">₩${grandTotalCost.toLocaleString('ko-KR')}</td></tr></tfoot>
+          <tfoot><tr><td colspan="7" style="text-align:right; font-weight:700; color:var(--burgundy-900);">총 합계 (Grand Total)</td><td class="mono" style="font-weight:700; color:var(--burgundy-900);">₩${Math.round(grandTotalCost).toLocaleString('ko-KR')}</td></tr></tfoot>
         </table>` : `<p class="pcs-report-p" style="color:var(--ink-400);">등록된 Material이 없습니다.</p>`}
+
+      <h3 class="pcs-report-h3">3. 준비량 — 물질 클래스별 (Buffer · Media · Solution 등)</h3>
+      <p class="pcs-report-p" style="font-size:11.5px; color:var(--ink-500);">Prep 계획용: 같은 Material·단위끼리 합한 배치당·${batches}배치 준비량과 쓰는 Unit Operation.</p>
+      ${prep.length ? prep.map(g=>`
+        <div class="bom-class-block" data-bom-prep="${escapeXmlAttr(g.cls)}">
+          <div class="bom-class-head"><span class="badge ${BOM_CLASS_BADGE[g.cls]||'badge-gray'}"><span class="badge-dot"></span>${escapeXml(g.cls)}</span></div>
+          <table class="pcs-report-table"><thead><tr><th>Material</th><th>배치당</th><th>${batches}배치</th><th>Unit</th><th>쓰는 Unit Operation</th></tr></thead>
+          <tbody>${g.items.map(it=>`<tr><td>${escapeXml(it.material.name)}</td><td class="mono">${fmt(it.perBatch)}</td><td class="mono" data-prep-total>${fmt(it.total)}</td><td class="mono">${escapeXml(it.unit||'-')}</td><td style="font-size:11px;">${escapeXml(it.uos.join(', '))}</td></tr>`).join('')}</tbody></table>
+        </div>`).join('') : `<p class="pcs-report-p" style="color:var(--ink-400);">계산할 Material이 없습니다.</p>`}
 
       <div class="pcs-report-footer">본 보고서는 PCS Platform에서 ${generatedAt}에 자동 생성되었습니다. · ${escapeXml(pm.code)} ${escapeXml(pm.name)} ${pm.version} · 단가는 데모용 참고 단가이며 실제 구매 단가와 다를 수 있습니다.</div>
     </div>
@@ -7017,17 +7085,18 @@ function pmPanelFullKeydown(e){
 }
 if(typeof document !== 'undefined' && document.addEventListener) document.addEventListener('keydown', pmPanelFullKeydown);
 /* v110 UO 패널 상단 탭: 개요 · Work Instruction · 리스트 5종 · 변경 이력 (+ PFD 열기) — 아래로 내려가야 보이던 메뉴를 위로 */
-const PM_PANEL_TABS = [['menu', '', '개요'], ['wi', '', 'Work Instruction'], ['history', '', '변경 이력'], ['list', 'equipment', 'Equipment'], ['list', 'material', 'Material'],
+const PM_PANEL_TABS = [['menu', '', '개요'], ['wi', '', 'Work Instruction'], ['mb', '', 'Mass Balance'], ['history', '', '변경 이력'], ['list', 'equipment', 'Equipment'], ['list', 'material', 'Material'],
   ['list', 'parameter', 'Parameter'], ['list', 'training', 'Training'], ['list', 'sampling', 'Sampling']];
 function openPmPanelTab(nodeId, type, listKey){
   if(type === 'menu') return openPmPanelMenu(nodeId);
   if(type === 'wi') return openPmPanelWi(nodeId);
   if(type === 'list') return openPmPanelList(nodeId, listKey);
   if(type === 'history') return openPmPanelHistory(nodeId);
+  if(type === 'mb'){ getActiveTab().ctx.pmPanel = { type:'mb', nodeId }; render(); }   // v113
 }
 function renderPmPanelTabs(node, panel){
   const bucket = ensureNodeListBucket(node.id);
-  const count = (t, k) => t === 'list' ? (bucket[k] || []).length : t === 'history' ? uoAuditEntries(DATA.auditTrail, node.id).length : t === 'wi' ? ((DATA.workInstructions[node.id] || {}).steps || []).length : null;
+  const count = (t, k) => t === 'list' ? (bucket[k] || []).length : t === 'history' ? uoAuditEntries(DATA.auditTrail, node.id).length : t === 'wi' ? ((DATA.workInstructions[node.id] || {}).steps || []).length : t === 'mb' ? mbStreamsOfUo(node.id).length : null;
   return `<div class="pm-panel-tabs"><div class="pm-panel-tablist" role="tablist" aria-label="Unit Operation 화면">${PM_PANEL_TABS.map(([t, k, label]) => {
       const on = panel.type === t && (t !== 'list' || panel.listKey === k);
       const c = count(t, k);
@@ -7153,6 +7222,9 @@ function renderPmPanel(pmId, panel){
   } else if(panel.type === 'wi'){
     crumb = `<span class="seg-link" data-on-click="backToPmPanelMenu">${escapeXml(node.name)}</span><span>${icon('chevronRight')}</span><b>Work Instruction</b>`;
     body = renderWorkInstructionStudioBody(node, panel);
+  } else if(panel.type === 'mb'){   // v113
+    crumb = `<span class="seg-link" data-on-click="backToPmPanelMenu">${escapeXml(node.name)}</span><span>${icon('chevronRight')}</span><b>Mass Balance · BOM 소요량</b>`;
+    body = renderUoMassBalanceBody(node);
   } else if(panel.type === 'history'){
     crumb = `<span class="seg-link" data-on-click="backToPmPanelMenu">${escapeXml(node.name)}</span><span>${icon('chevronRight')}</span><b>변경 이력</b>`;
     body = renderUoHistoryBody(node, panel);
@@ -18640,7 +18712,7 @@ function mbRefreshViewer(pmId){
 function mbRenderSankey(pmId, ver){
   const mb=ensureMb(pmId);
   const pfx=ver==='sending'?'s_':'r_';
-  const streams=[...mb.streams].sort((a,b)=>(a.stepOrder||0)-(b.stepOrder||0));
+  const streams=mbOrderedStreams(pmId);   // v113: UO 흐름 순서
   if(!streams.length) return '';
 
   const W=700, PH=64, PAD=40, BAR=28;
@@ -18695,7 +18767,7 @@ function mbRenderSankey(pmId, ver){
    ════════════════════════════════════════ */
 function mbRenderComparisonTable(pmId){
   const mb=ensureMb(pmId);
-  const streams=[...mb.streams].sort((a,b)=>(a.stepOrder||0)-(b.stepOrder||0));
+  const streams=mbOrderedStreams(pmId);   // v113: UO 흐름 순서
   if(!streams.length) return '';
   const cumS=mbCalcCumYield(streams,'s_');
   const cumR=mbCalcCumYield(streams,'r_');
@@ -18768,8 +18840,8 @@ function renderMassBalanceList(){
         const mb=DATA.massBalance[pm.id]; const rt=MB_RUNTIME[pm.id];
         const cnt=mb?mb.streams.length:0;
         const mapped=mb?mb.streams.filter(s=>s.pfdMappings&&s.pfdMappings.length).length:0;
-        const cumS=mb&&mb.streams.length?mbCalcCumYield([...mb.streams].sort((a,b)=>(a.stepOrder||0)-(b.stepOrder||0)),'s_').filter(v=>v!==null).pop():null;
-        const cumR=mb&&mb.streams.length?mbCalcCumYield([...mb.streams].sort((a,b)=>(a.stepOrder||0)-(b.stepOrder||0)),'r_').filter(v=>v!==null).pop():null;
+        const cumS=mb&&mb.streams.length?mbCalcCumYield(mbOrderedStreams(pm.id),'s_').filter(v=>v!==null).pop():null;
+        const cumR=mb&&mb.streams.length?mbCalcCumYield(mbOrderedStreams(pm.id),'r_').filter(v=>v!==null).pop():null;
         return `
         <div class="card" style="padding:20px;cursor:pointer;transition:box-shadow .15s;"
           data-on-mouseover="rgba_390f21"
@@ -18820,7 +18892,7 @@ function renderMassBalanceEdit(){
   if(!pm) return '<p style="padding:24px">PCS를 찾을 수 없습니다.</p>';
   const mb=ensureMb(pmId); const rt=MB_RUNTIME[pmId];
   const edgeOpts=mbGetEdgeOptions(pmId);
-  const streams=[...mb.streams].sort((a,b)=>(a.stepOrder||0)-(b.stepOrder||0));
+  const streams=mbOrderedStreams(pmId);   // v113: UO 계층(흐름) 순서 → UO 안 Step 순서
   const topArea = mbEditTopArea(pmId, pm, mb, rt);
   const scaleBar = mbEditScaleBar(pmId, pm, mb, rt);
   const stepsTable = mbEditStepsTable(pmId, pm, mb, rt, streams, edgeOpts);
@@ -18956,7 +19028,7 @@ function mbEditStepsTable(pmId, pm, mb, rt, streams, edgeOpts){
       <table style="width:100%;border-collapse:collapse;font-size:12px;">
         ${mbStepsTableHead()}
         <tbody>
-          ${streams.map((s,i)=>{
+          ${mbLayoutRows(pmId, (s,i)=>{
             const sy=mbCalcStepYield(s,'s_'), ry=mbCalcStepYield(s,'r_');
             const sLoss=mbCalcLoss(s,'s_'), rLoss=mbCalcLoss(s,'r_');
             const mappings=s.pfdMappings||[];
@@ -18978,6 +19050,7 @@ function mbEditStepsTable(pmId, pm, mb, rt, streams, edgeOpts){
                 <input class="pfd-detail-input" style="width:100%;font-size:11.5px;" placeholder="Step 이름"
                   value="${escapeXmlAttr(s.stepName||'')}"
                   data-on-change="mbUiSet_69b4c7" data-a-change="${pcsArgs([String(pmId), String(s.id)])}">
+                ${mbOwnerSelect(pmId, s)}
               </td>
               <td style="padding:8px 8px;text-align:center;">
                 <input class="pfd-detail-input" style="width:46px;font-size:11px;text-align:center;" type="number" min="1"
@@ -19065,7 +19138,7 @@ function mbEditStepsTable(pmId, pm, mb, rt, streams, edgeOpts){
                 </button>
               </td>
             </tr>`;
-          }).join('')}
+          })}
         </tbody>
       </table>
       </div>`}
@@ -19260,10 +19333,334 @@ document.addEventListener('DOMContentLoaded', ()=>{
 /* v86: Mass Balance Step 삭제 — 앱 대화상자로 확인하고 audit trail을 남긴다(이전에는 화면 코드에서 DATA를 직접 바꿨다) */
 async function mbConfirmRemoveStream(pmId, streamId){
   if(!(await uiConfirm('이 Step을 삭제할까요?', { title:'Mass Balance Step 삭제', okLabel:'삭제', danger:true }))) return;
+  mbRemoveStream(pmId, streamId);   // v113: store 함수(UO 승인 잠금·감사 기록)
+  render();
+}
+/* ============================================================================
+   17b_uo_mass_balance.js — v113  Mass Balance를 Unit Operation 안으로 + BOM 소요량 연동
+   · Mass Balance Step(stream)마다 주인 UO(stream.nodeId)를 둔다. 저장 위치는 그대로(DATA.massBalance[pmId].streams)라
+     Excel 셀 연동·PFD 화살표 라벨·검증은 그대로 쓰고, UO 패널 "Mass Balance" 탭은 그 UO의 Step만 보여 준다.
+     Process Map 전체 Mass Balance는 UO를 계층(흐름) 순서로 모으고 공정 단계마다 소계를 낸다.
+     기존 데이터는 Step의 PFD 화살표 연동(pfdMappings)을 따라 주인 UO를 정한다(스키마 2 마이그레이션).
+   · BOM 소요량: UO의 Material마다 계산 규칙(DATA.bomRules[nodeId]) 하나 —
+       pfd(PFD 인스턴스 수, 기본·예전과 같음) · fixed(배치당 고정량) · mbInput / mbOutput(Mass Balance Step 투입·회수량 × 계수)
+     + 준비 여유 %. Sending/Receiving(규모)·배치 수에 따라 다시 계산하고, 근거(어느 UO의 어느 값)를 함께 돌려준다.
+   · UO의 Mass Balance Step과 BOM 규칙은 UO 승인 대상 내용에 들어간다(잠금·결재 묶음·승인본 보고서).
+   ========================================================================== */
+var BOM_BASIS = {   // var: 앞 조각이 로드 중에 부를 수 있다(LESSONS v70)
+  pfd:      { label: 'PFD 인스턴스 수', hint: 'PFD에 놓인 이 Material 도형 수(없으면 1) × 계수' },
+  fixed:    { label: '배치당 고정량', hint: '계수 = 배치당 양(Receiving은 Scale Factor를 곱함)' },
+  mbInput:  { label: 'MB Step 투입량', hint: 'Mass Balance Step 투입량 × 계수(예: L 버퍼 / L 로딩)' },
+  mbOutput: { label: 'MB Step 회수량', hint: 'Mass Balance Step 회수량 × 계수' },
+};
+var MB_UNIT_DIM = { mL: ['V', 0.001], L: ['V', 1], m3: ['V', 1000], mg: ['M', 1e-6], g: ['M', 0.001], kg: ['M', 1] };
+
+/* ---------- 순수 함수 ---------- */
+/* 같은 차원(부피·질량)끼리만 바꾼다. 못 바꾸면 null */
+function mbConvertUnit(v, from, to){
+  if(v == null || !isFinite(v)) return null;
+  if(!from || !to || from === to) return v;
+  const a = MB_UNIT_DIM[from], b = MB_UNIT_DIM[to];
+  if(!a || !b || a[0] !== b[0]) return null;
+  return v * a[1] / b[1];
+}
+function bomRound(v){ return v == null || !isFinite(v) ? null : Math.round(v * 1000) / 1000; }
+function bomRuleOf(rules, materialId){
+  const r = (rules || []).find(x => x.materialId === materialId);
+  return Object.assign({ basis: 'pfd', factor: 1, overage: 0, streamId: '', scale: true, note: '' }, r || {}, { materialId });
+}
+/* Material 하나의 배치당 소요량.
+   o: { material, rule, streams(그 UO의 Step, 순서대로), pfdCount, site:'sending'|'receiving', scaleFactor, uoName }
+   반환 { basis, perBatch(null이면 계산 불가), unit, source(근거 문장), warn } */
+function bomRequirement(o){
+  const m = o.material || {}, r = o.rule || bomRuleOf([], m.id);
+  const unit = m.unit || '';
+  const factor = isFinite(parseFloat(r.factor)) ? parseFloat(r.factor) : 1;
+  const ov = isFinite(parseFloat(r.overage)) ? parseFloat(r.overage) : 0;
+  const more = ov ? ` + 여유 ${ov}%` : '';
+  const recv = o.site === 'receiving';
+  const sf = isFinite(parseFloat(o.scaleFactor)) && parseFloat(o.scaleFactor) > 0 ? parseFloat(o.scaleFactor) : 1;
+  const out = (perBatch, source, warn) => ({ basis: r.basis, perBatch: bomRound(perBatch), unit, source, warn: warn || '' });
+  if(r.basis === 'fixed'){
+    const k = recv && r.scale !== false ? sf : 1;
+    return out(factor * k * (1 + ov / 100), `배치당 ${factor} ${unit}${k !== 1 ? ` × Scale Factor ${sf}` : ''}${more}`);
+  }
+  if(r.basis === 'mbInput' || r.basis === 'mbOutput'){
+    const streams = o.streams || [];
+    const s = streams.find(x => x.id === r.streamId) || streams[0];
+    const which = r.basis === 'mbInput' ? '투입' : '회수';
+    if(!s) return out(null, `${o.uoName || ''} · Mass Balance Step 없음`, '이 Unit Operation에 Mass Balance Step이 없습니다');
+    const pfx = recv ? 'r_' : 's_';
+    const raw = parseFloat(String(s[pfx + (r.basis === 'mbInput' ? 'input' : 'output')] ?? '').replace(/,/g, ''));
+    const su = s[pfx + 'unit'] || 'L';
+    const where = `${o.uoName || ''} · MB "${s.stepName || 'Step'}" ${recv ? 'Receiving' : 'Sending'} ${which}`;
+    if(!isFinite(raw)) return out(null, `${where} 값 없음`, `Step "${s.stepName || ''}"의 ${recv ? 'Receiving' : 'Sending'} ${which}량이 비어 있습니다`);
+    const conv = mbConvertUnit(raw, su, unit);
+    const base = conv == null ? raw : conv;
+    const warn = conv == null && unit && su !== unit ? `단위가 다릅니다(${su} → ${unit}) — 계수에 환산을 넣으세요(예: kg/L)` : '';
+    return out(base * factor * (1 + ov / 100), `${where} ${raw} ${su}${conv != null && su !== unit ? ` (= ${bomRound(conv)} ${unit})` : ''} × ${factor}${more}`, warn);
+  }
+  const n = o.pfdCount || 0;
+  return out((n || 1) * factor * (1 + ov / 100), `${n ? `PFD 도형 ${n}개` : 'PFD 연동 없음 → 1'}${factor !== 1 ? ` × ${factor}` : ''}${more}`);
+}
+/* 준비량 요약: bomClass → Material별 합(같은 단위끼리), 쓰는 UO 목록 */
+function bomPrepSummary(rows){
+  const byClass = {};
+  (rows || []).forEach(r => {
+    if(r.perBatch == null) return;
+    const cls = r.material.bomClass || 'Other';
+    const key = r.material.id + '|' + r.unit;
+    const g = (byClass[cls] = byClass[cls] || {});
+    const it = g[key] = g[key] || { material: r.material, unit: r.unit, perBatch: 0, total: 0, uos: [] };
+    it.perBatch = bomRound(it.perBatch + r.perBatch);
+    it.total = bomRound(it.total + r.total);
+    if(!it.uos.includes(r.node.name)) it.uos.push(r.node.name);
+  });
+  return Object.entries(byClass).map(([cls, g]) => ({ cls, items: Object.values(g).sort((a, b) => a.material.name.localeCompare(b.material.name)) }));
+}
+/* Process Map 전체 Mass Balance의 줄 순서: UO 계층(흐름) 순서 → UO 안 stepOrder, 주인 없는 Step은 맨 뒤.
+   공정 단계가 끝나는 자리에 소계 줄. 반환 [{ type:'stage'|'uo'|'step'|'stageTotal'|'unassigned', ... }] */
+function mbPmLayout(treeRows, streams){
+  const out = [];
+  const byNode = {};
+  (streams || []).forEach(s => { (byNode[s.nodeId || ''] = byNode[s.nodeId || ''] || []).push(s); });
+  Object.values(byNode).forEach(a => a.sort((x, y) => (x.stepOrder || 0) - (y.stepOrder || 0)));
+  const stageStack = [];
+  const closeStages = depth => { while(stageStack.length && stageStack[stageStack.length - 1].depth >= depth){ const st = stageStack.pop(); out.push({ type: 'stageTotal', row: st.row, streams: st.streams }); } };
+  (treeRows || []).forEach(r => {
+    closeStages(r.depth);
+    if(r.kind === 'stage'){ stageStack.push({ depth: r.depth, row: r, streams: [] }); out.push({ type: 'stage', row: r }); return; }
+    if(r.kind !== 'uo') return;
+    const ss = byNode[r.id] || [];
+    out.push({ type: 'uo', row: r, streams: ss });
+    ss.forEach(s => out.push({ type: 'step', row: r, stream: s }));
+    stageStack.forEach(st => st.streams.push(...ss));
+  });
+  closeStages(-1);
+  const known = new Set((treeRows || []).filter(r => r.kind === 'uo').map(r => r.id));
+  const orphan = (streams || []).filter(s => !s.nodeId || !known.has(s.nodeId)).sort((x, y) => (x.stepOrder || 0) - (y.stepOrder || 0));
+  if(orphan.length){ out.push({ type: 'unassigned', streams: orphan }); orphan.forEach(s => out.push({ type: 'step', row: null, stream: s })); }
+  return out;
+}
+/* 단계 소계: Step 수, 손실 합, 단계 누적 수율(Step 수율의 곱) */
+function mbStageTotal(streams, pfx){
+  let cum = 1, any = false, loss = 0, lossAny = false;
+  (streams || []).forEach(s => {
+    const y = mbCalcStepYield(s, pfx); if(y !== null){ cum *= y / 100; any = true; }
+    const l = mbCalcLoss(s, pfx); if(l !== null){ loss += l; lossAny = true; }
+  });
+  return { steps: (streams || []).length, yield: any ? Math.round(cum * 1000) / 10 : null, loss: lossAny ? Math.round(loss * 1000) / 1000 : null };
+}
+/* 스키마 2: 주인 UO가 없는 Step은 PFD 화살표 연동을 따라 정한다(같은 Process Map의 UO만) */
+function mbMigrateStreamOwners(data){
+  const nodes = data.nodes || [];
+  Object.entries(data.massBalance || {}).forEach(([pmId, mb]) => {
+    (mb.streams || []).forEach(s => {
+      if(s.nodeId) return;
+      const m = (s.pfdMappings || []).find(x => nodes.some(n => n.id === x.nodeId && n.pmId === pmId && (n.kind || 'uo') === 'uo'));
+      if(m) s.nodeId = m.nodeId;
+    });
+  });
+  return data;
+}
+
+/* ---------- 데이터 접근 ---------- */
+function mbOrderedStreams(pmId){
+  const lay = mbPmLayout(pmTreeRows(getPmTreeNodes(pmId)), ensureMb(pmId).streams);
+  return lay.filter(x => x.type === 'step').map(x => x.stream);
+}
+function mbStreamsOfUo(nodeId){
+  const n = DATA.nodes.find(x => x.id === nodeId);
+  if(!n) return [];
+  return ((DATA.massBalance[n.pmId] || {}).streams || []).filter(s => s.nodeId === nodeId).sort((a, b) => (a.stepOrder || 0) - (b.stepOrder || 0));
+}
+function bomRulesOf(nodeId){ return (DATA.bomRules && DATA.bomRules[nodeId]) || []; }
+/* Process Map의 UO·Material 소요량 줄(계층 순서). batches: 배치 수 */
+function bomRequirementRowsForPm(pmId, site, batches){
   const mb = ensureMb(pmId);
-  const before = mb.streams.length;
-  mb.streams = mb.streams.filter(x=>x.id!==streamId);
-  if(mb.streams.length !== before){ logAudit('Mass Balance', 'Step 삭제', `${pmId} · ${streamId}`); validateData(DATA); }
+  const nb = Math.max(1, parseInt(batches, 10) || 1);
+  const rows = [];
+  pmTreeRows(getPmTreeNodes(pmId)).filter(r => r.kind === 'uo').forEach(r => {
+    const node = r.node;
+    const mats = (ensureNodeListBucket(node.id).material || []).map(id => getMasterItem('material', id)).filter(Boolean);
+    const streams = mbStreamsOfUo(node.id);
+    mats.forEach(m => {
+      const rule = bomRuleOf(bomRulesOf(node.id), m.id);
+      const req = bomRequirement({ material: m, rule, streams, pfdCount: ((DATA.pfdLinks && DATA.pfdLinks[node.id]) || []).some(l => l.listType === 'material' && l.masterItemId === m.id) ? pfdCountMaterialInstances(node.id, m.id) : 0, site, scaleFactor: mb.scaleFactor, uoName: node.name });
+      const total = req.perBatch == null ? null : bomRound(req.perBatch * nb);
+      const cost = typeof m.unitCost === 'number' && total != null ? Math.round(total * m.unitCost) : null;
+      rows.push(Object.assign({ node, number: r.number, material: m, rule, total, cost }, req));
+    });
+  });
+  return rows;
+}
+
+/* ---------- store ---------- */
+/* [store] Step의 주인 UO 바꾸기(UO 승인 잠금은 옮기기 전·후 두 UO 모두 확인) */
+function mbSetStreamOwner(pmId, sid, nodeId){
+  const s = getMbStreamById(pmId, sid);
+  if(!s) return false;
+  const v = nodeId || null;
+  if((s.nodeId || null) === v) return false;
+  if(v && !DATA.nodes.some(n => n.id === v && n.pmId === pmId && pmNodeKind(n) === 'uo')) return false;
+  for(const id of [s.nodeId, v]) if(id && !uoEditable(id)){ uoLockNotice(`"${(uoNode(id) || {}).name}"이(가) ${uoStatusOf(id)} 상태라 Mass Balance Step을 옮길 수 없습니다.`); return false; }
+  const old = s.nodeId || null;
+  if(v) s.nodeId = v; else delete s.nodeId;
+  const nm = id => id ? ((uoNode(id) || {}).name || id) : '(UO 없음)';
+  logAudit('Mass Balance', 'Step 주인 UO 변경', `${pmId} · ${s.stepName || sid}: ${nm(old)} → ${nm(v)}`, old, v, { pmId, nodeId: v || old });
+  validateData(DATA);
+  return true;
+}
+function mbUiSetOwner(pmId, sid, nodeId){ if(mbSetStreamOwner(pmId, sid, nodeId)) render(); }
+/* [store] UO에 Step 추가 */
+function mbAddStreamForUo(nodeId){
+  const n = uoNode(nodeId);
+  if(!n) return null;
+  const own = mbStreamsOfUo(nodeId);
+  const id = mbCreateStream(n.pmId, { nodeId, stepName: `${n.name} Step ${own.length + 1}`, stepOrder: own.length + 1 });
+  return id;
+}
+function mbUiAddStreamForUo(nodeId){ if(mbAddStreamForUo(nodeId)) render(); }
+/* [store] Step 지우기(감사 기록) */
+function mbRemoveStream(pmId, sid){
+  const mb = ensureMb(pmId);
+  const s = mb.streams.find(x => x.id === sid);
+  if(!s) return false;
+  mb.streams = mb.streams.filter(x => x.id !== sid);
+  logAudit('Mass Balance', 'Step 삭제', `${pmId} · ${s.stepName || sid}`, null, null, s.nodeId ? { pmId, nodeId: s.nodeId } : { pmId });
+  validateData(DATA);
+  return true;
+}
+/* [store] BOM 소요량 규칙 한 칸 */
+var BOM_RULE_FIELDS = ['basis', 'factor', 'overage', 'streamId', 'scale', 'note'];
+function bomSetRuleField(nodeId, materialId, field, value){
+  const n = uoNode(nodeId);
+  if(!n || !BOM_RULE_FIELDS.includes(field)) return false;
+  if(!(ensureNodeListBucket(nodeId).material || []).includes(materialId)) return false;
+  let v = value;
+  if(field === 'basis'){ if(!BOM_BASIS[v]) return false; }
+  else if(field === 'factor' || field === 'overage'){ v = parseFloat(String(v).replace(/,/g, '')); if(!isFinite(v) || v < 0) return false; }
+  else if(field === 'scale') v = v === true || v === 'true' || v === 'on';
+  else v = String(v == null ? '' : v).trim();
+  if(!DATA.bomRules) DATA.bomRules = {};
+  const list = DATA.bomRules[nodeId] = DATA.bomRules[nodeId] || [];
+  let r = list.find(x => x.materialId === materialId);
+  const before = bomRuleOf(list, materialId)[field];
+  if(before === v) return false;
+  if(!r){ r = { materialId, basis: 'pfd', factor: 1, overage: 0 }; list.push(r); }
+  r[field] = v;
+  const m = getMasterItem('material', materialId);
+  logAudit('BOM', '소요량 규칙 변경', `${n.name} · ${m ? m.name : materialId} · ${field} = ${v}`, before, v, { nodeId, pmId: n.pmId });
+  validateData(DATA);
+  return true;
+}
+function bomUiSetRuleField(nodeId, materialId, field, value){ if(bomSetRuleField(nodeId, materialId, field, value)) render(); }
+
+/* ---------- 화면: UO 패널 "Mass Balance" 탭 ---------- */
+function renderUoMassBalanceBody(node){
+  const pmId = node.pmId;
+  const mb = ensureMb(pmId);
+  const ver = mb.activeVersion === 'receiving' ? 'receiving' : 'sending';
+  const editable = uoEditable(node.id);
+  const dis = editable ? '' : 'disabled';
+  const streams = mbStreamsOfUo(node.id);
+  const field = (s, f, w) => `<input class="pfd-detail-input mb-uo-in" style="width:${w || 74}px;" value="${escapeXmlAttr(String(s[f] ?? ''))}" ${dis} aria-label="${escapeXmlAttr(f)}" ${pcsOn('change', 'mbSetField', [pmId, s.id, f])}>`;
+  const yld = (s, p) => { const y = mbCalcStepYield(s, p); return y === null ? '–' : y + '%'; };
+  const stepRows = streams.map(s => `<tr data-uo-mb-step="${escapeXmlAttr(s.id)}">
+      <td>${field(s, 'stepName', 140)}</td>
+      <td class="mb-s">${field(s, 's_input')}</td><td class="mb-s">${field(s, 's_output')}</td><td class="mb-s mono">${escapeXml(s.s_unit || 'L')}</td><td class="mb-s mono">${yld(s, 's_')}</td>
+      <td class="mb-r">${field(s, 'r_input')}</td><td class="mb-r">${field(s, 'r_output')}</td><td class="mb-r mono">${yld(s, 'r_')}</td>
+      <td>${editable ? `<button class="btn btn-sm" title="Step 삭제" aria-label="Step 삭제" data-on-click="mbConfirmRemoveStream" data-a-click="${pcsArgs([pmId, s.id])}">${icon('trash')}</button>` : ''}</td></tr>`).join('');
+  const total = mbStageTotal(streams, ver === 'receiving' ? 'r_' : 's_');
+  const bom = bomRequirementRowsForPm(pmId, ver, 1).filter(r => r.node.id === node.id);
+  const stepOpts = (r) => `<option value="">첫 Step</option>` + streams.map(s => `<option value="${escapeXmlAttr(s.id)}" ${r.rule.streamId === s.id ? 'selected' : ''}>${escapeXml(s.stepName || s.id)}</option>`).join('');
+  const bomRows = bom.map(r => `<tr data-bom-rule="${escapeXmlAttr(r.material.id)}">
+      <td><b>${escapeXml(r.material.name)}</b><div class="mb-uo-sub">${escapeXml(r.material.bomClass || '-')} · ${escapeXml(r.material.unit || '')}</div></td>
+      <td><select class="pfd-detail-select" ${dis} aria-label="소요량 기준" ${pcsOn('change', 'pcsCallWithValue', ['bomUiSetRuleField', node.id, r.material.id, 'basis'])}>${Object.entries(BOM_BASIS).map(([k, b]) => `<option value="${k}" ${r.rule.basis === k ? 'selected' : ''} title="${escapeXmlAttr(b.hint)}">${escapeXml(b.label)}</option>`).join('')}</select>
+        ${r.rule.basis === 'mbInput' || r.rule.basis === 'mbOutput' ? `<select class="pfd-detail-select" style="margin-top:4px;" ${dis} aria-label="Mass Balance Step" ${pcsOn('change', 'pcsCallWithValue', ['bomUiSetRuleField', node.id, r.material.id, 'streamId'])}>${stepOpts(r)}</select>` : ''}</td>
+      <td><input class="pfd-detail-input" style="width:64px;" value="${escapeXmlAttr(String(r.rule.factor))}" ${dis} aria-label="계수" ${pcsOn('change', 'pcsCallWithValue', ['bomUiSetRuleField', node.id, r.material.id, 'factor'])}></td>
+      <td><input class="pfd-detail-input" style="width:52px;" value="${escapeXmlAttr(String(r.rule.overage || 0))}" ${dis} aria-label="준비 여유 %" ${pcsOn('change', 'pcsCallWithValue', ['bomUiSetRuleField', node.id, r.material.id, 'overage'])}></td>
+      <td class="mono" data-bom-per-batch>${r.perBatch == null ? '–' : escapeXml(r.perBatch.toLocaleString('ko-KR'))} ${escapeXml(r.unit)}</td>
+      <td class="mb-uo-src">${escapeXml(r.source)}${r.warn ? `<div class="mb-uo-warn">⚠ ${escapeXml(r.warn)}</div>` : ''}</td></tr>`).join('');
+  return `
+    <div class="mb-uo-head">
+      <div><b>Mass Balance</b> <span class="mb-uo-sub">이 Unit Operation의 Step · 보기 ${ver === 'receiving' ? 'Receiving' : 'Sending'} · Scale Factor ${escapeXml(String(mb.scaleFactor || 1))}</span></div>
+      <div style="display:flex; gap:6px;">
+        ${['sending', 'receiving'].map(v => `<button class="btn btn-sm ${ver === v ? 'btn-primary' : ''}" data-on-click="mbUiSetting" data-a-click="${pcsArgs([pmId, 'activeVersion', v])}">${v === 'sending' ? 'Sending' : 'Receiving'}</button>`).join('')}
+        <button class="btn btn-sm" data-on-click="mbOpenEdit" data-a-click="${pcsArgs([pmId])}" title="Process Map 전체 Mass Balance(흐름 순서·단계 소계·Excel 연동)">전체 ↗</button>
+      </div>
+    </div>
+    ${editable ? '' : `<div class="note-banner" style="margin-bottom:8px;">${icon('shield')}<span>${escapeXml(uoStatusOf(node.id))} 상태라 Mass Balance·소요량 규칙이 잠겨 있습니다.</span></div>`}
+    <div class="card" style="padding:0; overflow:auto; margin-bottom:6px;">
+      <table class="data-table mb-uo-table" data-uo-mb>
+        <thead><tr><th>Step</th><th class="mb-s" colspan="4">Sending 투입 · 회수 · 단위 · 수율</th><th class="mb-r" colspan="3">Receiving 투입 · 회수 · 수율</th><th></th></tr></thead>
+        <tbody>${stepRows || `<tr><td colspan="9" style="text-align:center; color:var(--ink-400); padding:14px;">이 Unit Operation의 Mass Balance Step이 없습니다.</td></tr>`}</tbody>
+      </table>
+    </div>
+    <div style="display:flex; align-items:center; gap:10px; margin-bottom:16px;">
+      ${editable ? `<button class="btn btn-sm" id="uoMbAddStep" data-on-click="mbUiAddStreamForUo" data-a-click="${pcsArgs([node.id])}">${icon('plus')} Step 추가</button>` : ''}
+      <span class="mb-uo-sub" data-uo-mb-total>Step ${total.steps}개 · 누적 수율 ${total.yield == null ? '–' : total.yield + '%'} · 손실 합 ${total.loss == null ? '–' : total.loss}</span>
+    </div>
+    <div class="mb-uo-head"><div><b>BOM 소요량</b> <span class="mb-uo-sub">Material마다 계산 기준 · 배치당 소요량(${ver === 'receiving' ? 'Receiving' : 'Sending'}) — BOM Report·준비량에 그대로 쓰인다</span></div></div>
+    <div class="card" style="padding:0; overflow:auto;">
+      <table class="data-table mb-uo-table" data-uo-bom>
+        <thead><tr><th>Material</th><th>기준</th><th>계수</th><th>여유 %</th><th>배치당</th><th>근거</th></tr></thead>
+        <tbody>${bomRows || `<tr><td colspan="6" style="text-align:center; color:var(--ink-400); padding:14px;">Material 리스트가 비어 있습니다. Material 탭에서 먼저 추가하세요.</td></tr>`}</tbody>
+      </table>
+    </div>`;
+}
+
+/* ---------- 시드: 참고 PCS(pm_toz) BOM 소요량 규칙(실제 store 함수, 감사 기록은 남기지 않음 — 시드) ----------
+   숫자는 데모용 참고 값이다(버퍼 L/L 로딩, CIP NaOH 고정량 등). 40_pfd_validation.js에서 부른다. */
+var BOM_TOZ_SEED = [
+  ['nt_chrom1', 'PBS', { basis: 'mbInput', factor: 3, overage: 10, note: '평형·세척 3 L / L 로딩(참고)' }],
+  ['nt_chrom1', 'NaOH', { basis: 'fixed', factor: 200, overage: 10, note: 'CIP(참고)' }],
+  ['nt_chrom2', 'NaOH', { basis: 'fixed', factor: 150, overage: 10 }],
+  ['nt_chrom3', 'NaOH', { basis: 'fixed', factor: 150, overage: 10 }],
+  ['nt_ufdf', 'PBS', { basis: 'mbOutput', factor: 10, overage: 5, note: 'Diafiltration 10 DV(참고)' }],
+  ['nt_production', 'Basal Medium', { basis: 'fixed', factor: 36, overage: 5, note: '18 g/L × 2000 L(참고)' }],
+];
+function seedReferenceBomRules(){
+  if(!DATA.processMaps.some(p => p.id === 'pm_toz') || Object.keys(DATA.bomRules || {}).some(k => (uoNode(k) || {}).pmId === 'pm_toz')) return;
+  const auditLen = DATA.auditTrail.length;
+  BOM_TOZ_SEED.forEach(([nodeId, matName, fields]) => {
+    const mid = (ensureNodeListBucket(nodeId).material || []).find(id => { const m = getMasterItem('material', id); return m && m.name === matName; });
+    if(!mid) return;
+    Object.entries(fields).forEach(([f, v]) => bomSetRuleField(nodeId, mid, f, v));
+  });
+  DATA.auditTrail.length = auditLen;
+}
+
+/* ---------- 화면: Process Map 전체 Mass Balance 표(UO 흐름 순서·공정 단계 소계·주인 UO) ---------- */
+/* rowFn(stream, i) → 기존 Step 줄 HTML. UO·단계 머리 줄과 단계 소계 줄을 사이에 넣는다 */
+function mbLayoutRows(pmId, rowFn){
+  const mb = ensureMb(pmId);
+  const pfx = mb.activeVersion === 'receiving' ? 'r_' : 's_';
+  const lay = mbPmLayout(pmTreeRows(getPmTreeNodes(pmId)), mb.streams);
+  let i = 0;
+  const COLS = 12;
+  return lay.map(x => {
+    if(x.type === 'step') return rowFn(x.stream, i++);
+    if(x.type === 'stage') return `<tr class="mb-grp-stage" data-mb-stage="${escapeXmlAttr(x.row.id)}"><td colspan="${COLS}"><span class="mono">${escapeXml(x.row.number)}</span> ${escapeXml(x.row.node.name)} <span class="pm-kind-tag kind-stage">STAGE</span></td></tr>`;
+    if(x.type === 'uo') return `<tr class="mb-grp-uo" data-mb-uo="${escapeXmlAttr(x.row.id)}"><td colspan="${COLS}"><span class="mono">${escapeXml(x.row.number)}</span> <b>${escapeXml(x.row.node.name)}</b> <span class="mb-uo-sub">Step ${x.streams.length}개</span>
+      ${uoEditable(x.row.id) ? `<button class="btn btn-sm" style="margin-left:8px; font-size:10.5px; padding:1px 8px;" data-on-click="mbUiAddStreamForUo" data-a-click="${pcsArgs([x.row.id])}">${icon('plus')} Step</button>` : `<span class="badge badge-gray" style="margin-left:6px;">${escapeXml(uoStatusOf(x.row.id))} · 잠김</span>`}</td></tr>`;
+    if(x.type === 'stageTotal'){ const t = mbStageTotal(x.streams, pfx);
+      return `<tr class="mb-grp-total" data-mb-stage-total="${escapeXmlAttr(x.row.id)}"><td colspan="${COLS}">${escapeXml(x.row.node.name)} 소계 (${pfx === 'r_' ? 'Receiving' : 'Sending'}) · Step ${t.steps}개 · 단계 누적 수율 <b>${t.yield == null ? '–' : t.yield + '%'}</b> · 손실 합 ${t.loss == null ? '–' : t.loss}</td></tr>`; }
+    if(x.type === 'unassigned') return `<tr class="mb-grp-uo mb-grp-none" data-mb-unassigned><td colspan="${COLS}">주인 Unit Operation이 없는 Step ${x.streams.length}개 — 아래 칸에서 UO를 고르면 그 UO의 Mass Balance가 됩니다</td></tr>`;
+    return '';
+  }).join('');
+}
+function mbOwnerSelect(pmId, s){
+  const uos = pmTreeRows(getPmTreeNodes(pmId)).filter(r => r.kind === 'uo');
+  return `<select class="pfd-detail-select" style="width:100%; font-size:10.5px; margin-top:4px;" aria-label="주인 Unit Operation" data-mb-owner="${escapeXmlAttr(s.id)}" ${pcsOn('change', 'pcsCallWithValue', ['mbUiSetOwner', pmId, s.id])}>
+    <option value="">UO 미지정</option>${uos.map(r => `<option value="${escapeXmlAttr(r.id)}" ${s.nodeId === r.id ? 'selected' : ''}>${escapeXml(r.number + ' ' + r.node.name)}</option>`).join('')}</select>`;
+}
+/* BOM Report 위 소요량 계산 막대(규모·배치 수) — 탭마다의 보기 설정 */
+function bomReportSet(key, value){
+  const ctx = getActiveTab().ctx;
+  if(key === 'bomSite') ctx.bomSite = value === 'receiving' ? 'receiving' : 'sending';
+  else if(key === 'bomBatches') ctx.bomBatches = Math.max(1, Math.min(999, parseInt(value, 10) || 1));
+  else return;
   render();
 }
 /* =========================================================
@@ -20223,7 +20620,17 @@ function uoContentOf(nodeId){
     docStyle: (DATA.pfdDocStyle && DATA.pfdDocStyle[nodeId]) || { linkText: {} },
     nodeList: { material:[], equipment:[], parameter:[], sampling:[], training:[], ...(DATA.nodeLists[nodeId] || {}) },
     wi: { steps: wi.steps || [], defaultSignatureFlow: wi.defaultSignatureFlow || [] },
+    // v113: 이 UO의 Mass Balance Step과 BOM 소요량 규칙 — 있을 때만 넣는다(없으면 예전 승인본과 해시가 같다)
+    ...uoMbContent(n),
   };
+}
+function uoMbContent(n){
+  const out = {};
+  const streams = ((DATA.massBalance && DATA.massBalance[n.pmId] && DATA.massBalance[n.pmId].streams) || []).filter(s=>s.nodeId === n.id);
+  if(streams.length) out.massBalance = streams.slice().sort((a, b)=>(a.stepOrder||0) - (b.stepOrder||0));
+  const rules = (DATA.bomRules && DATA.bomRules[n.id]) || [];
+  if(rules.length) out.bomRules = rules;
+  return out;
 }
 /* 내용이 참조하는 마스터 항목 [[listType, id], …] */
 function uoMasterRefs(content){
@@ -20354,7 +20761,7 @@ function tryIssueMinorBaseline(pmId, by){
 /* 기준선의 승인 스냅샷을 잠시 DATA에 끼워 넣고 fn을 실행한다. fn은 읽기만 해야 한다(보고서 렌더, MBR 섹션 생성).
    기존 렌더 함수들이 DATA를 직접 읽기 때문에, 함수마다 "어느 판을 읽을지" 인자를 뚫는 대신 이 방식을 쓴다. */
 const UO_VIEW_KEYS = [['pfdShapes','shapes'],['pfdEdges','edges'],['pfdNodes','netNodes'],['pfdLinks','links'],['pfdTables','tables'],
-  ['pfdTexts','texts'],['pfdZones','zones'],['pfdImages','images'],['pfdPaths','paths'],['pfdDocStyle','docStyle'],['nodeLists','nodeList'],['workInstructions','wi']];
+  ['pfdTexts','texts'],['pfdZones','zones'],['pfdImages','images'],['pfdPaths','paths'],['pfdDocStyle','docStyle'],['nodeLists','nodeList'],['workInstructions','wi'],['bomRules','bomRules']];
 function withPmBaseline(pmId, fn){
   const pm = DATA.processMaps.find(m=>m.id===pmId);
   if(!pm || !pm.baseline) return fn();
@@ -20382,6 +20789,14 @@ function withPmBaseline(pmId, fn){
       else { const ghost = { id, ...clone(was) }; arr.push(ghost); undo.push(()=>arr.splice(arr.indexOf(ghost), 1)); }
     });
   });
+  // v113: 승인본 UO의 Mass Balance Step은 스냅샷 것으로(주인 없는 Step·기준선 밖 UO의 Step은 그대로)
+  const mb = DATA.massBalance && DATA.massBalance[pmId];
+  if(mb){
+    const ids = new Set(Object.keys(pm.baseline.uoVersions));
+    const fromSnap = [];
+    Object.entries(pm.baseline.uoVersions).forEach(([nodeId, ver])=>{ const snap = getUoSnapshot(nodeId, ver); if(snap && snap.content.massBalance) fromSnap.push(...clone(snap.content.massBalance)); });
+    put(mb, 'streams', mb.streams.filter(s=>!s.nodeId || !ids.has(s.nodeId)).concat(fromSnap));
+  }
   try { return fn(); }
   finally { undo.reverse().forEach(u=>u()); }
 }
@@ -20495,6 +20910,7 @@ function pfdBoardSelectOnly(nodeId, target){
    내용을 고치는 함수가 수십 개라 각 함수에 가드를 넣는 대신 여기 한 곳에서 감싼다.
    새 편집 함수를 만들면 이 표에 추가한다. 빠뜨려도 uoUnapprovedChange가 승인본과의 차이를 잡아낸다. */
 const uoArg = i => args => args[i];
+const mbStreamOwner = args => { const s = typeof getMbStreamById === "function" ? getMbStreamById(args[0], args[1]) : null; return s ? s.nodeId : null; };   // v113
 const uoActiveSlide = () => pfdBoardState.activeNodeId;
 const uoPanelNode = () => { const p = getActiveTab().ctx.pmPanel; return p ? p.nodeId : null; };
 const UO_CONTENT_MUTATORS = {
@@ -20537,6 +20953,10 @@ const UO_CONTENT_MUTATORS = {
   addWiDefaultFlow:uoArg(0), removeWiDefaultFlow:uoArg(0), setWiDefaultFlowRole:uoArg(0), setWiDefaultFlowPerm:uoArg(0),
   addWiStepEsign:uoArg(0), setWiStepEsignRole:uoArg(0), setWiStepEsignPerm:uoArg(0), removeWiStepEsign:uoArg(0),
   openWiAddParameter:uoArg(0), openWiAddSampling:uoArg(0), openWiAddEsign:uoArg(0),
+  // v113 UO의 Mass Balance Step·BOM 소요량 규칙(주인 없는 Step은 막지 않는다)
+  mbSetStreamField:mbStreamOwner, mbLinkEdge:mbStreamOwner, mbUnlinkEdge:mbStreamOwner, mbRemoveStream:mbStreamOwner, mbConfirmRemoveStream:mbStreamOwner,
+  mbSelectCell:mbStreamOwner, mbClearCell:mbStreamOwner, openMbCellPicker:mbStreamOwner,
+  mbAddStreamForUo:uoArg(0), mbUiAddStreamForUo:uoArg(0), bomSetRuleField:uoArg(0), bomUiSetRuleField:uoArg(0),
 };
 /* Process Map 구조를 바꾸는 함수 — 값은 pmId를 찾는 방법 */
 const pmOfNode = i => args => { const n = uoNode(args[i]); return n ? n.pmId : null; };
@@ -21576,7 +21996,7 @@ function pfdBoardSetCallout(nodeId, textId, on){
    ========================================================================== */
 
 const PCS_APP_ID = 'pcs-platform';
-const PCS_SCHEMA_VERSION = 1;
+const PCS_SCHEMA_VERSION = 2;   // v113: Mass Balance Step의 주인 UO(stream.nodeId)
 const PCS_DB_NAME = 'pcs_platform_demo2';
 const PCS_DB_STORE = 'documents';
 const PCS_DOC_KEY = 'main';
@@ -21584,7 +22004,9 @@ const PCS_AUTOSAVE_INTERVAL_MS = 1200;
 
 /* 버전 n → n+1 변환. 데이터 모델을 바꾸면 PCS_SCHEMA_VERSION을 올리고 여기에 변환을 추가한다.
    예) 2: data => { data.pfdDocs = …; delete data.pfdShapes; return data; }                    */
-const PCS_MIGRATIONS = {};
+const PCS_MIGRATIONS = {
+  2: data => mbMigrateStreamOwners(data),   // v113: 주인 없는 Step은 PFD 화살표 연동을 따라 UO를 정한다
+};
 
 /* ---------- 순수 함수: 문서 만들기 / 검사 / 마이그레이션 ---------- */
 function pcsBuildDoc(data, rev, now){
@@ -26852,9 +27274,10 @@ const MB_TEXT_FIELDS = ['stepName','s_unit','r_unit','s_concentrationUnit','r_co
 /* ---------- 순수 ---------- */
 const mbNum = v=>{ if(v === '' || v == null) return null; const n = parseFloat(String(v).replace(/,/g, '')); return isFinite(n) ? n : NaN; };
 /* streams(단계 순서대로) → [{ level:'error'|'warn'|'info', code, streamId, msg }] */
-function mbValidateStreams(streams, pfx){
+function mbValidateStreams(streams, pfx, keepOrder){
   const out = [];
-  const list = (streams || []).slice().sort((a,b)=>(a.stepOrder||0) - (b.stepOrder||0));
+  // v113: Process Map 전체는 UO 흐름 순서로 이미 정렬해 넘긴다(keepOrder). stepOrder는 UO 안 순서다
+  const list = keepOrder ? (streams || []).slice() : (streams || []).slice().sort((a,b)=>(a.stepOrder||0) - (b.stepOrder||0));
   const site = pfx === 'r_' ? 'Receiving' : 'Sending';
   list.forEach((s, i)=>{
     const name = s.stepName || `Step ${i + 1}`;
@@ -26901,7 +27324,7 @@ function pfdSplitIssues(ratios, upstream, edges){
 function mbValidate(pmId){
   const mb = ensureMb(pmId);
   const pfx = (mb.activeVersion || 'sending') === 'sending' ? 's_' : 'r_';
-  const issues = mbValidateStreams(mb.streams, pfx).map(x=>Object.assign({ area:'stream' }, x));
+  const issues = mbValidateStreams(mbOrderedStreams(pmId), pfx, true).map(x=>Object.assign({ area:'stream' }, x));
   // 매핑이 가리키는 연결선이 없음
   mb.streams.forEach(s=>(s.pfdMappings || []).forEach(m=>{
     if(!(DATA.pfdEdges[m.nodeId] || []).some(e=>e.id === m.edgeId))
@@ -27016,7 +27439,7 @@ function seedReferenceMassBalance(){
   const mb = ensureMb('pm_toz');
   if(mb.streams.length) return;
   MB_TOZ_SEED.forEach(([name, nodeId, inp, out])=>{
-      const id = mbCreateStream('pm_toz', { stepName: name, s_input: String(inp), s_output: String(out) }, true);
+      const id = mbCreateStream('pm_toz', { stepName: name, nodeId, stepOrder: ensureMb('pm_toz').streams.filter(s=>s.nodeId === nodeId).length + 1, s_input: String(inp), s_output: String(out) }, true);   // v113: 주인 UO
       const e = (DATA.pfdEdges[nodeId] || []).find(x=>x.lineKind === 'transfer' && (DATA.pfdShapes[nodeId] || []).some(s=>s.id === x.to && s.templateId !== 'sym_pooltank'));
       const outEdge = (DATA.pfdEdges[nodeId] || []).find(x=>x.lineKind === 'transfer' && x !== e);
       if(outEdge) mbLinkEdge('pm_toz', id, nodeId, outEdge.id, true);
@@ -27024,6 +27447,7 @@ function seedReferenceMassBalance(){
 }
 seedReferenceMassBalance();
 seedPmHierarchy();   // v112: 07b_pm_hierarchy.js
+seedReferenceBomRules();   // v113: 17b_uo_mass_balance.js
 
 /* ---------- Process Map ↔ PFD 경로 정리 ---------- */
 /* [store] UO 노드 삭제 — 노드와 그 노드에 딸린 것을 함께 지운다(남기면 아무 데서도 열 수 없는 데이터가 된다).
@@ -27041,6 +27465,8 @@ function pmDeleteNodes(pmId, ids){
   Object.keys(DATA.pfdShapes || {}).forEach(n=>{ DATA.pfdShapes[n] = DATA.pfdShapes[n].filter(s=>!(s._fromNodeId && set.has(s._fromNodeId))); });
   const mb = DATA.massBalance && DATA.massBalance[pmId];
   if(mb) mb.streams.forEach(s=>{ s.pfdMappings = (s.pfdMappings || []).filter(m=>!set.has(m.nodeId)); });
+  if(mb) mb.streams = mb.streams.filter(s=>!(s.nodeId && set.has(s.nodeId)));   // v113: 지운 UO의 Mass Balance Step·소요량 규칙도 함께
+  if(DATA.bomRules) set.forEach(id=>{ delete DATA.bomRules[id]; });
   const board = DATA.pfdBoards && DATA.pfdBoards[pmId];
   if(board && board.slides) board.slides = board.slides.filter(sl=>!set.has(sl.nodeId));
   logAudit('Process Map', 'Delete Node (with PFD)', `${gone.map(n=>n.name).join(', ')} · PFD·연동·전달·Mass Balance 연동 정리`);
@@ -27107,9 +27533,12 @@ function uoCompareContent(a, b){
     texts: diffSet(byId(a.texts), byId(b.texts), (x, y)=>(x.text !== y.text || JSON.stringify(x.rich || null) !== JSON.stringify(y.rich || null)) ? ['text'] : []),
     tables: diffSet(byId(a.tables), byId(b.tables), (x, y)=>JSON.stringify([x.columns, x.rows]) !== JSON.stringify([y.columns, y.rows]) ? ['cells'] : []),
     renamed: (a.name || '') !== (b.name || '') ? { from: a.name, to: b.name } : null,
+    // v113: UO의 Mass Balance Step·BOM 소요량 규칙
+    massBalance: diffSet(byId(a.massBalance), byId(b.massBalance), (x, y)=>JSON.stringify(x) !== JSON.stringify(y) ? ['value'] : []),
+    bomRules: diffSet(new Map((a.bomRules || []).map(x=>[x.materialId, x])), new Map((b.bomRules || []).map(x=>[x.materialId, x])), (x, y)=>JSON.stringify(x) !== JSON.stringify(y) ? ['value'] : []),
   };
   const n = d=>d.added.length + d.removed.length + d.changed.length;
-  r.total = n(r.shapes) + n(r.edges) + n(r.links) + n(r.texts) + n(r.tables) + Object.values(lists).reduce((s, x)=>s + x.added.length + x.removed.length, 0) + (wi.changed ? 1 : 0) + (r.renamed ? 1 : 0);
+  r.total = n(r.shapes) + n(r.edges) + n(r.links) + n(r.texts) + n(r.tables) + n(r.massBalance) + n(r.bomRules) + Object.values(lists).reduce((s, x)=>s + x.added.length + x.removed.length, 0) + (wi.changed ? 1 : 0) + (r.renamed ? 1 : 0);
   return r;
 }
 const UO_DIFF_KIND_LABEL = { moved:'이동', resized:'크기', relabeled:'이름', retyped:'종류', restyled:'모양', reconnected:'연결', noted:'주석', value:'값', qty:'수량', text:'글', cells:'내용' };
@@ -27171,6 +27600,8 @@ function renderUoCompare(){
         ${lists ? `<div class="uo-diff-sec"><div class="uo-diff-title">리스트</div>${lists}</div>` : ''}
         ${section('텍스트', d.texts, t=>escapeXml((t.text || '').slice(0, 40)))}
         ${section('표', d.tables, t=>escapeXml(t.title || t.id))}
+        ${d.massBalance && (d.massBalance.added.length + d.massBalance.removed.length + d.massBalance.changed.length) ? `<div class="uo-diff-sec" data-diff-sec="mb"><div class="uo-diff-title">Mass Balance</div>${d.massBalance.added.map(s=>`<div class="uo-diff-row add">＋ ${escapeXml(s.stepName || s.id)}</div>`).join('')}${d.massBalance.removed.map(s=>`<div class="uo-diff-row rem">－ ${escapeXml(s.stepName || s.id)}</div>`).join('')}${d.massBalance.changed.map(c=>`<div class="uo-diff-row chg">± ${escapeXml(c.item.stepName || c.item.id)} 값</div>`).join('')}</div>` : ''}
+        ${d.bomRules && (d.bomRules.added.length + d.bomRules.removed.length + d.bomRules.changed.length) ? `<div class="uo-diff-sec" data-diff-sec="bom"><div class="uo-diff-title">BOM 소요량 규칙</div>${[...d.bomRules.added, ...d.bomRules.changed.map(c=>c.item), ...d.bomRules.removed].map(r=>`<div class="uo-diff-row chg">± ${escapeXml(uoMasterName('material', r.materialId))}</div>`).join('')}</div>` : ''}
         ${d.wi.changed ? `<div class="uo-diff-sec"><div class="uo-diff-title">Work Instruction</div><div class="uo-diff-row chg">± 단계 ${d.wi.from}개 → ${d.wi.to}개(내용 변경 포함)</div></div>` : ''}
       </div>
       <div class="modal-footer"><span style="flex:1"></span>
@@ -27904,7 +28335,8 @@ const PCS_PRESENCE_STALE_MS = 45000;
 const PCS_PRESENCE_EDITING_MS = 30000;
 const PCS_PRESENCE_COLORS = ['#D9480F', '#1971C2', '#2F9E44', '#9C36B5', '#E8590C', '#0C8599', '#C2255C', '#5F3DC4'];
 
-const pcsPresence = { on: false, me: null, others: {}, seen: {}, lastWhereKey: '', lastSent: 0, sending: false, heartbeat: null, poll: null, cursorTimer: null,
+/* var: 로드 중 시드가 편집 함수를 부르면 pcsPresenceNoteEdit가 먼저 읽는다(LESSONS v70 TDZ) */
+var pcsPresence = { on: false, me: null, others: {}, seen: {}, lastWhereKey: '', lastSent: 0, sending: false, heartbeat: null, poll: null, cursorTimer: null,
   cursorClient: null, cursorDirty: false, lastEdit: null, paintQueued: false, blocked: '' };
 
 /* ---------- 순수 함수 ---------- */
@@ -27979,7 +28411,7 @@ async function pcsPresenceSend(force){
 }
 /* 편집이 일어났을 때(pfdRunEdit) — "편집 중" 표시를 바로 알린다 */
 function pcsPresenceNoteEdit(nodeId){
-  if(!pcsPresence.on) return;
+  if(!pcsPresence || !pcsPresence.on) return;   // 로드 중(시드)에는 아직 없다
   const was = pcsPresence.lastEdit;
   pcsPresence.lastEdit = { nodeId, at: Date.now() };
   if(!was || was.nodeId !== nodeId || Date.now() - was.at > 5000) pcsPresenceSend(true);
@@ -28360,6 +28792,10 @@ const PCS_CALLABLE = new Set([
   'pmExpandToLevel',
   'pmExpandToLevelFor',
   'pmToggleNumbers',
+  'mbUiSetOwner',
+  'mbUiAddStreamForUo',
+  'bomUiSetRuleField',
+  'bomReportSet',
   'moveProcessNode',
   'openReleaseNotesFromToast',
   'closeVersionToast',
