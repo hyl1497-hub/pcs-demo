@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="pcs-api-base" content="">
 <meta name="pcs-firebase" content="{&quot;apiKey&quot;:&quot;AIzaSyASB4CKv15IwJUp8pIVKXFtOYwKlY7y1es&quot;,&quot;databaseURL&quot;:&quot;https://pcs-demo-18101-default-rtdb.asia-southeast1.firebasedatabase.app&quot;}">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-CvEyVvPGUg5VvDmnGEs3oYRYRz3YJEfoLgswHieVKHM=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-u2b2hdOs9nE/r0ZOPkBn35Odqevi0aGrAuUTyuvCmFk=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'none'">
 <title>PCS Platform · Process Control System</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -714,6 +714,16 @@ button:focus-visible, .crumb:focus-visible, [tabindex]:focus-visible, input:focu
 .uo-chip{display:inline-flex; align-items:center; gap:6px; padding:3px 9px 3px 3px; border:1px solid var(--line); border-radius:999px; font-size:11.5px; cursor:pointer; background:#fff;}
 .uo-chip:hover{border-color:var(--red-600);}
 .uo-chip.warn{border-color:#E0B25C; background:var(--amber-50);}
+/* v109 함께 작업 중인 사람 */
+.pcs-presence-bar{display:inline-flex; align-items:center; gap:2px; margin-right:10px;}
+.pcs-avatar{display:inline-flex; align-items:center; justify-content:center; border-radius:50%; color:#fff; font-size:10.5px; font-weight:800; border:2px solid #fff; box-shadow:0 0 0 1px rgba(0,0,0,.08); margin-left:-6px; flex:none;}
+.pcs-presence-bar .pcs-avatar:first-child{margin-left:0;}
+.pcs-avatar-more{background:var(--ink-400); width:26px; height:26px;}
+.pcs-presence-count{font-size:11.5px; color:var(--ink-500); margin-left:6px; white-space:nowrap;}
+.uo-presence-line{display:flex; flex-wrap:wrap; gap:8px; padding:8px 12px; background:var(--amber-50, #FFF8E6); border-bottom:1px solid var(--line); font-size:11.5px;}
+.uo-presence-item{display:inline-flex; align-items:center; gap:5px;}
+.uo-presence-item .pcs-avatar{margin-left:0;}
+.uo-history-row{padding:8px 0; border-bottom:1px solid var(--line-soft);}
 /* v108 결재 묶음 */
 .ap-strip{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:10px; padding-top:10px; border-top:1px dashed var(--line);}
 .ap-strip-label{display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:700; color:var(--burgundy-900);}
@@ -2868,11 +2878,14 @@ function _registerExistingIds(){
   }
   collectIds(DATA, 'DATA');
 }
+/* v109: 여러 사람이 동시에 만들면 시각+순번만으로는 같은 ID가 나올 수 있다 → 브라우저마다 다른 꼬리표를 붙인다.
+   var: 로드 중 genId가 불려도 TDZ 없음 */
+var _idSalt = Math.random().toString(36).slice(2, 5);
 function genId(prefix){
   _idCounters[prefix] = (_idCounters[prefix] || 0) + 1;
   let id;
   do {
-    id = prefix + '_' + Date.now().toString(36) + (_idCounters[prefix]).toString(36);
+    id = prefix + '_' + Date.now().toString(36) + (_idCounters[prefix]).toString(36) + _idSalt;
   } while(_allIds.has(id));
   _allIds.add(id);
   return id;
@@ -3744,6 +3757,11 @@ function renderLoginScreen(){
             <label>PW</label>
             <input id="loginPassword" type="password" placeholder="PW" autocomplete="current-password" required>
           </div>
+          ${shared ? `<div class="login-field">
+            <label for="loginDisplayName">표시 이름</label>
+            <input id="loginDisplayName" type="text" placeholder="예: 홍길동 (USP)" maxlength="30" value="${escapeXmlAttr(pcsStoredDisplayName())}" autocomplete="nickname">
+            <p class="login-role-hint">같은 계정을 여럿이 써도 누가 어디를 작업 중인지 이 이름으로 보입니다.</p>
+          </div>` : ''}
           ${server ? '' : `<div class="login-field">
             <label for="loginRole">권한 (역할)</label>
             <div class="login-role-row">
@@ -3773,6 +3791,7 @@ function toggleFavoriteRoleAtLogin(){
   favEl.innerHTML = icon(isFav?'starFilled':'star');
   if(hintEl) hintEl.textContent = isFav ? '★ 즐겨찾는 역할이 기본 선택되어 있습니다.' : '직전에 로그인했던 역할이 기본 선택됩니다. ★을 눌러 고정할 수도 있어요.';
 }
+function pcsStoredDisplayName(){ try { return localStorage.getItem('pcs_display_name') || ''; } catch(_){ return ''; } }
 function submitLogin(){
   const id = document.getElementById('loginId').value.trim();
   const pw = document.getElementById('loginPassword').value.trim();
@@ -3784,7 +3803,12 @@ function submitLogin(){
   }
   if(pcsServerMode()) return pcsServerSubmitLogin(id, pw);
   const role = document.getElementById('loginRole').value;
-  if(pcsSharedMode()) return pcsFbSubmitLogin(id, pw, role);   // v107 공유 모드
+  if(pcsSharedMode()){   // v107 공유 모드 · v109 표시 이름
+    const dnEl = document.getElementById('loginDisplayName');
+    const dn = dnEl ? dnEl.value.trim() : '';
+    if(dnEl && !dn){ errEl.style.display = 'block'; errEl.textContent = '표시 이름을 입력하세요. 같은 계정을 여럿이 써도 누가 작업 중인지 구분됩니다.'; return; }
+    return pcsFbSubmitLogin(id, pw, role, dn);
+  }
   STATE.auth = { loggedIn:true, id, role };
   STATE.lastUsedRole = role; // 다음 로그인 화면의 기본 선택값으로 기억
   document.getElementById('loginScreen').innerHTML = '';
@@ -3820,9 +3844,24 @@ async function logout(){
    모든 데이터 변경을 Attributable(누가), Contemporaneous(언제),
    Original(원본 보존) 방식으로 기록한다.
    ========================================================= */
-function logAudit(category, action, detail, oldValue, newValue){
+/* v109: 누가(같은 계정을 여럿이 써도 구분되게 표시 이름·세션·기기) 어느 UO에서 바꿨는지 함께 남긴다.
+   var: 로드 중에 불려도 TDZ가 없게(LESSONS v70·v102) */
+var pcsSessionId = 's' + Date.now().toString(36).slice(-5) + Math.random().toString(36).slice(2, 6);
+var pcsAuditCtx = null;   // { nodeId } — 편집 묶음(pfdRunEdit)이 실행되는 동안 대상 UO
+/* 순수 함수: 브라우저 UA → "Chrome · Windows" 같은 짧은 기기 이름(IP 대신 사람·자리를 구분하는 단서) */
+function pcsDeviceLabel(ua){
+  const s = String(ua || '');
+  const br = /Edg\//.test(s) ? 'Edge' : /OPR\//.test(s) ? 'Opera' : /Chrome\//.test(s) ? 'Chrome' : /Firefox\//.test(s) ? 'Firefox' : /Safari\//.test(s) ? 'Safari' : '브라우저';
+  const os = /Windows/.test(s) ? 'Windows' : /iPhone|iPad/.test(s) ? 'iOS' : /Android/.test(s) ? 'Android' : /Mac OS X|Macintosh/.test(s) ? 'macOS' : /Linux/.test(s) ? 'Linux' : '';
+  const mobile = /Mobi|iPhone|Android/.test(s) && os !== 'Windows' ? ' 모바일' : '';
+  return br + (os ? ' · ' + os : '') + mobile;
+}
+function pcsActorName(){ return (STATE.auth && (STATE.auth.displayName || STATE.auth.id)) || 'system'; }
+function logAudit(category, action, detail, oldValue, newValue, ctx){
+  const c = ctx || pcsAuditCtx || {};
+  const node = c.nodeId && DATA.nodes.find(n => n.id === c.nodeId);
   DATA.auditTrail.push({
-    id: 'at_'+Date.now().toString(36)+Math.floor(Math.random()*1000),
+    id: 'at_'+Date.now().toString(36)+pcsSessionId.slice(-4)+Math.floor(Math.random()*1000),
     timestamp: new Date().toISOString(),
     userId: STATE.auth?.id || 'system',
     userRole: STATE.auth?.role || 'System',
@@ -3831,6 +3870,9 @@ function logAudit(category, action, detail, oldValue, newValue){
     detail,   // 구체적 설명
     oldValue: oldValue != null ? String(oldValue) : null,
     newValue: newValue != null ? String(newValue) : null,
+    actor: pcsActorName(), sessionId: pcsSessionId,
+    device: typeof navigator !== 'undefined' ? pcsDeviceLabel(navigator.userAgent) : '',
+    nodeId: node ? node.id : null, pmId: node ? node.pmId : (c.pmId || null),
   });
 }
 /* Audit Trail 뷰어 렌더링 */
@@ -3841,17 +3883,20 @@ function renderAuditTrail(){
     (e.category||'').toLowerCase().includes(query) ||
     (e.action||'').toLowerCase().includes(query) ||
     (e.detail||'').toLowerCase().includes(query) ||
-    (e.userId||'').toLowerCase().includes(query)
+    (e.userId||'').toLowerCase().includes(query) ||
+    (e.actor||'').toLowerCase().includes(query) ||
+    (e.device||'').toLowerCase().includes(query)
   ) : trail;
   const rows = filtered.slice(0,200).map(e=>{
     const ts = e.timestamp ? new Date(e.timestamp).toLocaleString('ko-KR') : '-';
     // v101: 기록 값은 사용자 입력이 섞여 있다 → 모두 이스케이프
     const x = v => escapeXml(v == null ? '' : v);
-    return '<tr><td class="cell-mono" style="font-size:11px;">'+x(ts)+'</td><td>'+x(e.userId)+'</td><td>'+x(e.userRole)+'</td><td><span class="badge badge-blue" style="font-size:10px;"><span class="badge-dot"></span>'+x(e.category)+'</span></td><td>'+x(e.action)+'</td><td style="max-width:300px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="'+escapeXmlAttr(e.detail||'')+'">'+x(e.detail)+'</td><td class="cell-mono" style="font-size:10px; max-width:120px; overflow:hidden; text-overflow:ellipsis;">'+x(String(e.oldValue||'-').substring(0,50))+'</td><td class="cell-mono" style="font-size:10px; max-width:120px; overflow:hidden; text-overflow:ellipsis;">'+x(String(e.newValue||'-').substring(0,50))+'</td></tr>';
+    const uo = e.nodeId ? (DATA.nodes.find(n=>n.id===e.nodeId)||{}).name || e.nodeId : '';
+    return '<tr><td class="cell-mono" style="font-size:11px;">'+x(ts)+'</td><td>'+x(e.actor && e.actor !== e.userId ? e.actor+' ('+e.userId+')' : e.userId)+(e.device ? '<div style="font-size:10px; color:var(--ink-500);">'+x(e.device)+(e.sessionId ? ' · '+x(String(e.sessionId).slice(-5)) : '')+'</div>' : '')+'</td><td>'+x(e.userRole)+'</td><td style="font-size:11px;">'+x(uo)+'</td><td><span class="badge badge-blue" style="font-size:10px;"><span class="badge-dot"></span>'+x(e.category)+'</span></td><td>'+x(e.action)+'</td><td style="max-width:300px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="'+escapeXmlAttr(e.detail||'')+'">'+x(e.detail)+'</td><td class="cell-mono" style="font-size:10px; max-width:120px; overflow:hidden; text-overflow:ellipsis;">'+x(String(e.oldValue||'-').substring(0,50))+'</td><td class="cell-mono" style="font-size:10px; max-width:120px; overflow:hidden; text-overflow:ellipsis;">'+x(String(e.newValue||'-').substring(0,50))+'</td></tr>';
   }).join('');
   return '<div class="view-head"><div><span class="view-eyebrow">21 CFR PART 11 / ALCOA++</span><h1 class="view-title">Audit Trail</h1><p class="view-sub">모든 데이터 변경, 전자서명, 상태 전환 이력을 시간순으로 기록합니다. 이 기록은 수정 또는 삭제할 수 없습니다.</p></div><div class="view-actions"><span class="badge badge-green"><span class="badge-dot"></span>'+DATA.auditTrail.length+'건 기록</span></div></div>'+
     '<div class="search-bar" style="max-width:400px; margin-bottom:14px;">'+icon('search')+'<input id="auditSearchInput" placeholder="검색 (카테고리, 작업, 사용자…)" value="'+escapeXmlAttr(STATE.auditQuery||'')+'" data-on-input="auditSearchInput"></div>'+
-    '<div class="data-table-wrap"><table class="data-table"><thead><tr><th>시각</th><th>사용자</th><th>역할</th><th>카테고리</th><th>작업</th><th>상세</th><th>이전 값</th><th>변경 값</th></tr></thead><tbody>'+(rows||'<tr><td colspan="8" style="text-align:center; color:var(--ink-400); padding:24px;">기록이 없습니다.</td></tr>')+'</tbody></table></div>'+
+    '<div class="data-table-wrap"><table class="data-table"><thead><tr><th>시각</th><th>사용자 · 기기</th><th>역할</th><th>Unit Operation</th><th>카테고리</th><th>작업</th><th>상세</th><th>이전 값</th><th>변경 값</th></tr></thead><tbody>'+(rows||'<tr><td colspan="9" style="text-align:center; color:var(--ink-400); padding:24px;">기록이 없습니다.</td></tr>')+'</tbody></table></div>'+
     renderServerAuditSection();
 }
 
@@ -3884,13 +3929,14 @@ function renderHeader(){
   if(toggleEl) toggleEl.innerHTML = icon('menuIcon');
   const userEl = document.getElementById('headerUser');
   if(!userEl) return;
-  const { id, role } = STATE.auth;
+  const { role } = STATE.auth;
+  const id = STATE.auth.displayName || STATE.auth.id;   // v109: 공유 모드는 표시 이름
   const initial = (id||'?').slice(0,1).toUpperCase();
   userEl.innerHTML = `
     <div class="header-user-trigger" data-on-click="toggleUserMenu">
       <div class="header-user-avatar">${initial}</div>
       <div class="header-user-info">
-        <div class="header-user-name">${id||'사용자'}</div>
+        <div class="header-user-name">${escapeXml(id||'사용자')}</div>
         <div class="header-user-role">${role}</div>
       </div>
       ${icon('chevronDown')}
@@ -3900,7 +3946,7 @@ function renderHeader(){
         <div class="header-user-dropdown-head">
           <div class="header-user-avatar" style="width:36px; height:36px; font-size:15px;">${initial}</div>
           <div>
-            <div class="header-user-name">${id||'사용자'}</div>
+            <div class="header-user-name">${escapeXml(id||'사용자')}</div>
             <div class="header-user-role">${role}</div>
           </div>
         </div>
@@ -4563,6 +4609,7 @@ function render(){
   renderSuppModal();
   renderShapeBuilder();
   renderSSRModal();
+  if(typeof pcsPresenceAfterRender === 'function') pcsPresenceAfterRender();   // v109 함께 작업 중인 사람 표시
 }
 
 /* =========================================================
@@ -6374,6 +6421,31 @@ function openPmPanelList(nodeId, listKey){
   getActiveTab().ctx.pmPanel = { type:'list', nodeId, listKey };
   render();
 }
+/* v109 UO별 변경 이력: 이 UO에서 일어난 Audit Trail(누가·어느 기기·무엇을). 순수 함수 uoAuditEntries가 고른다. */
+function uoAuditEntries(trail, nodeId){ return (trail || []).filter(e => e.nodeId === nodeId).slice().reverse(); }
+const UO_HISTORY_AREAS = [['', '전체'], ['PFD', 'PFD'], ['WI', 'Work Instruction'], ['LIST', '리스트'], ['STATUS', '승인 상태']];
+function uoAuditArea(e){
+  if(e.category === 'Unit Operation' || e.category === 'Approval Package') return 'STATUS';
+  if(/^Work Instruction|^WI/.test(e.category || '') || /WI|Step|Instruction/i.test(e.action || '')) return 'WI';
+  if(/List|리스트|Import|가져오기|removeItem/i.test((e.action || '') + (e.category || ''))) return 'LIST';
+  return 'PFD';
+}
+function openPmPanelHistory(nodeId){ getActiveTab().ctx.pmPanel = { type:'history', nodeId, area:'' }; render(); }
+function setUoHistoryArea(area){ const p = getActiveTab().ctx.pmPanel; if(p) p.area = area; render(); }
+function renderUoHistoryBody(node, panel){
+  const all = uoAuditEntries(DATA.auditTrail, node.id);
+  const rows = all.filter(e => !panel.area || uoAuditArea(e) === panel.area);
+  const x = v => escapeXml(v == null ? '' : v);
+  return `<div class="uo-history" data-uo-history="${escapeXmlAttr(node.id)}">
+    <p style="font-size:11.5px; color:var(--ink-500); margin:0 0 8px;">이 Unit Operation에서 바뀐 기록(최신순). 같은 계정을 여럿이 써도 표시 이름·기기로 구분됩니다. 전체 기록은 Audit Trail 메뉴.</p>
+    <div style="display:flex; gap:4px; flex-wrap:wrap; margin-bottom:8px;">${UO_HISTORY_AREAS.map(([k, l]) => `<button class="btn btn-sm ${panel.area === k ? 'btn-primary' : ''}" data-on-click="setUoHistoryArea" data-a-click="${pcsArgs([k])}">${l}</button>`).join('')}</div>
+    ${rows.length ? rows.slice(0, 200).map(e => `<div class="uo-history-row" data-uo-history-row>
+      <div style="display:flex; gap:6px; align-items:center;"><span class="badge badge-blue" style="font-size:10px;"><span class="badge-dot"></span>${x(e.category)}</span><b style="font-size:12px;">${x(e.action)}</b><span class="mono" style="margin-left:auto; font-size:10.5px; color:var(--ink-500);">${x(e.timestamp ? new Date(e.timestamp).toLocaleString('ko-KR') : '')}</span></div>
+      ${e.detail ? `<div style="font-size:11.5px; color:var(--ink-700); margin-top:2px;">${x(e.detail)}</div>` : ''}
+      <div style="font-size:10.5px; color:var(--ink-500); margin-top:2px;">${x(e.actor || e.userId)} (${x(e.userRole)})${e.device ? ' · ' + x(e.device) : ''}${e.sessionId ? ' · 세션 ' + x(String(e.sessionId).slice(-5)) : ''}</div></div>`).join('')
+      : '<div style="font-size:12px; color:var(--ink-400); padding:12px 0;">기록이 없습니다. (v109 이전 기록은 Audit Trail 메뉴에서 보세요)</div>'}
+  </div>`;
+}
 function openPmPanelWi(nodeId){
   ensureWorkInstruction(nodeId);
   getActiveTab().ctx.pmPanel = { type:'wi', nodeId, wiActiveStep:0, wiActiveSub:'instruction' };
@@ -6413,6 +6485,9 @@ function renderPmPanel(pmId, panel){
   } else if(panel.type === 'wi'){
     crumb = `<span class="seg-link" data-on-click="backToPmPanelMenu">${escapeXml(node.name)}</span><span>${icon('chevronRight')}</span><b>Work Instruction</b>`;
     body = renderWorkInstructionStudioBody(node, panel);
+  } else if(panel.type === 'history'){
+    crumb = `<span class="seg-link" data-on-click="backToPmPanelMenu">${escapeXml(node.name)}</span><span>${icon('chevronRight')}</span><b>변경 이력</b>`;
+    body = renderUoHistoryBody(node, panel);
   }
 
   return `<div class="pm-side-panel" style="width:${panelWidthPx}px;">
@@ -6492,6 +6567,11 @@ function renderPmPanelMenu(node){
       <div class="pm-menu-card" data-on-click="openPfdFromNode" data-a-click="${pcsArgs([String(node.id)])}" style="margin-bottom:6px;">
         <div class="pm-menu-card-icon">${icon('workflow')}</div>
         <div class="pm-menu-card-text"><div class="pm-menu-card-title">Process Flow Design</div></div>
+        <div class="pm-menu-card-arrow">${icon('chevronRight')}</div>
+      </div>
+      <div class="pm-menu-card" id="uoHistoryCard" data-on-click="openPmPanelHistory" data-a-click="${pcsArgs([String(node.id)])}" style="margin-bottom:6px;">
+        <div class="pm-menu-card-icon">${icon('history')}</div>
+        <div class="pm-menu-card-text"><div class="pm-menu-card-title">변경 이력 (${uoAuditEntries(DATA.auditTrail, node.id).length})</div></div>
         <div class="pm-menu-card-arrow">${icon('chevronRight')}</div>
       </div>
     </div>
@@ -10791,6 +10871,7 @@ function renderPfdBoardCanvas(){
   renderPfdBoardEdgePopup();       // v67-B: 팬/줌/재렌더 후에도 연결선 팝업 유지
   positionPfdBoardTextEditor();    // v67-H: 텍스트 편집 오버레이 위치 추종
   updatePfdInsertChrome();         // v67-I: 삽입 대기 커서/안내 배너
+  if(typeof pcsPresence !== 'undefined' && pcsPresence.on) pcsPresencePaintPfd(pcsPresenceList());   // v109 다른 사람 커서·선택
 }
 
 /* v61-P3: 선택 도형 위에 뜨는 맥락 플로팅 툴바 — 복제/삭제/앞으로/색상/컴포넌트화 */
@@ -19555,7 +19636,7 @@ function uoSetStatus(nodeId, next, note){
   n.uoStatus = next;
   if(!n.uoHistory) n.uoHistory = [];
   n.uoHistory.push({ status: next, by: uoActor(), role: (STATE.auth && STATE.auth.role) || '', at: uoNow(), version: n.uoVersion || 0, note: note || '' });
-  logAudit('Unit Operation','Status Change', `${n.name}: ${cur} → ${next}${note ? ' · '+note : ''}`, cur, next);
+  logAudit('Unit Operation','Status Change', `${n.name}: ${cur} → ${next}${note ? ' · '+note : ''}`, cur, next, { nodeId });
   pfdBoardUndoStack = []; pfdBoardRedoStack = [];   // 잠긴 내용을 실행 취소로 되돌릴 수 없게 한다
   return true;
 }
@@ -19729,17 +19810,36 @@ const PFD_EDIT_LABEL = {
   linkPfdShapeToMaster:'마스터 연동 추가', unlinkPfdLinkById:'마스터 연동 해제', unlinkPfdShape:'마스터 연동 해제',
   setPfdLinkActualValue:'연동 값 변경', setPfdLinkQty:'연동 수량 변경', pfdCloneShapeLinks:'연동 복제',
   pfdTogglePathDashed:'펜 경로 점선 전환', deletePfdPath:'펜 경로 삭제', movePfdNetNode:'네트워크 노드 이동', setPfdEdgeSplitRatio:'분기 비율 변경',
+  // v109: PFD 밖의 UO 내용
+  addWiStep:'WI Step 추가', renameWiStep:'WI Step 이름 변경', removeWiStep:'WI Step 삭제', setWiInstructionText:'WI 지시문 변경',
+  addWiParameter:'WI 파라미터 추가', removeWiParameter:'WI 파라미터 삭제', addWiSampling:'WI 샘플링 추가', removeWiSampling:'WI 샘플링 삭제',
+  addWiTraining:'WI Training 추가', removeWiTraining:'WI Training 삭제', addWiDefaultFlow:'WI 기본 서명 추가', removeWiDefaultFlow:'WI 기본 서명 삭제',
+  setWiDefaultFlowRole:'WI 서명 역할 변경', setWiDefaultFlowPerm:'WI 서명 권한 변경', addWiStepEsign:'WI Step 서명 추가', setWiStepEsignRole:'WI Step 서명 역할 변경',
+  setWiStepEsignPerm:'WI Step 서명 권한 변경', removeWiStepEsign:'WI Step 서명 삭제',
+  confirmMasterImport:'리스트에 마스터 항목 추가', removeItemFromNodeList:'리스트 항목 빼기', updateProcessNode:'UO 정보 변경',
 };
 function pfdRunEdit(name, target, run){
   if(pfdEditDepth > 0 || PFD_EDIT_SKIP[name]) return run();
   /* 시드에서 처음 꺼내 오는 것(materialize)은 편집이 아니다. 비교 전에 미리 꺼내 두지 않으면
      '이미 있는 연결선 추가'처럼 아무것도 안 바꾼 호출이 변경으로 잡힌다(LESSONS v80과 같은 함정). */
-  if(typeof target === 'string' && uoNode(target)) pfdMaterializeNode(target);
+  const isUo = typeof target === 'string' && !!uoNode(target);
+  if(isUo) pfdMaterializeNode(target);
   const before = pfdBoardSnapshot();
+  const contentBefore = isUo ? uoHash(uoContentOf(target)) : '';   // v109: PFD 밖(WI·리스트·이름)의 변경도 잡는다
   const auditLen = DATA.auditTrail.length;
   pfdEditDepth++;
+  const prevCtx = pcsAuditCtx;
+  if(isUo) pcsAuditCtx = { nodeId: target };   // v109: 이 편집의 감사 기록은 이 UO 것
   let result;
-  try { result = run(); } finally { pfdEditDepth--; }
+  try { result = run(); } finally { pfdEditDepth--; pcsAuditCtx = prevCtx; }
+  const contentChanged = isUo && uoHash(uoContentOf(target)) !== contentBefore;
+  if((contentChanged || pfdBoardSnapshot() !== before) && isUo && typeof pcsPresenceNoteEdit === 'function') pcsPresenceNoteEdit(target);
+  // v109: WI·리스트·UO 이름처럼 PFD 도면 밖의 변경은 실행취소 대상은 아니지만 감사 기록은 남긴다
+  if(contentChanged && pfdBoardSnapshot() === before && DATA.auditTrail.length === auditLen){
+    const cat = /Wi[A-Z]|Wi$/.test(name) ? 'Work Instruction' : /MasterImport|ItemFromNodeList/.test(name) ? 'UO 리스트' : 'Unit Operation';
+    logAudit(cat, PFD_EDIT_LABEL[name] || name, uoNode(target).name, null, null, { nodeId: target });
+    validateData(DATA);
+  }
   if(pfdBoardSnapshot() !== before){
     if(document.getElementById('pfdEditor')){
       // 함수가 스스로 기록했으면 맨 위가 before와 같다 → pfdBoardPushUndoSnapshot이 중복을 거른다
@@ -19752,7 +19852,7 @@ function pfdRunEdit(name, target, run){
       if(r) r.disabled = !pfdBoardRedoStack.length;
     }
     if(DATA.auditTrail.length === auditLen){
-      logAudit('PFD', PFD_EDIT_LABEL[name] || name, typeof target === 'string' ? target : '');
+      logAudit('PFD', PFD_EDIT_LABEL[name] || name, typeof target === 'string' ? target : '', null, null, typeof target === 'string' && uoNode(target) ? { nodeId: target } : null);
       validateData(DATA);
     }
   }
@@ -20750,6 +20850,67 @@ function pcsApplyData(data){
   _registerExistingIds();
 }
 
+/* ---------- v109 3-way 병합(순수 함수) — 공유 모드에서 여러 사람이 동시에 고칠 때 ----------
+   base(마지막으로 맞춘 판) · mine(내 화면) · theirs(다른 사람이 먼저 저장한 판)을 합친다.
+     · 한쪽만 바뀐 값은 바뀐 쪽을 쓴다.
+     · 객체는 키마다, id가 있는 객체 배열(도형·연결선·감사 기록 등)은 id마다 합친다 → 서로 다른 도형을 고치면 둘 다 남는다.
+     · 한쪽이 지우고 다른 쪽이 고친 항목은 남긴다(고친 내용을 잃지 않게).
+     · 같은 값을 둘 다 다르게 바꾸면 mine(지금 저장하는 사람)이 이긴다 — 나중에 저장한 사람 기준.
+   반환: 새 값(입력은 바꾸지 않는다) */
+const PCS_MERGE_SAME = (a, b) => a === b || JSON.stringify(a) === JSON.stringify(b);
+function pcsIsPlainObj(v){ return v !== null && typeof v === 'object' && !Array.isArray(v); }
+function pcsIsIdArray(arr){ return Array.isArray(arr) && arr.length > 0 && arr.every(x => pcsIsPlainObj(x) && (typeof x.id === 'string' || typeof x.id === 'number')); }
+function pcsMerge3(base, mine, theirs){
+  if(PCS_MERGE_SAME(mine, theirs)) return mine;
+  if(PCS_MERGE_SAME(base, mine)) return theirs;
+  if(PCS_MERGE_SAME(base, theirs)) return mine;
+  if(pcsIsPlainObj(mine) && pcsIsPlainObj(theirs)){
+    const b = pcsIsPlainObj(base) ? base : {};
+    const out = {};
+    const keys = [...new Set([...Object.keys(theirs), ...Object.keys(mine)])];
+    for(const k of keys){
+      const inM = k in mine, inT = k in theirs, inB = k in b;
+      if(inM && inT){ out[k] = pcsMerge3(b[k], mine[k], theirs[k]); continue; }
+      if(inM && !inT){ if(inB && PCS_MERGE_SAME(b[k], mine[k])) continue; out[k] = mine[k]; continue; }   // 그쪽이 지웠고 나는 안 건드림 → 지움
+      if(!inM && inT){ if(inB && PCS_MERGE_SAME(b[k], theirs[k])) continue; out[k] = theirs[k]; }         // 내가 지웠고 그쪽은 안 건드림 → 지움
+    }
+    return out;
+  }
+  const idArr = a => Array.isArray(a) && (a.length === 0 || pcsIsIdArray(a));
+  if(idArr(mine) && idArr(theirs) && (base == null || idArr(base))){
+    const bMap = new Map((base || []).map(x => [String(x.id), x]));
+    const mMap = new Map(mine.map(x => [String(x.id), x]));
+    const tMap = new Map(theirs.map(x => [String(x.id), x]));
+    const order = theirs.map(x => String(x.id));
+    // 내가 새로 넣은 항목은 내 쪽 바로 앞 항목 뒤에(없으면 끝에)
+    mine.forEach((x, i) => {
+      const id = String(x.id);
+      if(tMap.has(id)) return;
+      let at = order.length;
+      for(let j = i - 1; j >= 0; j--){ const p = order.indexOf(String(mine[j].id)); if(p >= 0){ at = p + 1; break; } }
+      order.splice(at, 0, id);
+    });
+    const out = [];
+    for(const id of order){
+      const inB = bMap.has(id), inM = mMap.has(id), inT = tMap.has(id);
+      if(inM && inT){ out.push(pcsMerge3(bMap.get(id), mMap.get(id), tMap.get(id))); continue; }
+      if(inT && !inM){ if(inB && PCS_MERGE_SAME(bMap.get(id), tMap.get(id))) continue; out.push(tMap.get(id)); continue; }   // 내가 지움(그쪽은 안 고침) → 지움
+      if(inM && !inT){ if(inB && PCS_MERGE_SAME(bMap.get(id), mMap.get(id))) continue; out.push(mMap.get(id)); }            // 그쪽이 지움(나는 안 고침) → 지움
+    }
+    return out;
+  }
+  // 문자열 목록(UO 리스트의 마스터 id 등): 내가 더한 것·뺀 것을 그쪽 목록에 적용한다(순서는 그쪽 기준)
+  const strArr = a => Array.isArray(a) && a.every(x => typeof x === 'string');
+  if(strArr(mine) && strArr(theirs) && (base == null || strArr(base))){
+    const b = new Set(base || []);
+    const removed = new Set((base || []).filter(x => !mine.includes(x)));
+    const out = theirs.filter(x => !removed.has(x));
+    mine.forEach(x => { if(!b.has(x) && !out.includes(x)) out.push(x); });
+    return out;
+  }
+  return mine;   // 값이 서로 다르게 바뀜 → 지금 저장하는 쪽
+}
+
 /* ---------- 저장소 어댑터 ---------- */
 function pcsCreateMemoryStorage(){
   let doc = null;
@@ -20917,6 +21078,7 @@ function pcsAutosaveTick(){
 async function pcsSaveNow(){
   const p = pcsPersist;
   if(!p.adapter || p.status === 'conflict' || p.status === 'blocked' || p.status === 'off') return false;
+  if(typeof pcsFb !== 'undefined' && pcsFb.merging) return false;   // v109: 병합 저장 중이면 그쪽이 끝난 뒤 다음 차례에
   if(p.saving){ await p.saving.catch(()=>{}); }
   const json = JSON.stringify(DATA);
   if(json === p.lastJson) return false;
@@ -20926,6 +21088,8 @@ async function pcsSaveNow(){
   p.saving = p.adapter.save(pcsBuildDoc(JSON.parse(json), p.rev, savedAt), p.rev)
     .then(res=>{ p.rev = res.rev; p.lastJson = json; p.savedAt = savedAt; pcsSetSaveStatus('saved'); return true; })
     .catch(err=>{
+      // v109 공유 모드: 다른 사람이 먼저 저장했으면 합쳐서 다시 저장한다
+      if(err && err.conflict && p.adapter && p.adapter.kind === 'firebase' && typeof pcsFbMergeAndSave === 'function'){ setTimeout(() => pcsFbMergeAndSave(), 0); return false; }
       if(err && err.conflict && p.adapter && p.adapter.kind === 'firebase') pcsSetSaveStatus('conflict', '다른 사용자가 같은 때에 먼저 저장했습니다. 배지를 누르거나 사용자 설정에서 "최신 데이터 불러오기"를 하세요(이 화면의 미저장 변경은 버려집니다 — 필요하면 먼저 파일로 내보내기).');
       else if(err && err.conflict) pcsSetSaveStatus('conflict', (p.adapter && p.adapter.kind === 'rest' ? '다른 사용자나 탭이 서버에 먼저 저장했습니다.' : '다른 탭이나 창에서 먼저 저장했습니다.') + ' 이 탭의 변경을 지키려면 사용자 설정에서 파일로 내보낸 뒤 새로고침하세요.');
       else if(err && err.auth) pcsSetSaveStatus('error', err.message);
@@ -26687,6 +26851,8 @@ async function pcsFbRefresh(){
   const r = await pcsFbFetch(`${pcsFb.cfg.tokenBase}/v1/token?key=${encodeURIComponent(pcsFb.cfg.apiKey)}`,
     { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: 'grant_type=refresh_token&refresh_token=' + encodeURIComponent(pcsFb.refreshToken) });
   pcsFbSetTokens(r.id_token, r.refresh_token, r.expires_in);
+  // 스트림 주소에 토큰이 들어 있으므로 새 토큰으로 다시 연다
+  Object.entries(pcsFbStreams).forEach(([k, s]) => { if(s.token !== pcsFb.idToken) pcsFbStream(k, s.path, s.onEvent); });
   return true;
 }
 /* 토큰이 만료됐으면(401) 한 번 새로 받고 다시 시도 */
@@ -26700,6 +26866,8 @@ async function pcsFbWithAuth(work){
   }
 }
 function pcsFbSignOut(){
+  if(typeof pcsPresenceStop === 'function') pcsPresenceStop();
+  pcsFbCloseStreams();
   clearTimeout(pcsFb.refreshTimer); clearInterval(pcsFb.watchTimer);
   pcsFb.idToken = ''; pcsFb.refreshToken = ''; pcsFb.expiresAt = 0; pcsFb.watchTimer = null;
 }
@@ -26749,10 +26917,38 @@ function pcsCreateFirebaseStorage(){
   };
 }
 
+/* ---------- v109 실시간 스트림(Server-Sent Events) ----------
+   Realtime Database REST는 같은 주소를 EventSource로 열면 바뀔 때마다 put/patch 이벤트를 보낸다.
+   막히거나 끊기면 다시 연결하고, 그동안은 주기적 확인(watchMs)이 대신한다. 토큰이 바뀌면 새 토큰으로 다시 연다. */
+const pcsFbStreams = {};
+function pcsFbStream(key, path, onEvent){
+  if(typeof EventSource === 'undefined' || !pcsFb.idToken) return false;
+  const old = pcsFbStreams[key]; if(old && old.es) try { old.es.close(); } catch(_){}
+  const st = { path, onEvent, token: pcsFb.idToken, fails: (old && old.fails) || 0, es: null, ok: false };
+  pcsFbStreams[key] = st;
+  let es;
+  try { es = new EventSource(pcsFbDbUrl(path)); } catch(_){ return false; }
+  st.es = es;
+  const handle = ev => { st.ok = true; st.fails = 0; let d = null; try { d = JSON.parse(ev.data); } catch(_){} if(d) onEvent(ev.type, d); };
+  es.addEventListener('put', handle);
+  es.addEventListener('patch', handle);
+  es.addEventListener('auth_revoked', () => { try { es.close(); } catch(_){} pcsFbRefresh().then(() => pcsFbStream(key, path, onEvent)).catch(() => {}); });
+  es.addEventListener('cancel', () => { try { es.close(); } catch(_){} st.ok = false; });
+  es.onerror = () => {
+    st.ok = false; st.fails++;
+    try { es.close(); } catch(_){}
+    if(st.fails <= 6) setTimeout(() => { if(pcsFbStreams[key] === st && pcsFb.idToken) pcsFbStream(key, path, onEvent); }, Math.min(30000, 1000 * Math.pow(2, st.fails)));
+  };
+  return true;
+}
+function pcsFbCloseStreams(){ Object.values(pcsFbStreams).forEach(s => { try { s.es && s.es.close(); } catch(_){} }); Object.keys(pcsFbStreams).forEach(k => delete pcsFbStreams[k]); }
+
 /* ---------- 다른 사람의 변경 반영 ---------- */
 function pcsFbStartWatch(){
   clearInterval(pcsFb.watchTimer);
   pcsFb.watchTimer = setInterval(pcsFbWatchTick, pcsFb.cfg.watchMs);
+  // rev가 바뀌면 바로 확인(스트림이 안 되면 위 주기 확인만으로 동작)
+  pcsFbStream('rev', PCS_FB_DOC_PATH + '/rev', () => { pcsFbWatchTick(); });
 }
 /* 입력 중이거나 끄는 중이면 다시 그리지 않고 다음 차례로 미룬다 */
 function pcsFbUserBusy(){
@@ -26772,9 +26968,68 @@ async function pcsFbWatchTick(){
   if(remote === p.rev){ pcsFb.pendingRemote = false; return; }
   if(remote === 0 && p.rev > 0){ pcsSetSaveStatus('blocked', '관리자가 공유 데이터를 초기화했습니다. 새로고침하면 기본 데이터로 다시 시작합니다.'); return; }
   pcsFb.pendingRemote = true;
-  if(JSON.stringify(DATA) !== p.lastJson) return;   // 내 쪽에 저장 안 한 변경이 있으면 자동 저장이 충돌을 알린다
   if(pcsFbUserBusy()) return;
+  // v109: 내 쪽에 저장 안 한 변경이 있으면 그쪽 판과 합쳐서 저장한다(여러 사람 동시 편집)
+  if(JSON.stringify(DATA) !== p.lastJson){ if(p.status !== 'conflict') await pcsFbMergeAndSave(); return; }
   await pcsFbPullLatest(false);
+}
+/* v109 동시 편집: 공유 DB의 최신본(theirs)과 내 화면(mine)을 마지막으로 맞춘 판(base) 기준으로 합쳐 저장한다.
+   병합 결과가 무결성 검사를 통과하지 못하면 예전처럼 "다른 곳에서 변경됨"으로 멈춘다. 반환: 저장했으면 true */
+async function pcsFbMergeAndSave(){
+  const p = pcsPersist;
+  if(pcsFb.merging) return pcsFb.merging;
+  pcsFb.merging = (async () => {
+    if(p.saving) await p.saving.catch(() => {});
+    const base = JSON.parse(p.lastJson || '{}');
+    const mineJson = JSON.stringify(DATA);
+    const mine = JSON.parse(mineJson);
+    for(let attempt = 0; attempt < 4; attempt++){
+      let doc;
+      try { doc = await p.adapter.load(); } catch(e){ pcsSetSaveStatus('error', e.message); return false; }
+      const m = doc ? pcsMigrateDoc(doc) : { ok:true, data: base };
+      if(!m.ok){ pcsSetSaveStatus('blocked', '공유 데이터를 읽지 못했습니다. ' + m.reason); return false; }
+      const theirs = m.data;
+      const merged = pcsMerge3(base, mine, theirs);
+      // Audit Trail은 시각 순서로(합친 뒤 두 사람의 새 기록이 섞여 있을 수 있다)
+      if(Array.isArray(merged.auditTrail)) merged.auditTrail = merged.auditTrail.slice().sort((x, y) => String(x.timestamp || '').localeCompare(String(y.timestamp || '')));
+      const errs = validateData(merged);
+      if(errs.length){ console.warn('[공유] 병합 결과 무결성 위반', errs); pcsSetSaveStatus('conflict', '다른 사용자와 같은 항목을 동시에 바꿔 자동으로 합칠 수 없습니다. 배지를 눌러 최신 데이터를 불러오세요(이 화면의 미저장 변경은 버려집니다 — 필요하면 먼저 파일로 내보내기).'); return false; }
+      const now = new Date();
+      const savedAt = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 19);
+      pcsSetSaveStatus('saving');
+      try {
+        const res = await p.adapter.save(pcsBuildDoc(merged, doc ? doc.rev : 0, savedAt), doc ? (doc.rev || 0) : 0);
+        // 기다리는 동안 내가 더 고친 것이 있으면 그것도 얹는다(다음 자동 저장이 올린다)
+        const nowJson = JSON.stringify(DATA);
+        const finalData = nowJson === mineJson ? merged : pcsMerge3(mine, JSON.parse(nowJson), merged);
+        const remoteChanged = !PCS_MERGE_SAME(base, theirs);
+        pcsApplyData(finalData);
+        p.rev = res.rev; p.lastJson = JSON.stringify(merged); p.savedAt = savedAt;
+        pcsFb.pendingRemote = false;
+        pcsSetSaveStatus('saved', remoteChanged ? '다른 사용자의 변경과 합쳐 저장했습니다.' : '');
+        if(remoteChanged) pcsFbRepaintAfterRemote();
+        return true;
+      } catch(e){
+        if(e && e.conflict) continue;   // 그사이 또 누가 저장 → 다시 읽어 합친다
+        if(e && e.auth){ pcsSetSaveStatus('error', e.message); return false; }
+        pcsSetSaveStatus('error', String(e && e.message || e)); return false;
+      }
+    }
+    pcsSetSaveStatus('conflict', '다른 사용자의 저장이 계속 겹칩니다. 잠시 뒤 배지를 눌러 최신 데이터를 불러오세요.');
+    return false;
+  })().finally(() => { pcsFb.merging = null; });
+  return pcsFb.merging;
+}
+/* 다른 사람 변경이 들어온 뒤 화면 다시 그리기: PFD 편집기는 캔버스만(부분 갱신), 나머지는 전체.
+   PFD 실행취소 기록은 지운다 — 되돌리면 다른 사람이 고친 내용까지 되돌릴 수 있다. */
+function pcsFbRepaintAfterRemote(){
+  if(!(STATE.auth && STATE.auth.loggedIn)) return;
+  if(typeof pfdBoardUndoStack !== 'undefined'){ pfdBoardUndoStack = []; pfdBoardRedoStack = []; }
+  if(document.getElementById('pfdBoardSvg') && typeof renderPfdBoardCanvas === 'function'){
+    renderPfdBoardCanvas();
+    if(typeof refreshPfdBoardChrome === 'function') refreshPfdBoardChrome();
+  } else render();
+  if(typeof pcsA11yAnnounce === 'function') pcsA11yAnnounce('다른 사용자의 변경을 반영했습니다');
 }
 /* 공유 DB의 최신본을 불러와 화면에 반영한다. discard=true면 내 쪽 미저장 변경을 버린다(충돌 해결). */
 async function pcsFbPullLatest(discard){
@@ -26790,7 +27045,7 @@ async function pcsFbPullLatest(discard){
   p.rev = doc.rev || 0; p.savedAt = doc.savedAt || null; p.lastJson = JSON.stringify(DATA);
   pcsFb.pendingRemote = false;
   pcsSetSaveStatus('saved', '다른 사용자의 변경을 불러왔습니다' + (doc.savedAt ? ' (' + doc.savedAt.replace('T', ' ') + ')' : '') + '.');
-  if(STATE.auth && STATE.auth.loggedIn) render();
+  if(discard) render(); else pcsFbRepaintAfterRemote();
   if(typeof pcsA11yAnnounce === 'function') pcsA11yAnnounce('다른 사용자의 변경을 불러왔습니다');
   return true;
 }
@@ -26802,7 +27057,7 @@ async function pcsFbResolveConflict(){
 }
 
 /* ---------- 로그인 ---------- */
-async function pcsFbSubmitLogin(email, pw, role){
+async function pcsFbSubmitLogin(email, pw, role, displayName){
   const errEl = document.getElementById('loginError');
   const btn = document.querySelector('.login-submit');
   const showErr = msg => { if(errEl){ errEl.style.display = 'block'; errEl.textContent = msg; } if(btn) btn.disabled = false; };
@@ -26812,7 +27067,11 @@ async function pcsFbSubmitLogin(email, pw, role){
   if(!res.ok){ pcsFbSignOut(); return showErr('공유 데이터를 불러오지 못했습니다. ' + (res.reason || '')); }
   pcsFbStartWatch();
   const name = String(pcsFb.email || email).split('@')[0];
-  STATE.auth = { loggedIn: true, id: name, role: role || 'Admin', shared: true, email: pcsFb.email };
+  // v109: 같은 계정을 여럿이 써도 누가 누구인지 보이게 표시 이름을 쓴다
+  const dn = String(displayName || '').trim() || name;
+  try { localStorage.setItem('pcs_display_name', dn); } catch(_){}
+  STATE.auth = { loggedIn: true, id: name, role: role || 'Admin', shared: true, email: pcsFb.email, displayName: dn };
+  if(typeof pcsPresenceStart === 'function') pcsPresenceStart();
   STATE.lastUsedRole = role;
   const ls = document.getElementById('loginScreen'); if(ls) ls.innerHTML = '';
   const root = document.getElementById('appRoot'); if(root) root.style.display = '';
@@ -26860,6 +27119,311 @@ function renderPcsSharedSettings(){
         </div>`}
         <p class="pcs-import-msg" id="pcsFbMsg"></p>
       </div>`;
+}
+/* ============================================================================
+   42c_presence.js — v109  함께 작업 중인 사람 보기 (공유 모드에서만)
+   · 각 브라우저 탭이 Realtime Database pcs/presence/{세션}에 "누가·어디서·무엇을" 짧게 적는다.
+       { name(표시 이름), email, color, device, view, pmId, nodeId, area, editing(최근 편집 시각), cursor:{nodeId,x,y}, sel, at }
+     같은 계정(demo@…)을 여럿이 써도 세션·표시 이름으로 구분된다. 1인 1계정이 되어도 그대로 쓴다.
+   · 다른 사람 정보는 스트림(SSE)으로 받고, 막히면 몇 초마다 다시 읽는다.
+   · 화면: 머리글(접속자), Process Map 캔버스의 UO 노드(작업자 표시), UO 패널(지금 이 UO에서 누가 무엇을), PFD 편집기(다른 사람 커서·선택·슬라이드).
+     캔버스는 전체 render()가 아니라 표시 층(<g>)만 다시 그린다(아키텍처 원칙: 캔버스 부분 패치).
+   · IP는 남기지 않는다: 브라우저는 자기 IP를 모르고(외부 서비스 필요), 회사망에서는 모두 같은 IP로 보여 구분이 안 된다.
+     대신 세션·표시 이름·기기(브라우저·OS)를 감사 기록과 접속자 표시에 남긴다.
+   ========================================================================== */
+
+const PCS_PRESENCE_PATH = 'pcs/presence';
+const PCS_PRESENCE_HEARTBEAT_MS = 12000;
+const PCS_PRESENCE_STALE_MS = 45000;
+const PCS_PRESENCE_EDITING_MS = 30000;
+const PCS_PRESENCE_COLORS = ['#D9480F', '#1971C2', '#2F9E44', '#9C36B5', '#E8590C', '#0C8599', '#C2255C', '#5F3DC4'];
+
+const pcsPresence = { on: false, me: null, others: {}, seen: {}, lastWhereKey: '', lastSent: 0, sending: false, heartbeat: null, poll: null, cursorTimer: null,
+  cursorClient: null, cursorDirty: false, lastEdit: null, paintQueued: false, blocked: '' };
+
+/* ---------- 순수 함수 ---------- */
+function pcsPresenceColor(sid){ let h = 0; for(const ch of String(sid)) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return PCS_PRESENCE_COLORS[h % PCS_PRESENCE_COLORS.length]; }
+function pcsPresenceInitials(name){ const s = String(name || '?').trim(); const hangul = /[가-힣]/.test(s[0] || ''); return hangul ? s.slice(0, s.length >= 3 ? 2 : 1) : s.split(/\s+/).map(w => w[0] || '').join('').slice(0, 2).toUpperCase() || '?'; }
+/* 지금 화면 → 어디서 무엇을. tab: { path, ctx }, pfd: { activeNodeId, focusNodeId } */
+const PCS_PRESENCE_AREA_LABEL = { pfd:'PFD', wi:'Work Instruction', list:'리스트', uo:'UO 보기', pm:'Process Map', report:'보고서', mb:'Mass Balance', other:'' };
+const PCS_LIST_LABEL_KO = { material:'Material 리스트', equipment:'Equipment 리스트', parameter:'Parameter 리스트', training:'Training 리스트', sampling:'Sampling 리스트' };
+function pcsPresenceWhere(tab, pfd){
+  const path = (tab && tab.path) || [];
+  const view = (path[path.length - 1] || {}).view || '';
+  const ctx = (tab && tab.ctx) || {};
+  if(view === 'pfd' || view === 'pfdBoard'){
+    const nodeId = (pfd && (pfd.activeNodeId || pfd.focusNodeId)) || ctx.nodeId || null;
+    return { view, pmId: ctx.pmId || null, nodeId, area: 'pfd', label: 'PFD' };
+  }
+  if(view === 'processMap'){
+    const p = ctx.pmPanel;
+    if(p && p.nodeId){
+      if(p.type === 'wi') return { view, pmId: ctx.pmId || null, nodeId: p.nodeId, area: 'wi', label: 'Work Instruction' };
+      if(p.type === 'list') return { view, pmId: ctx.pmId || null, nodeId: p.nodeId, area: 'list', label: PCS_LIST_LABEL_KO[p.listKey] || '리스트' };
+      return { view, pmId: ctx.pmId || null, nodeId: p.nodeId, area: 'uo', label: 'UO 보기' };
+    }
+    return { view, pmId: ctx.pmId || null, nodeId: null, area: 'pm', label: 'Process Map' };
+  }
+  if(view === 'pcsReport' || view === 'bomReport') return { view, pmId: ctx.reportPmId || null, nodeId: null, area: 'report', label: view === 'pcsReport' ? 'PCS Report' : 'BOM Report' };
+  if(view === 'massBalanceEdit') return { view, pmId: ctx.mbPmId || null, nodeId: null, area: 'mb', label: 'Mass Balance' };
+  return { view, pmId: null, nodeId: null, area: 'other', label: (path[path.length - 1] || {}).label || '' };
+}
+/* 살아 있는 다른 사람 목록(세션 단위). seen: 세션별 마지막으로 정보가 바뀐 내 시각 */
+function pcsPresenceAlive(others, seen, now, mySid){
+  return Object.entries(others || {}).filter(([sid, e]) => sid !== mySid && e && e.name && (now - (seen[sid] || 0)) < PCS_PRESENCE_STALE_MS)
+    .map(([sid, e]) => Object.assign({ sid }, e));
+}
+/* 한 사람의 상태 글: "홍길동 · PFD 편집 중 · Chrome · Windows" */
+function pcsPresenceText(e, now){
+  const editing = e.editing && now - e.editing < PCS_PRESENCE_EDITING_MS;
+  const what = e.areaLabel ? `${e.areaLabel} ${editing ? '편집 중' : '보는 중'}` : '접속 중';
+  return `${e.name} · ${e.nodeName ? e.nodeName + ' ' : ''}${what}${e.device ? ' · ' + e.device : ''}`;
+}
+
+/* ---------- 쓰기 ---------- */
+function pcsPresenceEntry(){
+  const w = pcsPresenceWhere(getActiveTab(), typeof pfdBoardState !== 'undefined' ? pfdBoardState : null);
+  const node = w.nodeId && DATA.nodes.find(n => n.id === w.nodeId);
+  const me = pcsPresence.me;
+  const e = { name: me.name, email: me.email || '', color: me.color, device: me.device, view: w.view, pmId: w.pmId || node && node.pmId || '', nodeId: w.nodeId || '',
+    nodeName: node ? node.name : '', area: w.area, areaLabel: w.label, at: Date.now() };
+  if(pcsPresence.lastEdit && w.nodeId === pcsPresence.lastEdit.nodeId) e.editing = pcsPresence.lastEdit.at;
+  if(w.area === 'pfd' && pcsPresence.cursor) e.cursor = pcsPresence.cursor;
+  if(w.area === 'pfd' && typeof pfdSelectedShapeId !== 'undefined' && pfdSelectedShapeId) e.sel = { nodeId: (typeof pfdSelectedNodeId !== 'undefined' && pfdSelectedNodeId) || w.nodeId || '', shapeId: pfdSelectedShapeId };
+  return e;
+}
+async function pcsPresenceSend(force){
+  if(!pcsPresence.on || pcsPresence.blocked) return;
+  if(pcsPresence.sending){ pcsPresence.resend = true; return; }   // 보내는 중에 바뀐 위치는 끝난 뒤 다시 보낸다
+  if(!force && Date.now() - pcsPresence.lastSent < 100) return;
+  pcsPresence.sending = true;
+  const body = JSON.stringify(pcsPresenceEntry());
+  try {
+    await pcsFbWithAuth(() => pcsFbFetch(pcsFbDbUrl(`${PCS_PRESENCE_PATH}/${pcsSessionId}`), { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body }));
+    pcsPresence.lastSent = Date.now();
+  } catch(e){
+    if(e.status === 401 || e.status === 403 || e.auth){
+      pcsPresence.blocked = '공유 데이터베이스 보안 규칙에 접속자 표시(presence) 항목이 없어 "누가 작업 중인지" 표시를 껐습니다. docs/firebase/database.rules.json의 최신 규칙을 게시하세요.';
+      console.warn('[접속자] ' + pcsPresence.blocked);
+    }
+  } finally {
+    pcsPresence.sending = false;
+    if(pcsPresence.resend){ pcsPresence.resend = false; setTimeout(() => pcsPresenceSend(true), 0); }
+  }
+}
+/* 편집이 일어났을 때(pfdRunEdit) — "편집 중" 표시를 바로 알린다 */
+function pcsPresenceNoteEdit(nodeId){
+  if(!pcsPresence.on) return;
+  const was = pcsPresence.lastEdit;
+  pcsPresence.lastEdit = { nodeId, at: Date.now() };
+  if(!was || was.nodeId !== nodeId || Date.now() - was.at > 5000) pcsPresenceSend(true);
+}
+/* render() 뒤: 위치가 바뀌었으면 알리고, 표시를 다시 그린다 */
+function pcsPresenceAfterRender(){
+  if(!pcsPresence.on) return;
+  const w = pcsPresenceWhere(getActiveTab(), typeof pfdBoardState !== 'undefined' ? pfdBoardState : null);
+  const key = [w.view, w.pmId, w.nodeId, w.area, w.label].join('|');
+  if(key !== pcsPresence.lastWhereKey){ pcsPresence.lastWhereKey = key; pcsPresenceSend(true); }
+  pcsPresencePaint();
+}
+
+/* ---------- 읽기 ---------- */
+function pcsPresenceApply(path, data){
+  const parts = String(path || '/').split('/').filter(Boolean);
+  const now = Date.now();
+  if(!parts.length){
+    const next = data && typeof data === 'object' ? data : {};
+    Object.keys(next).forEach(sid => {
+      const old = pcsPresence.others[sid];
+      if(!old || old.at !== (next[sid] || {}).at){
+        // 처음 받은 항목은 시각이 지금과 가까울 때만 살아 있는 것으로 본다(닫힌 탭의 흔적 제외)
+        const at = (next[sid] || {}).at || 0;
+        pcsPresence.seen[sid] = old || Math.abs(now - at) < 60000 ? now : (pcsPresence.seen[sid] || 0);
+      }
+    });
+    pcsPresence.others = next;
+  } else {
+    const sid = parts[0];
+    if(parts.length === 1){ if(data == null) delete pcsPresence.others[sid]; else pcsPresence.others[sid] = data; }
+    else { const e = pcsPresence.others[sid] = Object.assign({}, pcsPresence.others[sid]); let o = e; parts.slice(1, -1).forEach(k => { o = o[k] = Object.assign({}, o[k]); }); o[parts[parts.length - 1]] = data; }
+    pcsPresence.seen[sid] = now;
+  }
+  pcsPresencePaintSoon();
+}
+async function pcsPresencePoll(){
+  if(!pcsPresence.on) return;
+  const s = pcsFbStreams && pcsFbStreams.presence;
+  if(s && s.ok) return;   // 스트림이 살아 있으면 읽지 않는다
+  try { const d = await pcsFbWithAuth(() => pcsFbFetch(pcsFbDbUrl(PCS_PRESENCE_PATH))); pcsPresenceApply('/', d || {}); } catch(_){}
+}
+
+/* ---------- 시작·끝 ---------- */
+function pcsPresenceStart(){
+  if(!pcsSharedMode() || pcsPresence.on) return;
+  pcsPresence.on = true;
+  pcsPresence.me = { sid: pcsSessionId, name: (STATE.auth && (STATE.auth.displayName || STATE.auth.id)) || '?', email: (STATE.auth && STATE.auth.email) || '',
+    color: pcsPresenceColor(pcsSessionId), device: typeof navigator !== 'undefined' ? pcsDeviceLabel(navigator.userAgent) : '' };
+  pcsFbStream('presence', PCS_PRESENCE_PATH, (type, d) => pcsPresenceApply(d.path, d.data));
+  pcsPresenceSend(true);
+  pcsPresence.heartbeat = setInterval(() => { pcsPresenceSend(true); pcsPresenceSweep(); }, PCS_PRESENCE_HEARTBEAT_MS);
+  pcsPresence.poll = setInterval(pcsPresencePoll, Math.max(2000, Math.min(4000, pcsFb.cfg.watchMs)));
+  setTimeout(pcsPresencePoll, 600);
+  document.addEventListener('mousemove', pcsPresenceMouseMove, { passive: true, capture: true });
+  document.addEventListener('mouseup', () => { pcsPresence.cursorDirty = true; }, { passive: true, capture: true });
+  pcsPresence.cursorTimer = setInterval(pcsPresenceCursorTick, 120);
+  window.addEventListener('pagehide', pcsPresenceLeave);
+}
+function pcsPresenceStop(){
+  if(!pcsPresence.on) return;
+  pcsPresenceLeave();
+  pcsPresence.on = false;
+  clearInterval(pcsPresence.heartbeat); clearInterval(pcsPresence.poll); clearInterval(pcsPresence.cursorTimer);
+  document.removeEventListener('mousemove', pcsPresenceMouseMove, { capture: true });
+}
+/* 나가면 내 항목을 지운다(실패해도 45초 뒤 다른 사람 화면에서 사라진다) */
+function pcsPresenceLeave(){
+  if(!pcsFb.idToken) return;
+  try { fetch(pcsFbDbUrl(`${PCS_PRESENCE_PATH}/${pcsSessionId}`), { method: 'DELETE', keepalive: true }).catch(() => {}); } catch(_){}
+}
+/* 오래된 흔적(10분 넘게 갱신 없음)은 아무나 지운다 */
+function pcsPresenceSweep(){
+  const now = Date.now();
+  Object.entries(pcsPresence.others).forEach(([sid, e]) => {
+    if(sid !== pcsSessionId && e && e.at && now - e.at > 600000 && now - (pcsPresence.seen[sid] || 0) > 600000)
+      pcsFbFetch(pcsFbDbUrl(`${PCS_PRESENCE_PATH}/${sid}`), { method: 'DELETE' }).catch(() => {});
+  });
+}
+
+/* ---------- PFD 커서 ---------- */
+function pcsPresenceMouseMove(e){
+  if(!pcsPresence.on) return;
+  pcsPresence.cursorClient = { x: e.clientX, y: e.clientY, inside: !!(e.target && e.target.closest && e.target.closest('#pfdBoardCanvasWrap')) };
+  pcsPresence.cursorDirty = true;
+}
+function pcsPresenceCursorTick(){
+  if(!pcsPresence.cursorDirty) return;
+  pcsPresence.cursorDirty = false;
+  const svg = document.getElementById('pfdBoardSvg');
+  const c = pcsPresence.cursorClient;
+  let cur = null;
+  if(svg && c && c.inside){
+    const r = svg.getBoundingClientRect();
+    const { panX, panY, zoom } = pfdBoardState;
+    cur = { nodeId: pfdBoardState.activeNodeId || pfdBoardState.focusNodeId || '', x: Math.round((c.x - r.left - panX) / zoom), y: Math.round((c.y - r.top - panY) / zoom) };
+  }
+  const sel = typeof pfdSelectedShapeId !== 'undefined' ? pfdSelectedShapeId || '' : '';
+  const same = JSON.stringify(cur) === JSON.stringify(pcsPresence.cursor) && sel === pcsPresence.lastSel;
+  pcsPresence.cursor = cur; pcsPresence.lastSel = sel;
+  if(!same) pcsPresenceSend(false);
+}
+
+/* ---------- 그리기 ---------- */
+function pcsPresencePaintSoon(){
+  if(pcsPresence.paintQueued) return;
+  pcsPresence.paintQueued = true;
+  requestAnimationFrame(() => { pcsPresence.paintQueued = false; pcsPresencePaint(); });
+}
+function pcsPresenceList(){ return pcsPresenceAlive(pcsPresence.others, pcsPresence.seen, Date.now(), pcsSessionId); }
+function pcsPresencePaint(){
+  if(!pcsPresence.on) return;
+  const list = pcsPresenceList();
+  pcsPresencePaintHeader(list);
+  pcsPresencePaintPm(list);
+  pcsPresencePaintPanel(list);
+  pcsPresencePaintPfd(list);
+}
+function pcsPresenceAvatarHtml(e, size){
+  const s = size || 24;
+  return `<span class="pcs-avatar" style="width:${s}px; height:${s}px; background:${escapeXmlAttr(e.color || '#888')};" title="${escapeXmlAttr(pcsPresenceText(e, Date.now()))}" data-presence-sid="${escapeXmlAttr(e.sid)}">${escapeXml(pcsPresenceInitials(e.name))}</span>`;
+}
+function pcsPresencePaintHeader(list){
+  let bar = document.getElementById('pcsPresenceBar');
+  if(!bar){
+    const slot = document.getElementById('headerSaveSlot');
+    if(!slot) return;
+    bar = document.createElement('span'); bar.id = 'pcsPresenceBar'; bar.className = 'pcs-presence-bar';
+    slot.parentNode.insertBefore(bar, slot);
+  }
+  const me = Object.assign({ sid: pcsSessionId }, pcsPresence.me, { areaLabel: '', device: pcsPresence.me.device });
+  bar.innerHTML = list.slice(0, 6).map(e => pcsPresenceAvatarHtml(e, 26)).join('') + (list.length > 6 ? `<span class="pcs-avatar pcs-avatar-more">+${list.length - 6}</span>` : '')
+    + `<span class="pcs-presence-count" title="${escapeXmlAttr(pcsPresence.blocked || ['나: ' + me.name + ' · ' + me.device].concat(list.map(e => pcsPresenceText(e, Date.now()))).join('\n'))}" data-presence-count="${list.length}">${pcsPresence.blocked ? '접속자 표시 꺼짐' : `함께 ${list.length + 1}명`}</span>`;
+}
+/* Process Map 캔버스: UO 노드 오른쪽 위에 작업자 원(순수 SVG) */
+function pcsPresencePaintPm(list){
+  const svg = document.getElementById('pmCanvas');
+  if(!svg) return;
+  let layer = document.getElementById('pmPresenceLayer');
+  if(!layer){ layer = document.createElementNS('http://www.w3.org/2000/svg', 'g'); layer.setAttribute('id', 'pmPresenceLayer'); svg.appendChild(layer); }
+  const byNode = {};
+  list.forEach(e => { if(e.nodeId) (byNode[e.nodeId] = byNode[e.nodeId] || []).push(e); });
+  const now = Date.now();
+  layer.innerHTML = Object.entries(byNode).map(([nodeId, es]) => {
+    const n = DATA.nodes.find(x => x.id === nodeId);
+    if(!n || n.x == null) return '';
+    const w = PM_NODE_W;
+    return es.slice(0, 4).map((e, i) => {
+      const cx = n.x + w - 6 - i * 15, cy = n.y - 6;
+      const editing = e.editing && now - e.editing < PCS_PRESENCE_EDITING_MS;
+      return `<g data-pm-presence="${escapeXmlAttr(nodeId)}"><title>${escapeXml(pcsPresenceText(e, now))}</title>
+        <circle cx="${cx}" cy="${cy}" r="8" fill="${escapeXmlAttr(e.color)}" stroke="#fff" stroke-width="1.6"/>
+        ${editing ? `<circle cx="${cx}" cy="${cy}" r="10.5" fill="none" stroke="${escapeXmlAttr(e.color)}" stroke-width="1.4" stroke-dasharray="3 2"/>` : ''}
+        <text x="${cx}" y="${cy + 3}" text-anchor="middle" font-size="7.5" font-weight="800" fill="#fff">${escapeXml(pcsPresenceInitials(e.name).slice(0, 2))}</text></g>`;
+    }).join('');
+  }).join('');
+}
+/* UO 패널 맨 위: 지금 이 UO에서 누가 무엇을 */
+function pcsPresencePaintPanel(list){
+  const panel = document.querySelector('.pm-side-panel');
+  const p = getActiveTab().ctx.pmPanel;
+  let line = document.getElementById('uoPresenceLine');
+  if(!panel || !p || !p.nodeId){ if(line) line.remove(); return; }
+  const here = list.filter(e => e.nodeId === p.nodeId);
+  if(!here.length){ if(line) line.remove(); return; }
+  if(!line){ line = document.createElement('div'); line.id = 'uoPresenceLine'; line.className = 'uo-presence-line'; panel.insertBefore(line, panel.firstChild); }
+  const now = Date.now();
+  line.innerHTML = here.map(e => `<span class="uo-presence-item">${pcsPresenceAvatarHtml(e, 20)}<span>${escapeXml(e.name)} · ${escapeXml(e.areaLabel || '')} ${e.editing && now - e.editing < PCS_PRESENCE_EDITING_MS ? '<b>편집 중</b>' : '보는 중'}</span></span>`).join('');
+}
+/* PFD 편집기: 다른 사람 커서·선택·슬라이드 위 표시(보드 좌표 — 확대·이동이 달라도 같은 자리) */
+function pcsPresencePaintPfd(list){
+  const vp = document.getElementById('pfdBoardViewport');
+  if(!vp) return;
+  let layer = document.getElementById('pfdPresenceLayer');
+  if(!layer){ layer = document.createElementNS('http://www.w3.org/2000/svg', 'g'); layer.setAttribute('id', 'pfdPresenceLayer'); layer.setAttribute('pointer-events', 'none'); vp.appendChild(layer); }
+  else if(layer !== vp.lastChild) vp.appendChild(layer);
+  const pmId = pfdBoardState.pmId;
+  const board = pmId && ensurePfdBoard(pmId);
+  const slideOf = id => board && board.slides.find(s => s.nodeId === id);
+  const z = pfdBoardState.zoom || 1, k = 1 / z;
+  const now = Date.now();
+  const out = [];
+  const perSlide = {};
+  list.forEach(e => {
+    if(e.area !== 'pfd' || (e.pmId && e.pmId !== pmId)) return;
+    if(e.nodeId) (perSlide[e.nodeId] = perSlide[e.nodeId] || []).push(e);
+    // 선택한 도형 테두리
+    if(e.sel && e.sel.shapeId){
+      const sl = slideOf(e.sel.nodeId), sh = sl && (DATA.pfdShapes[e.sel.nodeId] || []).find(s => s.id === e.sel.shapeId);
+      if(sh) out.push(`<rect data-presence-sel="${escapeXmlAttr(e.sid)}" x="${sl.x + sh.x - 4}" y="${sl.y + sh.y - 4}" width="${(sh.w || 40) + 8}" height="${(sh.h || 40) + 8}" rx="4" fill="none" stroke="${escapeXmlAttr(e.color)}" stroke-width="${2 * k}" stroke-dasharray="${6 * k} ${4 * k}"/>`);
+    }
+    // 커서(화면에서 늘 같은 크기)
+    if(e.cursor && e.cursor.x != null){
+      const label = escapeXml(e.name);
+      out.push(`<g data-presence-cursor="${escapeXmlAttr(e.sid)}" transform="translate(${e.cursor.x},${e.cursor.y}) scale(${k})">
+        <path d="M0,0 L0,17 L4.5,12.5 L8,20 L11,18.6 L7.6,11.4 L13.5,11.4 Z" fill="${escapeXmlAttr(e.color)}" stroke="#fff" stroke-width="1.2"/>
+        <rect x="12" y="18" width="${Math.max(30, e.name.length * 11 + 12)}" height="18" rx="4" fill="${escapeXmlAttr(e.color)}"/>
+        <text x="18" y="31" font-size="11" font-weight="700" fill="#fff">${label}</text></g>`);
+    }
+  });
+  // 슬라이드 제목 줄 옆 작업자 원
+  Object.entries(perSlide).forEach(([nodeId, es]) => {
+    const sl = slideOf(nodeId); if(!sl) return;
+    es.slice(0, 5).forEach((e, i) => {
+      const cx = sl.x + sl.w - 10 - i * 22 * k, cy = sl.y - 16;
+      const editing = e.editing && now - e.editing < PCS_PRESENCE_EDITING_MS;
+      out.push(`<g data-presence-slide="${escapeXmlAttr(nodeId)}" transform="translate(${cx},${cy}) scale(${k})"><circle r="9" fill="${escapeXmlAttr(e.color)}" stroke="#fff" stroke-width="1.5"/>${editing ? `<circle r="12" fill="none" stroke="${escapeXmlAttr(e.color)}" stroke-width="1.4" stroke-dasharray="3 2"/>` : ''}<text y="3.2" text-anchor="middle" font-size="8" font-weight="800" fill="#fff">${escapeXml(pcsPresenceInitials(e.name).slice(0, 2))}</text></g>`);
+    });
+  });
+  layer.innerHTML = out.join('');
 }
 /* ============================================================================
    43_events.js — v101  이벤트 연결 (CSP 대응: 인라인 핸들러 없이)
@@ -27015,6 +27579,8 @@ const PCS_CALLABLE = new Set([
   'apAdvanceFromModal',
   'apReturnFromModal',
   'setReportView',
+  'openPmPanelHistory',
+  'setUoHistoryArea',
   'addSuppSampleReq',
   'addSupplementalSample',
   'addUnitOperation',
