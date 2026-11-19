@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="pcs-api-base" content="">
 <meta name="pcs-firebase" content="{&quot;apiKey&quot;:&quot;AIzaSyASB4CKv15IwJUp8pIVKXFtOYwKlY7y1es&quot;,&quot;databaseURL&quot;:&quot;https://pcs-demo-18101-default-rtdb.asia-southeast1.firebasedatabase.app&quot;}">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-mrtOcb18LiHHdntKO3RAYgtLCw2ldjuh3m95Umhxtlk=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-d1f+NAWKtp6ivX+ZZadchQApTZ5gD+4NgcTu+koh1Uk=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'none'">
 <title>PCS Platform · Process Control System</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -2313,6 +2313,22 @@ textarea.ui-dialog-input{resize:vertical; min-height:72px;}
 .pm-ol-open:hover{color:#6B1222;}
 .pm-ol-note{font-size:11.5px; color:var(--ink-500); padding:6px 2px;}
 .pm-ol-help{font-size:11px; color:var(--ink-400); margin-top:12px;}
+
+/* v116 구조 내보내기·가져오기 */
+.pm-exp-opt{font-size:12.5px; display:inline-flex; align-items:center; gap:5px; cursor:pointer;}
+.pm-exp-preview{background:#FAF7F7; border:1px solid var(--line-soft); border-radius:8px; padding:10px 12px; font-size:12px; line-height:1.55; max-height:46vh; overflow:auto; white-space:pre-wrap; margin:0; font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;}
+.pm-imp-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+@media (max-width:720px){ .pm-imp-grid{grid-template-columns:1fr;} }
+.pm-imp-text{width:100%; min-height:260px; box-sizing:border-box; font-size:12px; font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; border:1px solid var(--line); border-radius:8px; padding:8px 10px; resize:vertical; tab-size:4;}
+.pm-imp-diff{font-size:12.5px; margin:6px 0 8px; padding:7px 10px; background:#F4F8F4; border:1px solid #D7E6D7; border-radius:8px;}
+.pm-imp-preview{border:1px solid var(--line-soft); border-radius:8px; max-height:300px; overflow:auto;}
+.pm-imp-row{font-size:12.5px; padding-top:4px; padding-bottom:4px; border-bottom:1px solid #F3EEEE; display:flex; align-items:center; gap:6px;}
+.pm-imp-row.kind-stage{font-weight:800; color:#6B1222;}
+.pm-imp-row.kind-step{color:var(--ink-500);}
+.crit-badge{font-size:10.5px; font-weight:800; padding:1px 6px; border-radius:4px; letter-spacing:.03em;}
+.crit-badge.cpp{background:#C0182A; color:#fff;}
+.crit-badge.kpp{background:#FFF1D6; color:#8A5A00; border:1px solid #F0D8A0;}
+.crit-none{color:var(--ink-400); font-size:11.5px;}
 </style>
 </head>
 <body>
@@ -2389,6 +2405,7 @@ const ICN = {
   unlock:`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="5" y="11" width="14" height="9" rx="1.5"/><path d="M8 11V7a4 4 0 0 1 7.5-2"/></svg>`,
   lock:`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="5" y="11" width="14" height="9" rx="1.5"/><path d="M8 11V7a4 4 0 1 1 8 0v4"/></svg>`,
   sig:`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17c2-1 3-3 4-5s2-5 4-5 1 4 3 4 3-4 5-2"/></svg>`,
+  upload:`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M5 21h14"/></svg>`,
   download:`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>`,
   history:`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 12a9 9 0 1 0 2.6-6.3"/><path d="M3 4v5h5"/><path d="M12 8v5l3 2"/></svg>`,
   workflow:`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="6" height="6" rx="1"/><rect x="15" y="15" width="6" height="6" rx="1"/><rect x="15" y="3" width="6" height="6" rx="1"/><path d="M9 6h3a3 3 0 0 1 3 3v0M18 9v6"/></svg>`,
@@ -2623,28 +2640,28 @@ const DATA = {
     ],
     parameter: [
       { id:'p_001', no:1, name:'Working Volume', unit:'L', low:0.5, high:2.0, target:null },
-      { id:'p_002', no:2, name:'Shaker Speed', unit:'rpm', low:110, high:130, target:120 },
+      { id:'p_002', no:2, name:'Shaker Speed', unit:'rpm', low:110, high:130, target:120, criticality:'KPP' },
       { id:'p_003', no:3, name:'CO2', unit:'%', low:4.5, high:5.5, target:5.0 },
-      { id:'p_004', no:4, name:'Incubation Temp', unit:'C', low:36.5, high:37.5, target:37.0 },
+      { id:'p_004', no:4, name:'Incubation Temp', unit:'C', low:36.5, high:37.5, target:37.0, criticality:'CPP' },
       { id:'p_005', no:5, name:'Agitation Rate', unit:'rpm', low:80, high:200, target:null },
-      { id:'p_006', no:6, name:'Final pH', unit:'-', low:6.8, high:7.4, target:7.0 },
+      { id:'p_006', no:6, name:'Final pH', unit:'-', low:6.8, high:7.4, target:7.0, criticality:'CPP' },
       { id:'p_007', no:7, name:'Media Batching Temperature', unit:'C', low:18, high:25, target:null },
       { id:'p_008', no:8, name:'Final Osmolality', unit:'mOsm/kg', low:280, high:320, target:null },
-      { id:'p_009', no:9, name:'Dissolved Oxygen', unit:'%', low:30, high:80, target:50 },
-      { id:'p_010', no:10, name:'Viable Cell Density', unit:'x10^6 cells/mL', low:0.3, high:12, target:null },
+      { id:'p_009', no:9, name:'Dissolved Oxygen', unit:'%', low:30, high:80, target:50, criticality:'CPP' },
+      { id:'p_010', no:10, name:'Viable Cell Density', unit:'x10^6 cells/mL', low:0.3, high:12, target:null, criticality:'KPP' },
       { id:'p_011', no:11, name:'Viability', unit:'%', low:80, high:99, target:null },
       { id:'p_012', no:12, name:'Glucose Concentration', unit:'g/L', low:1.0, high:6.0, target:null },
       { id:'p_013', no:13, name:'Lactate Concentration', unit:'g/L', low:0, high:2.5, target:null },
       { id:'p_014', no:14, name:'Osmolality (Feed)', unit:'mOsm/kg', low:300, high:400, target:null },
       { id:'p_015', no:15, name:'Conductivity', unit:'mS/cm', low:1.0, high:15.0, target:null },
       { id:'p_016', no:16, name:'UV Absorbance (A280)', unit:'AU', low:0, high:2.5, target:null },
-      { id:'p_017', no:17, name:'Column Linear Flow Rate', unit:'cm/h', low:100, high:300, target:150 },
-      { id:'p_018', no:18, name:'Load Density', unit:'g protein/L resin', low:20, high:60, target:null },
+      { id:'p_017', no:17, name:'Column Linear Flow Rate', unit:'cm/h', low:100, high:300, target:150, criticality:'KPP' },
+      { id:'p_018', no:18, name:'Load Density', unit:'g protein/L resin', low:20, high:60, target:null, criticality:'CPP' },
       { id:'p_019', no:19, name:'Elution Volume', unit:'CV', low:2, high:6, target:null },
-      { id:'p_020', no:20, name:'TMP (Transmembrane Pressure)', unit:'psi', low:5, high:30, target:15 },
+      { id:'p_020', no:20, name:'TMP (Transmembrane Pressure)', unit:'psi', low:5, high:30, target:15, criticality:'KPP' },
       { id:'p_021', no:21, name:'Permeate Flux', unit:'LMH', low:20, high:80, target:null },
       { id:'p_022', no:22, name:'Hold Time', unit:'hr', low:0, high:24, target:null },
-      { id:'p_023', no:23, name:'Filter Integrity Test Pressure', unit:'psi', low:28, high:32, target:30 },
+      { id:'p_023', no:23, name:'Filter Integrity Test Pressure', unit:'psi', low:28, high:32, target:30, criticality:'CPP' },
       { id:'p_024', no:24, name:'Bioburden', unit:'CFU/mL', low:0, high:1, target:null },
       { id:'p_025', no:25, name:'Endotoxin', unit:'EU/mL', low:0, high:0.25, target:null },
       { id:'p_026', no:26, name:'Protein Concentration', unit:'mg/mL', low:1, high:50, target:null },
@@ -2960,6 +2977,7 @@ const MASTER_FIELD_CONFIG = {
     { key:'target', label:'Set Point', type:'number' },
     { key:'low', label:'Low Limit', type:'number' },
     { key:'high', label:'High Limit', type:'number' },
+    { key:'criticality', label:'중요도 (ICH Q8 — CPP: 품질에 영향, KPP: 공정 성능에 영향)', type:'select', options:['CPP','KPP','Non-critical'] },
   ],
   training: [
     { key:'edmsRef', label:'EDMS SOP 선택', type:'edms_sop', required:true },
@@ -4784,14 +4802,23 @@ function render(){
 /* -------- DASHBOARD -------- */
 /* ============================================================================
    05b_release_notes.js — v111  앱 버전과 "이번 버전에서 바뀐 점"
-   · PCS_APP_VERSION은 build.sh가 빌드 번호로 바꿔 넣는다(v115 자리).
+   · PCS_APP_VERSION은 build.sh가 빌드 번호로 바꿔 넣는다(v116 자리).
    · PCS_RELEASE_NOTES 맨 앞 항목은 항상 이번 빌드 버전이어야 한다(tests/unit/release-notes.test.cjs가 검사).
      버전을 올릴 때 여기 맨 앞에 한 항목을 넣는다. 테스트하는 사람이 무엇을 눌러 보면 되는지(try)를 같이 쓴다.
    · 오른쪽 위 사용자 메뉴 → "버전 vN · 바뀐 점" 으로 열고, 새 버전으로 처음 열면 알림을 한 번 띄운다.
    ========================================================================== */
-var PCS_APP_VERSION = 'v115';
+var PCS_APP_VERSION = 'v116';
 
 const PCS_RELEASE_NOTES = [
+  { version: 'v116', date: '2026-11-20', title: '구조 내보내기·가져오기 (Markdown·텍스트)',
+    items: [
+      'Process Map 도구 막대의 ⤓ 단추로 구조를 .md(제목·목록)나 .txt(탭 들여쓰기)로 내려받습니다. 번호, 상태·버전, 장비·자재·파라미터를 넣을지 고르고 미리 봅니다.',
+      '⤒ 단추로 .md·.txt 파일이나 붙여 넣은 글을 가져옵니다. 선택한 가지 아래 또는 새 Draft Process Map으로, 적용 전에 미리보기와 차이(새로 추가·기존과 합침·그대로 둠·다른 자리의 같은 이름)를 봅니다.',
+      '맵에서 여러 줄 글을 바로 붙여 넣으면(Ctrl+V) 들여쓰기대로 가지가 되도록 가져오기 창이 열립니다(ThinkWise 자동 붙여넣기처럼).',
+      '가져오기는 더하기만 합니다 — 기존 노드(승인된 UO 포함)의 이름을 바꾸거나 옮기지 않습니다. Ctrl+Z 한 번으로 되돌립니다.',
+      'Parameter Master에 "중요도"(CPP·KPP)가 생겨 리스트·탐색 창·PFD 연동 후보·내보내기에 표시됩니다.',
+    ],
+    try: ['참고 PCS → ⤓ → "장비·자재·파라미터" 체크 → .md 내려받기', '메모장에 탭 들여쓰기로 몇 줄 쓰고 복사 → 맵에서 단계를 고르고 Ctrl+V'] },
   { version: 'v115', date: '2026-11-19', title: '아웃라인(메모장) 보기',
     items: [
       'Process Map 오른쪽 위 "맵 | 아웃라인"으로 같은 내용을 글 목록으로 봅니다(ThinkWise 노트 모드처럼).',
@@ -7550,6 +7577,348 @@ async function pmOutlineCopy(pmId){
   catch(_){ await uiAlert(txt, { title: '아웃라인 글 (직접 복사하세요)' }); }
   STATE.pmOutlineLastCopy = txt;
 }
+/* ============================================================================
+   07e_pm_markdown.js — v116  Process Map Markdown·텍스트 내보내기·가져오기
+   ThinkWise는 가져오기 ThinkWise·md, 내보내기 이미지·PDF·hwpx·docx·pptx·md를 지원한다(2026-11-19 둘러봄).
+   · 내보내기 .md: "# Process Map", 그 아래 노드는 깊이마다 "##"·"###"…(6단계까지), 더 깊으면 들여쓴 "- " 목록.
+     종류는 이름 뒤 [Stage]·[Step] (Unit Operation은 표시 없음). 선택: 번호(1.2.1), 상태·버전, 장비·자재·파라미터.
+     상태·리스트는 "> " 줄이라 다시 가져올 때 무시된다(구조만 가져온다).
+   · 내보내기 .txt: 탭 들여쓰기 한 줄 한 노드(번호 선택).
+   · 가져오기: .md·.txt·붙여넣은 여러 줄 글 → 새 Draft Process Map 또는 선택한 가지 아래. 적용 전 미리보기와
+     차이(추가·같은 이름 합침), 종류 규칙에 어긋나면 막고 줄 번호를 알려 준다. 승인된 UO는 바꾸지 않는다(새로 더하기만).
+   · 왕복: 내보낸 글을 다시 가져오면 같은 구조(이름·순서·종류·깊이)가 된다(테스트).
+   ========================================================================== */
+var PM_KIND_TAG = { stage: 'Stage', step: 'Step' };
+
+/* ---------- 순수 함수 ---------- */
+/* rows: pmTreeRows 결과. info(row) → { status, equipment:[], material:[], parameter:[] } (선택) */
+/* 제목(##~######)은 공정 단계·UO가 위에서부터 이어질 때만. 하위 단계(Step)와 6단계보다 깊은 곳은 가장 가까운 제목 아래 "- " 목록(2칸 = 한 단계) */
+function pmToMarkdown(title, rows, opts, info){
+  const o = opts || {};
+  const out = [`# ${title}`, ''];
+  const headDepth = {};   // id → 가장 가까운 제목의 깊이(자기가 제목이면 자기 깊이)
+  (rows || []).forEach(r => {
+    const tag = PM_KIND_TAG[r.kind] ? ` [${PM_KIND_TAG[r.kind]}]` : '';
+    const label = `${o.numbers ? r.number + ' ' : ''}${r.node.name}${tag}`;
+    const parentHead = r.parentId && headDepth[r.parentId] !== undefined ? headDepth[r.parentId] : -1;
+    const isHead = r.depth <= 4 && r.kind !== 'step' && parentHead === r.depth - 1;
+    headDepth[r.id] = isHead ? r.depth : parentHead;
+    const pad = isHead ? '' : '  '.repeat(r.depth - parentHead - 1);
+    if(isHead){ if(out[out.length - 1] !== '') out.push(''); out.push(`${'#'.repeat(r.depth + 2)} ${label}`); }
+    else out.push(`${pad}- ${label}`);
+    const d = info ? info(r) : null;
+    const q = isHead ? '> ' : `${pad}  > `;
+    if(d){
+      if(o.status && d.status) out.push(`${q}상태: ${d.status}`);
+      if(o.details){
+        if(d.equipment && d.equipment.length) out.push(`${q}장비: ${d.equipment.join(', ')}`);
+        if(d.material && d.material.length) out.push(`${q}자재: ${d.material.join(', ')}`);
+        if(d.parameter && d.parameter.length) out.push(`${q}파라미터: ${d.parameter.join(', ')}`);
+      }
+    }
+    if(isHead) out.push('');
+  });
+  return out.join('\n').replace(/\n{3,}/g, '\n\n').trim() + '\n';
+}
+function pmToText(rows, numbers){
+  return (rows || []).map(r => '\t'.repeat(r.depth) + (numbers ? r.number + ' ' : '') + r.node.name + (PM_KIND_TAG[r.kind] ? ` [${PM_KIND_TAG[r.kind]}]` : '')).join('\n') + '\n';
+}
+/* 줄 하나에서 번호·종류 표시를 떼어 낸다 */
+function pmParseLabel(s){
+  let name = String(s || '').trim();
+  let kind = null;
+  const m = /\s*\[(stage|step|uo|단계|하위 단계|공정 단계)\]\s*$/i.exec(name);
+  if(m){ const t = m[1].toLowerCase(); kind = t === 'stage' || t === '단계' || t === '공정 단계' ? 'stage' : t === 'step' || t === '하위 단계' ? 'step' : 'uo'; name = name.slice(0, m.index).trim(); }
+  name = name.replace(/^(\d+(\.\d+)*\.?)\s+/, '').replace(/^[-*+]\s+/, '').trim();
+  return { name, kind };
+}
+/* 글 → { format:'md'|'text', title, items:[{ name, kind|null, depth, line }], errors:[] }
+   md: "#" 한 개 = 제목, "##" = 깊이 0 …, "- " 목록은 마지막 제목 아래로(들여쓰기 2칸 = 한 단계). "> " 줄·빈 줄은 무시.
+   text: 탭 또는 공백 들여쓰기(처음 나온 들여쓰기 폭을 한 단계로), "- " 글머리도 허용. */
+function pmParseOutline(text){
+  const lines = String(text || '').replace(/\r\n?/g, '\n').split('\n');
+  const isMd = lines.some(l => /^#{1,6}\s+\S/.test(l));
+  const items = [], errors = [];
+  let title = '';
+  if(isMd){
+    let lastHead = -1;
+    lines.forEach((raw, i) => {
+      const l = raw.replace(/\s+$/, '');
+      if(!l.trim() || /^\s*>/.test(l)) return;
+      const h = /^(#{1,6})\s+(.*)$/.exec(l);
+      if(h){
+        if(h[1].length === 1){ if(!title) title = pmParseLabel(h[2]).name; return; }
+        const p = pmParseLabel(h[2]);
+        lastHead = h[1].length - 2;
+        if(p.name) items.push({ name: p.name, kind: p.kind, depth: lastHead, line: i + 1 });
+        return;
+      }
+      const b = /^(\s*)[-*+]\s+(.*)$/.exec(l);
+      if(b){
+        const p = pmParseLabel(b[2]);
+        const ind = Math.floor(b[1].replace(/\t/g, '  ').length / 2);
+        if(p.name) items.push({ name: p.name, kind: p.kind, depth: lastHead + 1 + ind, line: i + 1 });
+        return;
+      }
+      errors.push({ line: i + 1, msg: `알 수 없는 줄: ${l.trim().slice(0, 40)}` });
+    });
+  } else {
+    let unit = 0;
+    lines.forEach((raw, i) => {
+      if(!raw.trim()) return;
+      const lead = /^[\t ]*/.exec(raw)[0];
+      const width = lead.replace(/\t/g, '    ').length;
+      if(width && !unit) unit = lead.includes('\t') ? 4 : width;
+      const p = pmParseLabel(raw);
+      if(p.name) items.push({ name: p.name, kind: p.kind, depth: unit ? Math.round(width / unit) : 0, line: i + 1 });
+    });
+  }
+  // 깊이가 한 번에 두 단계 이상 들어가면 한 단계로 맞춘다
+  let prev = -1;
+  items.forEach(it => { if(it.depth > prev + 1){ errors.push({ line: it.line, msg: `들여쓰기가 너무 깊어 한 단계로 맞췄습니다: ${it.name}`, warn: true }); it.depth = prev + 1; } prev = it.depth; });
+  return { format: isMd ? 'md' : 'text', title, items, errors };
+}
+/* 종류 정하기·규칙 검사. parentKind: 붙일 자리의 종류(루트면 null). 표시 없는 줄은 부모가 허용하면 UO, 아니면 하위 단계 */
+function pmResolveImport(items, parentKind){
+  const out = [], errors = [];
+  const stack = [];   // 깊이별 종류
+  (items || []).forEach(it => {
+    const pk = it.depth === 0 ? (parentKind || null) : stack[it.depth - 1];
+    const kind = it.kind || (pmKindAllowed('uo', pk) ? 'uo' : 'step');
+    if(!pmKindAllowed(kind, pk)) errors.push({ line: it.line, msg: `${it.line}번째 줄 "${it.name}": ${pmKindRuleText(kind)}` });
+    stack[it.depth] = kind; stack.length = it.depth + 1;
+    out.push(Object.assign({}, it, { kind }));
+  });
+  return { items: out, errors };
+}
+/* 차이: 붙일 자리의 기존 트리(이름으로 경로를 따라감)와 비교 — merge면 같은 이름은 기존 노드로 합친다.
+   existing: [{ name, kind, children:[…] }], elsewhere: 붙일 자리 밖의 같은 Process Map 노드 [{ name, kind, number }]
+   반환 { add, merge, total, keep: 글에 없어 그대로 두는 기존 노드 수, moved: 다른 자리에 같은 이름이 있는 추가 줄 [{ name, line, where }] }
+   가져오기는 더하기만 한다 — 기존 노드의 이름을 바꾸거나 옮기거나 지우지 않는다(승인된 UO 보호). 옮김·이름 바뀜으로 보이는 곳은 알려만 준다. */
+function pmImportDiff(items, existing, merge, elsewhere){
+  let add = 0, mergeN = 0;
+  const moved = [];
+  const stack = [{ children: existing || [], virtual: false }];
+  (items || []).forEach(it => {
+    stack.length = it.depth + 1;
+    const parent = stack[it.depth] || { children: [], virtual: true };
+    const hit = merge && !parent.virtual ? (parent.children || []).find(c => c.name === it.name && (c.kind || 'uo') === it.kind) : null;
+    if(hit){ mergeN++; stack[it.depth + 1] = { children: hit.children || [], virtual: false }; return; }
+    add++; stack[it.depth + 1] = { children: [], virtual: true };
+    const other = (elsewhere || []).find(e => e.name === it.name && (e.kind || 'uo') === it.kind);
+    if(other) moved.push({ name: it.name, line: it.line, where: other.number });
+  });
+  const countAll = list => (list || []).reduce((s, c) => s + 1 + countAll(c.children), 0);
+  return { add, merge: mergeN, total: (items || []).length, keep: countAll(existing) - mergeN, moved };
+}
+
+/* ---------- 데이터 ---------- */
+function pmImportElsewhere(pmId, parentId){
+  const rows = pmTreeRows(getPmTreeNodes(pmId));
+  const inside = new Set(parentId && parentId !== 'ROOT' ? [parentId].concat(pmDescendantIds(getPmTreeNodes(pmId), parentId)) : rows.map(r => r.id));
+  return rows.filter(r => !inside.has(r.id)).map(r => ({ name: r.node.name, kind: r.kind, number: r.number }));
+}
+function pmExistingTree(pmId, parentId){
+  const nodes = getPmTreeNodes(pmId);
+  const build = pid => nodes.filter(n => (n.parentId || null) === (pid || null)).sort((a, b) => (a.order || 0) - (b.order || 0)).map(n => ({ id: n.id, name: n.name, kind: pmNodeKind(n), children: build(n.id) }));
+  return build(parentId && parentId !== 'ROOT' ? parentId : null);
+}
+/* 파라미터 한 개: 이름 [CPP] (범위 단위) — 중요도는 Parameter Master "중요도"(CPP·KPP) */
+function pmParamExportText(p){
+  const range = p.low != null || p.high != null ? ` (${p.low ?? ''}–${p.high ?? ''}${p.unit && p.unit !== '-' ? ' ' + p.unit : ''})` : '';
+  const crit = p.criticality === 'CPP' || p.criticality === 'KPP' ? ` [${p.criticality}]` : '';
+  return `${p.name}${crit}${range}`;
+}
+function pmNodeExportInfo(r){
+  if(r.kind !== 'uo') return null;
+  const b = ensureNodeListBucket(r.id);
+  const nm = (t, id) => { const m = getMasterItem(t, id); return m ? m.name : id; };
+  return {
+    status: `${uoStatusOf(r.id)} v${uoVersionOf(r.id)}`,
+    equipment: (b.equipment || []).map(id => { const e = getMasterItem('equipment', id); return e ? `${e.name}${e.tag ? ' (' + e.tag + ')' : ''}` : id; }),
+    material: (b.material || []).map(id => nm('material', id)),
+    parameter: (b.parameter || []).map(id => { const p = getMasterItem('parameter', id); return p ? pmParamExportText(p) : id; }),
+  };
+}
+
+/* ---------- store: 가져오기 ---------- */
+/* [store] items(pmResolveImport 결과)를 parentId 아래로. merge: 같은 이름·종류는 기존 노드로 합침. 반환 새로 만든 id 목록 */
+function pmImportOutline(pmId, parentId, items, merge){
+  const root = parentId && parentId !== 'ROOT' ? parentId : null;
+  const made = [];
+  const stack = [root];
+  (items || []).forEach(it => {
+    stack.length = it.depth + 1;
+    const pid = stack[it.depth];
+    const existing = merge && pid !== undefined ? getProcessChildren(pmId, pid).find(c => c.name === it.name && pmNodeKind(c) === it.kind) : null;
+    if(existing){ stack[it.depth + 1] = existing.id; return; }
+    const id = createProcessNode(pmId, it.name, pid);
+    const n = DATA.nodes.find(x => x.id === id);
+    if(it.kind !== 'uo') n.kind = it.kind;
+    made.push(id);
+    stack[it.depth + 1] = id;
+  });
+  if(made.length){
+    pmTidyLayout(pmId);
+    logAudit('Process Map', 'Import Outline', `${made.length}개 노드 가져오기 → ${root ? (DATA.nodes.find(n => n.id === root) || {}).name : 'ROOT'}`, null, null, { pmId });
+  }
+  validateData(DATA);
+  return made;
+}
+
+/* ---------- 화면: 내보내기 ---------- */
+function pmExportOpen(pmId){
+  STATE.pmExport = STATE.pmExport || { numbers: true, status: false, details: false };
+  STATE.pmExport.pmId = pmId;
+  pmExportRender();
+}
+function pmExportSet(key, val){ if(STATE.pmExport){ STATE.pmExport[key] = !!val; pmExportRender(); } }
+function pmExportBuild(pmId, format){
+  const pm = DATA.processMaps.find(m => m.id === pmId);
+  const o = STATE.pmExport || {};
+  const rows = pmTreeRows(getPmTreeNodes(pmId));
+  return format === 'txt' ? pmToText(rows, o.numbers) : pmToMarkdown(`${pm.code} ${pm.name}`, rows, o, pmNodeExportInfo);
+}
+function pmExportRender(){
+  const s = STATE.pmExport; if(!s) return;
+  const md = pmExportBuild(s.pmId, 'md');
+  const chk = (k, l) => `<label class="pm-exp-opt"><input type="checkbox" ${s[k] ? 'checked' : ''} data-exp-opt="${k}" ${pcsOn('change', 'pcsCallWithChecked', ['pmExportSet', k])}> ${escapeXml(l)}</label>`;
+  apModalRoot().innerHTML = `<div class="modal-overlay" data-on-click="if_cb546e"><div class="modal-card" style="max-width:720px;" data-pm-export>
+    <div class="modal-header">구조 내보내기 — Markdown · 텍스트</div>
+    <div class="modal-body">
+      <div style="display:flex; gap:14px; flex-wrap:wrap; margin-bottom:10px;">${chk('numbers', '번호 붙이기')}${chk('status', '상태·버전')}${chk('details', '장비·자재·파라미터')}</div>
+      <pre class="pm-exp-preview" data-exp-preview>${escapeXml(md)}</pre>
+      <p style="font-size:11.5px; color:var(--ink-500); margin:6px 0 0;">"> " 줄(상태·리스트)은 읽기용이라 다시 가져올 때 무시됩니다. 구조(이름·순서·종류)만 왕복됩니다.</p>
+    </div>
+    <div class="modal-actions"><button class="btn" data-on-click="closeGlobalModal">닫기</button>
+      <button class="btn" id="pmExportTxt" data-on-click="pmExportDownload" data-a-click="${pcsArgs(['txt'])}">${icon('download')} .txt</button>
+      <button class="btn btn-primary" id="pmExportMd" data-on-click="pmExportDownload" data-a-click="${pcsArgs(['md'])}">${icon('download')} .md</button></div>
+  </div></div>`;
+}
+/* 파일 이름은 영문·숫자만 — 한글이 든 이름은 일부 Chrome(헤드리스·일부 로캘)에서 blob 내려받기 때 "download"로 바뀌어 확장자까지 사라진다 */
+function pmExportFileName(pm, format){
+  const safe = s => String(s || '').replace(/[^A-Za-z0-9+._-]+/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '');
+  return `${[safe(pm.code), safe(pm.name)].filter(Boolean).join('_') || 'ProcessMap'}_structure.${format}`;
+}
+function pmExportDownload(format){
+  const s = STATE.pmExport; if(!s) return;
+  const pm = DATA.processMaps.find(m => m.id === s.pmId);
+  const body = pmExportBuild(s.pmId, format);
+  const blob = new Blob([body], { type: format === 'md' ? 'text/markdown;charset=utf-8' : 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = pmExportFileName(pm, format);
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  logAudit('Process Map', 'Export Outline', `${pm.code} 구조 .${format}`, null, null, { pmId: pm.id });
+}
+
+/* ---------- 화면: 가져오기(미리보기·차이) ---------- */
+/* target: 'new'(새 Draft Process Map) | 'branch'(선택한 가지 아래, 없으면 루트) */
+function pmImportOpen(pmId, text, target){
+  const sel = getActiveTab().ctx.selectedProcessNodeId;
+  STATE.pmImport = { pmId, text: text || '', target: target || (pmStructureEditable(pmId) ? 'branch' : 'new'), parentId: sel && sel !== 'ROOT' && DATA.nodes.some(n => n.id === sel && n.pmId === pmId) ? sel : 'ROOT', merge: true, error: '' };
+  pmImportRender();
+}
+function pmImportSet(key, val){ const s = STATE.pmImport; if(!s) return; s[key] = key === 'merge' ? !!val : val; s.error = ''; pmImportRender(); }
+function pmImportPickFile(){ const i = document.getElementById('pmImportFile'); if(i) i.click(); }
+function pmImportFromFile(input){
+  const f = input.files && input.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = () => { if(STATE.pmImport){ STATE.pmImport.text = String(r.result || ''); STATE.pmImport.fileName = f.name; pmImportRender(); } };
+  r.readAsText(f);
+}
+function pmImportAnalyse(){
+  const s = STATE.pmImport;
+  const parsed = pmParseOutline(s.text);
+  const parent = s.target === 'branch' && s.parentId !== 'ROOT' ? DATA.nodes.find(n => n.id === s.parentId) : null;
+  const res = pmResolveImport(parsed.items, parent ? pmNodeKind(parent) : null);
+  const diff = s.target === 'branch' ? pmImportDiff(res.items, pmExistingTree(s.pmId, s.parentId), s.merge, pmImportElsewhere(s.pmId, s.parentId)) : { add: res.items.length, merge: 0, total: res.items.length, keep: 0, moved: [] };
+  return { parsed, res, diff, parent };
+}
+/* 오른쪽(미리보기·차이) — 글을 칠 때마다 이 부분만 다시 그린다(원문 칸은 그대로 두어 초점·커서가 안 흔들린다) */
+function pmImportSideHtml(s, a){
+  const warn = a.parsed.errors.filter(e => e.warn), errs = a.parsed.errors.filter(e => !e.warn).concat(a.res.errors);
+  const preview = a.res.items.map(it => `<div class="pm-imp-row kind-${it.kind}" style="padding-left:${it.depth * 18 + 6}px;"><span class="pm-kind-tag kind-${it.kind}">${PM_NODE_KINDS[it.kind].short.toUpperCase()}</span> ${escapeXml(it.name)}</div>`).join('');
+  return `<b style="font-size:12px;">미리보기 · 차이</b>
+          <div class="pm-imp-diff" data-imp-diff>노드 ${a.diff.total}개 — 새로 추가 <b>${a.diff.add}</b>${s.target === 'branch' ? ` · 기존과 합침 <b>${a.diff.merge}</b>` : ''}${a.diff.keep ? ` · 글에 없어 그대로 둠 ${a.diff.keep}` : ''} <span class="mb-uo-sub">(${a.parsed.format === 'md' ? 'Markdown' : '들여쓰기 글'})</span></div>
+          ${a.diff.moved.length ? `<div class="mb-uo-warn" data-imp-moved>다른 자리에 같은 이름이 있습니다 — 옮긴 것이면 가져온 뒤 맵에서 옮기세요(가져오기는 기존 노드를 옮기거나 이름을 바꾸지 않습니다): ${a.diff.moved.map(m => `${m.line}번째 줄 "${escapeXml(m.name)}" ↔ ${escapeXml(m.where)}`).join(', ')}</div>` : ''}
+          ${errs.length ? `<div class="pcs-import-msg error" data-imp-errors>${errs.map(e => escapeXml(e.msg)).join('<br>')}</div>` : ''}
+          ${warn.length ? `<div class="mb-uo-warn">${warn.map(e => escapeXml(e.msg)).join('<br>')}</div>` : ''}
+          <div class="pm-imp-preview" data-imp-preview>${preview || '<div class="mb-uo-sub" style="padding:10px;">가져올 줄이 없습니다.</div>'}</div>`;
+}
+function pmImportCanApply(a){ return a.res.items.length && !a.parsed.errors.some(e => !e.warn) && !a.res.errors.length; }
+function pmImportSetText(value){
+  const s = STATE.pmImport; if(!s) return;
+  s.text = value;
+  const a = pmImportAnalyse();
+  const side = document.querySelector('[data-imp-side]'); if(side) side.innerHTML = pmImportSideHtml(s, a);
+  const btn = document.getElementById('pmImportApply'); if(btn){ btn.disabled = !pmImportCanApply(a); btn.textContent = `${a.diff.add}개 추가`; }
+  const nt = document.querySelector('[data-imp-newtitle]'); if(nt) nt.textContent = a.parsed.title || '제목 없음';
+}
+function pmImportRender(){
+  const s = STATE.pmImport; if(!s) return;
+  const a = pmImportAnalyse();
+  const canBranch = pmStructureEditable(s.pmId);
+  apModalRoot().innerHTML = `<div class="modal-overlay" data-on-click="if_cb546e"><div class="modal-card" style="max-width:820px;" data-pm-import>
+    <div class="modal-header">구조 가져오기 — Markdown · 텍스트 · 붙여넣기</div>
+    <div class="modal-body">
+      <div class="pm-imp-grid">
+        <div>
+          <div style="display:flex; gap:8px; align-items:center; margin-bottom:6px;"><b style="font-size:12px;">원문</b>
+            <button class="btn btn-sm" data-on-click="pmImportPickFile">${icon('upload')} 파일 고르기 (.md · .txt)</button>
+            <input type="file" id="pmImportFile" accept=".md,.markdown,.txt,text/plain,text/markdown" style="display:none" ${pcsOn('change', 'pmImportFromFileEl', [])}>
+            ${s.fileName ? `<span class="mb-uo-sub">${escapeXml(s.fileName)}</span>` : ''}</div>
+          <textarea id="pmImportText" class="pm-imp-text" placeholder="# Process Map&#10;## Seed Train [Stage]&#10;### Flask Culture&#10;&#10;또는 탭 들여쓰기 글을 붙여 넣으세요" ${pcsOn('input', 'pcsCallWithValue', ['pmImportSetText'])}>${escapeXml(s.text)}</textarea>
+          <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:8px; font-size:12px;">
+            <label><input type="radio" name="pmImpTarget" ${s.target === 'branch' ? 'checked' : ''} ${canBranch ? '' : 'disabled'} ${pcsOn('change', 'pmImportSet', ['target', 'branch'])}> 이 Process Map의 ${escapeXml(s.parentId === 'ROOT' ? '맨 위' : '"' + ((a.parent || {}).name || '') + '" 아래')}</label>
+            <label><input type="radio" name="pmImpTarget" ${s.target === 'new' ? 'checked' : ''} ${pcsOn('change', 'pmImportSet', ['target', 'new'])}> 새 Draft Process Map (<span data-imp-newtitle>${escapeXml(a.parsed.title || '제목 없음')}</span>)</label>
+            ${s.target === 'branch' ? `<label><input type="checkbox" ${s.merge ? 'checked' : ''} ${pcsOn('change', 'pcsCallWithChecked', ['pmImportSet', 'merge'])}> 같은 이름·종류는 기존 노드로 합치기</label>` : ''}
+          </div>
+        </div>
+        <div data-imp-side>${pmImportSideHtml(s, a)}</div>
+      </div>
+      ${s.error ? `<p class="pcs-import-msg error">${escapeXml(s.error)}</p>` : ''}
+    </div>
+    <div class="modal-actions"><button class="btn" data-on-click="closeGlobalModal">취소</button>
+      <button class="btn btn-primary" id="pmImportApply" ${pmImportCanApply(a) ? '' : 'disabled'} data-on-click="pmImportApply">${a.diff.add}개 추가</button></div>
+  </div></div>`;
+}
+function pmImportFromFileEl(){ pmImportFromFile(document.getElementById('pmImportFile')); }
+function pmImportApply(){
+  const s = STATE.pmImport; if(!s) return;
+  const a = pmImportAnalyse();
+  if(!pmImportCanApply(a)) return;
+  if(s.target === 'new'){
+    const src = DATA.processMaps.find(m => m.id === s.pmId);
+    const id = genId('pm');
+    store.addProcessMap({ id, productId: src.productId, code: src.code, name: a.parsed.title || `${src.name} (가져옴)`, kind: src.kind, reviewedBy: '', approvedBy: '', status: 'Draft', version: 'v1.0', description: '', scope: '', approvalHistory: [] });
+    ensurePmFlowEdges(id);
+    pmImportOutline(id, 'ROOT', a.res.items, false);
+    STATE.pmImport = null; closeGlobalModal();
+    openProcessMapInNewTab(id);
+    return;
+  }
+  const made = pmWithUndo(s.pmId, () => pmImportOutlineGuarded(s.pmId, s.parentId, a.res.items, s.merge));
+  if(!made){ return; }
+  STATE.pmImport = null; closeGlobalModal();
+  uiToast(`${made.length}개 노드를 가져왔습니다.`, { kind: 'success' });
+  render();
+}
+/* 구조 잠금을 지키는 가져오기(PM_STRUCTURE_MUTATORS에 등록) */
+function pmImportOutlineGuarded(pmId, parentId, items, merge){ return pmImportOutline(pmId, parentId, items, merge); }
+
+/* 여러 줄 글을 Process Map에 붙여 넣으면(ThinkWise "자동 붙여넣기") 가져오기 미리보기로 — 내부 가지 클립보드가 없을 때 */
+if(typeof document !== 'undefined' && document.addEventListener && !globalThis.__pmPasteBound){
+  globalThis.__pmPasteBound = true;
+  document.addEventListener('paste', e => {
+    if(pmClipboard || !pmKeyTargetOk(e) || pmViewMode() !== 'map') return;
+    const text = e.clipboardData && e.clipboardData.getData('text/plain');
+    if(!text || !/\S/.test(text)) return;
+    e.preventDefault();
+    pmImportOpen(document.getElementById('pmCanvasWrap').getAttribute('data-pmid'), text, 'branch');
+  });
+}
 function openBomReport(pmId){
   goTo('bomReport', { reportPmId: pmId }, { label:'BOM Report', tag:'BOM' });
 }
@@ -8483,12 +8852,17 @@ function pmToolbarHtml(pm){
       <select class="pm-level-select" id="pmLevelSelect" aria-label="레벨까지 펼치기" title="몇 레벨까지 펼칠지" ${pcsOn('change', 'pcsCallWithValue', ['pmExpandToLevelFor', pm.id])}>
         <option value="">레벨…</option><option value="1">1레벨까지</option><option value="2">2레벨까지</option><option value="3">3레벨까지</option><option value="0">모두 펼치기</option>
       </select>
+      <span class="pm-toolbar-sep"></span>
+      <div class="pm-zoom-btn pm-tool-text" id="pmExportBtn" role="button" tabindex="0" data-on-click="pmExportOpen" data-a-click="${pcsArgs([pm.id])}" title="구조 내보내기 (.md · .txt)">${icon('download')}</div>
+      <div class="pm-zoom-btn pm-tool-text" id="pmImportBtn" role="button" tabindex="0" data-on-click="pmImportOpen" data-a-click="${pcsArgs([pm.id, '', ''])}" title="구조 가져오기 (.md · .txt · 붙여넣기)">${icon('upload')}</div>
     </div>
     ${isMap && STATE.pmLayoutPopup ? `<div class="pm-layout-popup">
       <div style="font-size:11px; font-weight:700; color:var(--ink-500); margin-bottom:6px;">진행 방향 / 레이아웃</div>
       ${PM_LAYOUTS.map(l=>`<div class="pm-layout-opt" data-on-click="applyPmLayout" data-a-click="${pcsArgs([String(pm.id), String(l.id)])}" title="${escapeXmlAttr(l.label)}"><span style="font-size:16px;">${l.icon}</span><span style="font-size:10px;">${escapeXml(l.label)}</span></div>`).join('')}
     </div>` : ''}`;
 }
+/* v116 Parameter 중요도(CPP·KPP) 표시 */
+function critBadge(v){ return v === 'CPP' ? '<span class="crit-badge cpp">CPP</span>' : v === 'KPP' ? '<span class="crit-badge kpp">KPP</span>' : `<span class="crit-none">${escapeXml(v || '-')}</span>`; }
 /* 캔버스(SVG·흐름선 층) */
 function pmCanvasHtml(pm, maxX, maxY, edges, rootSvg, rootAddHandle, nodesSvg, flowEdgesSvg){
   return `
@@ -8767,7 +9141,7 @@ function renderListBody(node, listType){
   const colsMap = {
     material: [['Name','name'],['Cat Number','cat','mono'],['Specification','spec'],['Storage','storage','badge']],
     equipment: [['Name','name'],['Tag ID','tag','mono'],['Area','area'],['Calibration','cal','badge-green']],
-    parameter: [['Parameter','name'],['Unit','unit','mono'],['Set Point','target','mono'],['Low Limit','low','mono'],['High Limit','high','mono']],
+    parameter: [['Parameter','name'],['중요도','criticality','crit'],['Unit','unit','mono'],['Set Point','target','mono'],['Low Limit','low','mono'],['High Limit','high','mono']],
     training: [['SOP No.','no','mono'],['Title','title'],['Version','version','mono']],
     sampling: [['No.','no','mono'],['Sample Type','sampleType'],['Test','test'],['Qty','qty','mono'],['Container','container']],
   };
@@ -8796,6 +9170,7 @@ function renderListBody(node, listType){
       const val = item[key];
       const safeVal = (val!=null && val!=='') ? val : '-';
       if(kind==='mono') return `<td class="cell-mono">${escapeXml(safeVal)}</td>`;
+      if(kind==='crit') return `<td>${critBadge(val)}</td>`;
       if(kind==='badge') return `<td><span class="badge badge-gray"><span class="badge-dot"></span>${escapeXml(safeVal)}</span></td>`;
       if(kind==='badge-green') return `<td><span class="badge badge-green"><span class="badge-dot"></span>${escapeXml(safeVal)}</span></td>`;
       return `<td>${escapeXml(safeVal)}</td>`;   // v104: 열 키가 변수라 escape_audit가 못 잡던 곳
@@ -8889,7 +9264,7 @@ function renderMasterImportModal(keepFocus){
   const colsMap = {
     material: [['Name','name'],['Cat Number','cat'],['Specification','spec'],['BOM Class','bomClass'],['Storage','storage']],
     equipment: [['Name','name'],['Tag ID','tag'],['Area','area'],['Calibration','cal']],
-    parameter: [['Parameter','name'],['Unit','unit'],['Set Point','target'],['Low','low'],['High','high']],
+    parameter: [['Parameter','name'],['중요도','criticality'],['Unit','unit'],['Set Point','target'],['Low','low'],['High','high']],
     training: [['SOP No.','no'],['Title','title'],['Version','version']],
     sampling: [['No.','no'],['Sample Type','sampleType'],['Test','test'],['Qty','qty'],['Container','container']],
   };
@@ -9195,7 +9570,7 @@ function renderMasterListFull(){
   const titleColsMap = {
     material: [['No.','no','mono'],['Name','name'],['Cat Number','cat','mono'],['Material Code','code','mono'],['Specification','spec'],['BOM Class','bomClass','bom-class'],['BOM Type','bomType','bom-type'],['Unit','unit','mono'],['Unit Cost (KRW)','unitCost','cost'],['Vendor','vendor'],['Storage','storage','badge']],
     equipment: [['No.','no','mono'],['Name','name'],['Tag ID','tag','mono'],['Class 1','class1'],['Class 2','class2'],['Vendor','vendor'],['Model No.','modelNo','mono'],['Manufacturer','manufacturer'],['Area','area'],['Parameter','linkedParams'],['Calibration','cal','badge-green']],
-    parameter: [['No.','no','mono'],['Parameter','name'],['Unit','unit','mono'],['Set Point','target','mono'],['Low Limit','low','mono'],['High Limit','high','mono']],
+    parameter: [['No.','no','mono'],['Parameter','name'],['중요도','criticality','crit'],['Unit','unit','mono'],['Set Point','target','mono'],['Low Limit','low','mono'],['High Limit','high','mono']],
     training: [['SOP No.','no','mono'],['Title','title'],['Version','version','mono']],
     sampling: [['No.','no','mono'],['Sample Type','sampleType'],['Test','test'],['Qty','qty','mono'],['Container','container'],['Frequency','frequency'],['Storage','storage'],['Unit Operation','unitOperationId']],
   };
@@ -9224,6 +9599,7 @@ function renderMasterListFull(){
       if(kind==='cost') return `<td class="cell-mono">${typeof val==='number' ? val.toLocaleString('ko-KR') : escapeXml(val||'-')}</td>`;
       if(kind==='bom-class') return `<td><span class="badge ${BOM_CLASS_BADGE[val]||'badge-gray'}"><span class="badge-dot"></span>${escapeXml(val||'-')}</span></td>`;
       if(kind==='bom-type') return `<td><span class="bom-type-tag">${escapeXml(val||'-')}</span></td>`;
+      if(kind==='crit') return `<td>${critBadge(val)}</td>`;
       if(kind==='badge') return `<td><span class="badge badge-gray"><span class="badge-dot"></span>${show(val)}</span></td>`;
       if(kind==='badge-green') return `<td><span class="badge badge-green"><span class="badge-dot"></span>${show(val)}</span></td>`;
       if(key==='linkedParams' && Array.isArray(val)){
@@ -18879,7 +19255,7 @@ function candidateMetaText(listType, it, relatedParamIds){
     const setpoint = (it.target!==undefined && it.target!==null && it.target!=='') ? `Set ${it.target}` : '';
     const range = `${it.low}–${it.high}`;
     const unit = it.unit&&it.unit!=='-'?' '+it.unit:'';
-    return `${[setpoint,range].filter(Boolean).join(' · ')}${unit} ${isRelated?'⚡ 장비 연동':''}`;
+    return `${it.criticality==='CPP'||it.criticality==='KPP' ? it.criticality+' · ' : ''}${[setpoint,range].filter(Boolean).join(' · ')}${unit} ${isRelated?'⚡ 장비 연동':''}`;
   }
   return it.code||it.tag||'';
 }
@@ -21661,6 +22037,7 @@ const PM_STRUCTURE_MUTATORS = {
   pmAddChildNode: args => { const p = uoNode(args[0]); return p ? p.pmId : getActiveTab().ctx.pmId; },
   pmAddChildUi: args => { const p = uoNode(args[0]); return p ? p.pmId : getActiveTab().ctx.pmId; },
   pmSetNodeKind: pmOfNode(0), pmSetNodeKindUi: pmOfNode(0), pmIndentNode: pmOfNode(0), pmOutdentNode: pmOfNode(0), pmGroupIntoStage: uoArg(0), pmGroupSelectionUi: uoArg(0), pmDeleteBranch: uoArg(0), pmDeleteBranchUi: uoArg(0),
+  pmImportOutlineGuarded: uoArg(0),   // v116 가져오기(선택한 가지 아래)
 };
 /* ---------------------------------------------------------------------------
    v83 : 편집 한 번 = (실행취소 기록 + audit trail + 검증) 한 묶음
@@ -29475,6 +29852,15 @@ const PCS_CALLABLE = new Set([
   'setUoHistoryArea',
   'togglePmPanelFull',
   'openReleaseNotes',
+  'pmExportOpen',
+  'pmExportSet',
+  'pmExportDownload',
+  'pmImportOpen',
+  'pmImportSet',
+  'pmImportSetText',
+  'pmImportPickFile',
+  'pmImportFromFileEl',
+  'pmImportApply',
   'pmAddChildUi',
   'pmSetNodeKindUi',
   'pmSelectBranch',
@@ -29803,6 +30189,8 @@ const PCS_CALLABLE = new Set([
 const PCS_HANDLERS = {
   /* 공용: [함수, 인자…, 속성] + 요소 값 → 함수(인자…, 속성, this.value) */
   pcsCallWithValue(event, a){ return pcsCall(a[0], a.slice(1).concat([this.value])); },
+  /* 공용: [함수, 인자…] + 체크 상자 → 함수(인자…, this.checked) */
+  pcsCallWithChecked(event, a){ return pcsCall(a[0], a.slice(1).concat([this.checked])); },
   /* 공용: [함수, 인자…, 속성, 최소, 최대, 기본] + 숫자 입력 → 범위 안으로 */
   pcsCallWithNumber(event, a){
     const [min, max, dflt] = a.slice(-3); const head = a.slice(0, -3);
