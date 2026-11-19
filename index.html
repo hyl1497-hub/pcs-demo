@@ -5,7 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="pcs-api-base" content="">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-ROQN22Gkjx5X3oWq/Nl6KcqGqq6QeXAAyFVltx1wKKI=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-VCBM01nQ4AE0B8mdBkbmk8IJICx9309j+dpQ/lojzdY=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'none'">
 <title>PCS Platform · Process Control System</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -210,7 +210,15 @@ button:focus-visible, .crumb:focus-visible, [tabindex]:focus-visible, input:focu
 .topbar{
   background:#fff; border-bottom:1px solid var(--line);
   padding:0 28px; flex-shrink:0; z-index:40;
+  display:flex; align-items:center; gap:10px;
 }
+.topbar .crumbrow{flex:1; min-width:0;}
+/* v105→v106: 이전 화면으로 */
+.crumb-back{display:inline-flex; align-items:center; gap:5px; flex:none; height:32px; padding:0 12px; border:1px solid var(--line); border-radius:8px; background:#fff; color:var(--burgundy-900); font-size:12.5px; font-weight:700; cursor:pointer; font-family:inherit;}
+.crumb-back:hover:not(:disabled){background:var(--pink-50); border-color:#F2C7CC;}
+.crumb-back:disabled{color:var(--ink-400); cursor:default; opacity:.55;}
+.pfd-editor-backbtn{width:auto !important; padding:0 10px !important; gap:5px; font-size:12px; font-weight:700; white-space:nowrap; max-width:220px; overflow:hidden; text-overflow:ellipsis;}
+.pfd-editor-backbtn span{overflow:hidden; text-overflow:ellipsis;}
 .crumbrow{display:flex; align-items:center; gap:8px; height:50px; font-size:13px; overflow-x:auto;}
 .crumb{
   display:flex; align-items:center; gap:6px; color:var(--ink-500); white-space:nowrap;
@@ -2183,7 +2191,7 @@ textarea.ui-dialog-input{resize:vertical; min-height:72px;}
     <!-- In-App Tab Bar -->
     <div class="tab-bar" id="tabBar"></div>
     <!-- Topbar (Breadcrumbs) -->
-    <div class="topbar"><div class="crumbrow" id="crumbrow"></div></div>
+    <div class="topbar"><button type="button" class="crumb-back" id="navBackBtn" data-on-click="goBack" title="이전 화면으로 (Alt+←, 브라우저 뒤로)" disabled>←<span>뒤로</span></button><div class="crumbrow" id="crumbrow"></div></div>
     <!-- Scrollable View -->
     <div class="view-container">
       <div class="view" id="view"></div>
@@ -3868,16 +3876,20 @@ function closeTab(tabId, event) {
   event.stopPropagation();
   if(STATE.tabs.length === 1) return; // Don't close last tab
   const idx = STATE.tabs.findIndex(t => t.id === tabId);
+  const closed = STATE.tabs[idx];
   STATE.tabs.splice(idx, 1);
   if(STATE.activeTabId === tabId) {
-    STATE.activeTabId = STATE.tabs[Math.max(0, idx - 1)].id;
+    // v106: 이 탭을 연 탭이 남아 있으면 그리로
+    const opener = closed && closed.openerId && STATE.tabs.find(t => t.id === closed.openerId);
+    STATE.activeTabId = opener ? opener.id : STATE.tabs[Math.max(0, idx - 1)].id;
   }
   render();
 }
 
 function openInNewTab(title, initialPath, initialCtx) {
   const newId = 'tab_' + Date.now() + Math.floor(Math.random()*1000);
-  STATE.tabs.push({ id: newId, title, path: initialPath, ctx: initialCtx, isEditingList: false, isEditingProcessMap: false });
+  // v106: 연 탭을 기억해 첫 화면에서 "뒤로"를 누르면 돌아간다
+  STATE.tabs.push({ id: newId, title, path: initialPath, ctx: initialCtx, isEditingList: false, isEditingProcessMap: false, openerId: STATE.activeTabId });
   STATE.activeTabId = newId;
   render();
   document.querySelector('.view-container').scrollTo(0,0);
@@ -4271,6 +4283,54 @@ function goToCrumb(idx){
   render();
 }
 
+/* ---------- v106 이전 화면으로 ----------
+   순수 함수: 지금 탭에서 "뒤로"가 갈 곳.
+   1) 탭 안에서 한 단계 위(브레드크럼 바로 앞)  2) 탭의 첫 화면이면 이 탭을 연 탭(예: Process Map 목록 → 연 Process Map)
+   없으면 null. */
+function navBackTarget(tab, tabs){
+  if(!tab) return null;
+  const path = tab.path || [];
+  if(path.length > 1) return { kind:'crumb', idx:path.length - 2, label:path[path.length - 2].label };
+  const opener = tab.openerId && (tabs || []).find(t => t.id === tab.openerId && t.id !== tab.id);
+  if(opener){ const top = (opener.path || [])[opener.path.length - 1] || {}; return { kind:'tab', tabId:opener.id, label:top.label || opener.title }; }
+  return null;
+}
+function goBack(){
+  const t = navBackTarget(getActiveTab(), STATE.tabs);
+  if(!t) return false;
+  if(t.kind === 'crumb') goToCrumb(t.idx); else switchTab(t.tabId);
+  const vc = document.querySelector('.view-container'); if(vc) vc.scrollTo(0,0);
+  return true;
+}
+function renderBackButton(){
+  const b = document.getElementById('navBackBtn');
+  if(!b) return;
+  const t = navBackTarget(getActiveTab(), STATE.tabs);
+  b.disabled = !t;
+  b.title = t ? `${t.label}(으)로 돌아가기 (Alt+←, 브라우저 뒤로)` : '돌아갈 이전 화면이 없습니다';
+  b.setAttribute('aria-label', t ? `뒤로: ${t.label}` : '뒤로');
+}
+
+/* 브라우저 뒤로(마우스 뒤로 버튼, Alt+←)도 앱 안의 "뒤로"로.
+   앱은 주소가 하나라서 브라우저 기록에 표시 하나를 쌓아 두고, 뒤로가 오면 앱 안에서 한 단계 돌아간 뒤 다시 쌓는다.
+   돌아갈 곳이 없으면 다시 쌓지 않는다 → 한 번 더 누르면 브라우저가 평소대로 이전 사이트로 간다(작업은 자동 저장). */
+var pcsHistoryArmed = false;   // var: 로드 중 불려도 TDZ가 없게(LESSONS v70·v102)
+function pcsHistoryArm(){
+  if(pcsHistoryArmed || typeof history === 'undefined' || !history.pushState) return;
+  try { history.pushState({ pcsBack: 1 }, ''); pcsHistoryArmed = true; } catch(_){}
+}
+function pcsOnPopState(){
+  pcsHistoryArmed = false;
+  if(!STATE.auth || !STATE.auth.loggedIn) return;
+  if(typeof uiDialogIsOpen === 'function' && uiDialogIsOpen()){ pcsHistoryArm(); return; }   // 앱 대화상자는 스스로 닫는다
+  // 떠 있는 모달이 있으면 먼저 닫는다(Esc와 같은 동작)
+  const overlays = [...document.querySelectorAll('.modal-overlay, .wi-modal-overlay')].filter(o => o.getClientRects().length > 0 && typeof o.onclick === 'function');
+  const top = overlays[overlays.length - 1];
+  if(top){ top.dispatchEvent(new MouseEvent('click', { bubbles:true, cancelable:true, view:window })); pcsHistoryArm(); return; }
+  if(goBack()) pcsHistoryArm();
+}
+if(typeof window !== 'undefined' && window.addEventListener) window.addEventListener('popstate', pcsOnPopState);
+
 function labelFor(view, ctx){
   switch(view){
     case 'dashboard': return 'Dashboard';
@@ -4416,6 +4476,8 @@ function render(){
   renderTabBar();
   renderSidebarNav();
   renderCrumbs();
+  renderBackButton();
+  if(STATE.auth && STATE.auth.loggedIn) pcsHistoryArm();
   renderHeader();
   
   const viewEl = document.getElementById('view');
@@ -5287,7 +5349,9 @@ function openProcessMapInNewTab(pmId){
   
   // Check if tab already opened
   const tabId = 'tab_pm_' + pmId;
-  if (STATE.tabs.find(t => t.id === tabId)) {
+  const openTab = STATE.tabs.find(t => t.id === tabId);
+  if (openTab) {
+    if(STATE.activeTabId !== tabId) openTab.openerId = STATE.activeTabId;   // v106: 뒤로 → 방금 있던 화면
     switchTab(tabId);
     return;
   }
@@ -9816,7 +9880,7 @@ function renderPfdBoard(){
     <div class="pfd-editor ${pfdBoardUI.leftCollapsed?'left-collapsed':''} ${pfdBoardUI.rightCollapsed?'right-collapsed':''} ${focusNodeId?'focus-mode':''}" id="pfdEditor" data-focus="${focusNodeId||''}">
       <div class="pfd-editor-topbar">
         <div class="pfd-editor-title">
-          <button class="pfd-editor-iconbtn" ${focusNodeId?pcsOn('click','goTo',['pfdBoard',{pmId},{replace:true}]):pcsOn('click','goTo',['processMap',{},{replace:true}])} title="${focusNodeId?'전체 보드 보기':'닫고 Process Map으로'}">${focusNodeId?(icon('layoutGrid')||'▤'):(icon('close')||'✕')}</button>
+          ${renderPfdEditorNavButtons(pmId, focusNodeId)}
           <div><div class="pfd-editor-eyebrow">${eyebrowName}</div><div class="pfd-editor-name">${escapeXml(titleName)}</div></div>
         </div>
         <div class="pfd-editor-topbar-actions">
@@ -11106,6 +11170,22 @@ function pfdNetInspSet(nodeId, netId, prop, value){
   validateData(DATA);
   renderPfdBoardCanvas();
   refreshPfdBoardRightPanel();
+}
+
+/* v106: PFD 편집기는 화면 전체를 덮어 앱의 뒤로·브레드크럼이 안 보인다 → 왼쪽 위에 "← 어디로" 버튼을 둔다.
+   - 뒤로: 들어오기 전 화면(Process Map, PFD Master 등). 갈 곳이 없으면 이 PCS의 Process Map을 연다.
+   - 개별 UO 화면에서는 "전체 보드"로 바꿔 보기(같은 단계라 뒤로는 그대로 들어오기 전 화면) */
+function renderPfdEditorNavButtons(pmId, focusNodeId){
+  const t = navBackTarget(getActiveTab(), STATE.tabs);
+  const label = t ? t.label : 'Process Map';
+  const back = `<button class="pfd-editor-iconbtn pfd-editor-backbtn" id="pfdEditorBackBtn" ${pcsOn('click', 'pfdEditorGoBack', [pmId])} title="${escapeXmlAttr(label)}(으)로 돌아가기 (Alt+←)" aria-label="뒤로: ${escapeXmlAttr(label)}">← <span>${escapeXml(label)}</span></button>`;
+  const board = focusNodeId ? `<button class="pfd-editor-iconbtn pfd-editor-backbtn" id="pfdEditorBoardBtn" ${pcsOn('click', 'goTo', ['pfdBoard', { pmId }, { replace:true }])} title="이 PCS의 모든 UO 도면을 한 보드에서 보기">${icon('layoutGrid')||'▤'} <span>전체 보드</span></button>` : '';
+  return back + board + `<div class="pfd-bottombar-sep" style="height:22px; margin:0 4px;"></div>`;
+}
+function pfdEditorGoBack(pmId){
+  if(goBack()) return;
+  const pm = DATA.processMaps.find(m => m.id === pmId);
+  if(pm) goTo('processMap', { pmId, pmName:`${pm.code} ${pm.name}` }, { replace:true, label:`${pm.code} ${pm.name}` });
 }
 function renderPfdSlideInner(nodeId, slide, isActive){
   const shapes = ensurePfdShapes(nodeId);
@@ -26274,6 +26354,8 @@ const PCS_CALLABLE = new Set([
   'openGlobalSearch',
   'pmListSetQuery',
   'pmListSetStatus',
+  'goBack',
+  'pfdEditorGoBack',
   'addSuppSampleReq',
   'addSupplementalSample',
   'addUnitOperation',
