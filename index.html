@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="pcs-api-base" content="">
 <meta name="pcs-firebase" content="{&quot;apiKey&quot;:&quot;AIzaSyASB4CKv15IwJUp8pIVKXFtOYwKlY7y1es&quot;,&quot;databaseURL&quot;:&quot;https://pcs-demo-18101-default-rtdb.asia-southeast1.firebasedatabase.app&quot;}">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-x3YJBSYLrTt7kEpO61fqo2r7t67sKU4vaQEsNeIOrtw=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-CvEyVvPGUg5VvDmnGEs3oYRYRz3YJEfoLgswHieVKHM=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'none'">
 <title>PCS Platform · Process Control System</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -714,6 +714,26 @@ button:focus-visible, .crumb:focus-visible, [tabindex]:focus-visible, input:focu
 .uo-chip{display:inline-flex; align-items:center; gap:6px; padding:3px 9px 3px 3px; border:1px solid var(--line); border-radius:999px; font-size:11.5px; cursor:pointer; background:#fff;}
 .uo-chip:hover{border-color:var(--red-600);}
 .uo-chip.warn{border-color:#E0B25C; background:var(--amber-50);}
+/* v108 결재 묶음 */
+.ap-strip{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:10px; padding-top:10px; border-top:1px dashed var(--line);}
+.ap-strip-label{display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:700; color:var(--burgundy-900);}
+.ap-strip .btn{margin-left:auto;}
+.ap-chip{border-style:solid; border-color:#C9B6F2;}
+.ap-list{border:1px solid var(--line); border-radius:8px;}
+.ap-row{display:flex; align-items:center; gap:10px; padding:8px 12px; border-bottom:1px solid var(--line-soft); font-size:12.5px; cursor:pointer;}
+.ap-row:last-child{border-bottom:none;}
+.ap-row.disabled{opacity:.6; cursor:default;}
+.ap-row-name{flex:1; min-width:0; font-weight:600;}
+.ap-row-note{font-size:11px; color:var(--ink-500); min-width:90px; text-align:right;}
+/* v108 중간 보고서: 승인 전 작업본 표시 */
+.pcs-report-paper.report-working{position:relative; background-repeat:repeat; -webkit-print-color-adjust:exact; print-color-adjust:exact;}
+.pcs-report-paper.report-working[data-watermark="DRAFT"]{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='360'%3E%3Ctext x='320' y='190' text-anchor='middle' transform='rotate(-24 320 180)' font-family='Arial,sans-serif' font-size='44' font-weight='900' letter-spacing='4' fill='rgba(201,40,40,0.08)'%3EDRAFT%3C/text%3E%3C/svg%3E");}
+.pcs-report-paper.report-working[data-watermark="IN APPROVAL"]{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='360'%3E%3Ctext x='320' y='190' text-anchor='middle' transform='rotate(-24 320 180)' font-family='Arial,sans-serif' font-size='44' font-weight='900' letter-spacing='4' fill='rgba(201,40,40,0.08)'%3EIN APPROVAL%3C/text%3E%3C/svg%3E");}
+.report-working-head{border:2px solid #E3A0A0; background:#FFF5F5; color:#8A1B1B; border-radius:8px; padding:10px 14px; margin-bottom:16px; font-size:12.5px;}
+.report-working-head b{font-size:13.5px;}
+.report-working-head table{width:100%; margin-top:8px; border-collapse:collapse; font-size:11.5px;}
+.report-working-head td,.report-working-head th{border-top:1px solid #F0CACA; padding:4px 6px; text-align:left; color:#4A2A2A;}
+.report-view-toggle{display:flex; gap:6px; align-items:center; margin-bottom:12px; font-size:12px;}
 .uo-chip-name{color:var(--ink-700); font-weight:600;}
 .uo-chip-ver{color:var(--ink-400); font-family:'IBM Plex Mono',monospace; font-size:10.5px;}
 .uo-chip-warn{display:inline-flex; align-items:center; justify-content:center; width:14px; height:14px; border-radius:50%; background:#C98A1E; color:#fff; font-size:10px; font-weight:800;}
@@ -2729,6 +2749,7 @@ const DATA = {
 
   /* ===== v80: UO 승인 스냅샷 — nodeId별 승인본 목록 [{version, approvedBy, approvedAt, content, masters, hash}] ===== */
   uoSnapshots: {},
+  approvalPackages: [],   // v108 결재 묶음(21b_approval_package.js) — 실제 상신으로만 생긴다
 };
 
 /* ===== BOM (Bill of Material) Level 정의 — LBK BOM Level 정의(MSAT) 기준.
@@ -2934,6 +2955,7 @@ function validateData(data){
   checkIdUnique(data.supplementalSampleRequests, 'SSR');
   checkIdUnique(data.peopleMaster, 'peopleMaster');
   checkIdUnique(data.batchRecords, 'batchRecords');
+  checkIdUnique(data.approvalPackages, 'approvalPackages');
   
   /* 2. 외래키 참조 무결성 */
   const clientIds = new Set((data.clients||[]).map(c=>c.id));
@@ -2964,6 +2986,10 @@ function validateData(data){
   });
   (data.batchRecords||[]).forEach(b=>{
     if(!pmIds.has(b.pmId)) errors.push(`[고아 참조] BR ${b.id} → PM ${b.pmId} 미존재`);
+  });
+  (data.approvalPackages||[]).forEach(p=>{   // v108 결재 묶음
+    if(!pmIds.has(p.pmId)) errors.push(`[고아 참조] 결재 묶음 ${p.no||p.id} → PM ${p.pmId} 미존재`);
+    (p.nodeIds||[]).forEach(id=>{ if(!nodeIds.has(id)) errors.push(`[고아 참조] 결재 묶음 ${p.no||p.id} → Node ${id} 미존재`); });
   });
   
   /* 3. nodeLists 참조 무결성 */
@@ -3026,7 +3052,17 @@ function dashboardWorkQueue(data){
   const pmName = id => { const m = pms.find(x => x.id === id); return m ? `${m.code || ''} ${m.name || ''}`.trim() : ''; };
   const out = [];
   pms.forEach(m => { if(PCS_PENDING_STATES.ProcessMap.includes(m.status)) out.push({ type:'pm', typeLabel:'Process Map', id:m.id, pmId:m.id, title:pmName(m.id), status:m.status }); });
-  (data.nodes || []).forEach(n => { const st = n.uoStatus || 'Draft'; if(PCS_PENDING_STATES.UnitOperation.includes(st) && pms.some(m => m.id === n.pmId)) out.push({ type:'uo', typeLabel:'Unit Operation', id:n.id, pmId:n.pmId, title:n.name || n.id, sub:pmName(n.pmId), status:st }); });
+  // v108: 진행 중인 결재 묶음은 한 줄로 보이고, 묶음에 든 UO는 따로 나열하지 않는다
+  const statusById = {}; (data.nodes || []).forEach(n => { statusById[n.id] = n.uoStatus || 'Draft'; });
+  const inPackage = new Set();
+  (data.approvalPackages || []).forEach(p => {
+    if(!pms.some(m => m.id === p.pmId)) return;
+    const s = apStage(p, id => statusById[id] || 'Draft');
+    if(s.stage === 'Approved' || s.stage === 'Returned') return;
+    p.nodeIds.forEach(id => inPackage.add(id));
+    out.push({ type:'ap', typeLabel:'결재 묶음', id:p.id, pmId:p.pmId, title:`${p.no} ${p.title}`, sub:`${pmName(p.pmId)} · UO ${s.total}개 · ${s.approved}개 승인`, status:s.stage });
+  });
+  (data.nodes || []).forEach(n => { const st = n.uoStatus || 'Draft'; if(!inPackage.has(n.id) && PCS_PENDING_STATES.UnitOperation.includes(st) && pms.some(m => m.id === n.pmId)) out.push({ type:'uo', typeLabel:'Unit Operation', id:n.id, pmId:n.pmId, title:n.name || n.id, sub:pmName(n.pmId), status:st }); });
   pms.forEach(m => { if(PCS_PENDING_STATES.Report.includes(m._reportStatus)) out.push({ type:'report', typeLabel:'PCS Report', id:m.id, pmId:m.id, title:pmName(m.id), status:m._reportStatus }); });
   (data.batchRecords || []).forEach(b => { if(PCS_PENDING_STATES.BatchRecord.includes(b.status)) out.push({ type:'br', typeLabel:'Batch Record', id:b.id, pmId:b.pmId, title:b.code, sub:pmName(b.pmId), status:b.status }); });
   (data.supplementalSampleRequests || []).forEach(r => { if(PCS_PENDING_STATES.SSR.includes(r.status)) out.push({ type:'ssr', typeLabel:'추가 샘플 요청', id:r.id, title:`${r.no || ''} ${r.sampleType || ''}`.trim(), sub:r.batchRecordId ? ((data.batchRecords || []).find(b => b.id === r.batchRecordId) || {}).code || '' : '', status:r.status }); });
@@ -3127,6 +3163,8 @@ const store = {
     const removed = DATA.nodes.filter(n=>nodeIds.includes(n.id));
     DATA.nodes = DATA.nodes.filter(n=>!nodeIds.includes(n.id));
     removed.forEach(n=>{ logAudit('Process Map','Delete Node',`${n.name} (${n.id})`); _allIds.delete(n.id); });
+    // v108: 결재 묶음에서도 뺀다(이력은 그대로)
+    (DATA.approvalPackages||[]).forEach(p=>{ if((p.nodeIds||[]).some(id=>nodeIds.includes(id))) p.nodeIds = p.nodeIds.filter(id=>!nodeIds.includes(id)); });
   },
   updateNode(nodeId, field, value){
     const node = DATA.nodes.find(n=>n.id===nodeId);
@@ -3912,7 +3950,7 @@ function openInNewTab(title, initialPath, initialCtx) {
 /* Process Map 복제 범위 [INT-025, CLN-001] — cloneProcessMap이 이 정의를 따른다(tests/unit/urs-modules.test.cjs가 확인) */
 const PCS_CLONE_SCOPE = {
   included: ['Process Map 정보(새 이름, 상태 Draft·v1.0)', 'UO 노드(계층·위치, 승인 상태 Draft v0)', '공정 흐름', 'UO 리스트', 'PFD 도면 전체와 마스터 연동', 'UO 간 도형 전달', 'Work Instruction(새 ID)', 'PFD 보드 배치', 'Mass Balance(새 ID, PFD 연동은 복제본으로)'],
-  excluded: ['승인 이력·기준선·버전 기록', 'UO 승인본(스냅샷)', '발행된 MBR', 'Batch Record', '추가 샘플 요청', '보고서 상태'],
+  excluded: ['승인 이력·기준선·버전 기록', 'UO 승인본(스냅샷)', '발행된 MBR', 'Batch Record', '추가 샘플 요청', '보고서 상태', '결재 묶음'],
 };
 /* 객체 안의 모든 id 필드를 새 ID로(sourceId 같은 마스터 참조는 그대로) */
 function pcsRemapIdsDeep(obj, remapId){
@@ -4730,6 +4768,7 @@ function dashboardOpenItem(type, id){
   if(type === 'pm'){ openProcessMapInNewTab(id); return; }
   if(type === 'uo'){ const n = DATA.nodes.find(x => x.id === id); if(!n) return; openProcessMapInNewTab(n.pmId); openPmPanelMenu(id); return; }
   if(type === 'report'){ openProcessMapInNewTab(id); openPcsReport(id); return; }
+  if(type === 'ap'){ const p = (DATA.approvalPackages || []).find(x => x.id === id); if(!p) return; openProcessMapInNewTab(p.pmId); apOpenModal(id); return; }
   if(type === 'br'){ navSidebar('brMaster'); openBatchRecordFromMaster(id); return; }
   if(type === 'ssr'){ navSidebar('suppSampleReq'); return; }
   if(type === 'pmList'){ navSidebar('processMap'); getActiveTab().ctx.pmListStatus = id; render(); return; }
@@ -5623,8 +5662,8 @@ function renderProcessMap(){
         <button class="btn ${isEditing ? 'btn-primary' : ''}" data-on-click="toggleProcessMapEdit"><span>${isEditing ? icon('check') : icon('plus')}</span>${isEditing ? '편집 완료' : '공정 커스텀'}</button>
         <button class="btn" data-on-click="goTo_719a82" data-a-click="${pcsArgs([String(pm.id)])}" title="이 PCS의 모든 PFD를 한 보드에서 편집"><span>${icon('layoutGrid')}</span>PFD 보드</button>
         <button class="btn" data-on-click="openPmApprovalHistory" data-a-click="${pcsArgs([String(pm.id)])}"><span>${icon('history')}</span>버전 기록 (${pm.version})</button>
-        <button class="btn ${pm.status==='Approved'?'btn-primary':''}" ${pm.status==='Approved'?pcsOn('click','openPcsReport',[pm.id]):''} ${pm.status!=='Approved'?'disabled style="opacity:.4;cursor:not-allowed;" title="Approved 상태에서만 Export 가능합니다"':''}><span>${icon('fileText')}</span>Export PCS Report</button>
-        <button class="btn ${pm.status==='Approved'?'btn-primary':''}" ${pm.status==='Approved'?pcsOn('click','openBomReport',[pm.id]):''} ${pm.status!=='Approved'?'disabled style="opacity:.4;cursor:not-allowed;" title="Approved 상태에서만 Export 가능합니다"':''}><span>${icon('flask')}</span>Export BOM Report</button>
+        <button class="btn ${pm.status==='Approved'?'btn-primary':''}" id="pmPcsReportBtn" ${pcsOn('click','openPcsReport',[pm.id])} title="${pm.status==='Approved'?'승인본 PCS Report':'승인 전 작업본(Draft / In Approval)으로 열립니다'}"><span>${icon('fileText')}</span>${pm.status==='Approved'?'Export PCS Report':'PCS Report (작업본)'}</button>
+        <button class="btn ${pm.status==='Approved'?'btn-primary':''}" id="pmBomReportBtn" ${pcsOn('click','openBomReport',[pm.id])} title="${pm.status==='Approved'?'승인본 BOM Report':'승인 전 작업본(Draft / In Approval)으로 열립니다'}"><span>${icon('flask')}</span>${pm.status==='Approved'?'Export BOM Report':'BOM Report (작업본)'}</button>
         ${renderPmApprovalActions(pm)}
       </div></div>
     <div class="pm-meta-grid"><div class="pm-meta-cell"><div class="pm-meta-label">Product Code</div><div class="pm-meta-val">${escapeXml(product.code)}</div></div><div class="pm-meta-cell"><div class="pm-meta-label">Reviewed by</div><div class="pm-meta-val">${escapeXml(pm.reviewedBy)}</div></div><div class="pm-meta-cell"><div class="pm-meta-label">Approved by</div><div class="pm-meta-val">${escapeXml(pm.approvedBy)}</div></div><div class="pm-meta-cell"><div class="pm-meta-label">버전</div><div class="pm-meta-val">${pm.version}</div></div></div>
@@ -5667,7 +5706,7 @@ function renderProcessMap(){
 
 /* =========================================================
    Process Map 승인 워크플로우 — Draft → In Review → Pending Approval → Approved.
-   Export PCS Report는 Approved 상태에서만 가능하다(실제 승인된 공정 전략 문서만 보고서화한다는 원칙).
+   PCS Report·BOM은 Approved 전에도 열 수 있다(v108): 공식본은 승인 기준선, 그 전에는 "승인 전 작업본"(Draft / In Approval) 표시와 워터마크(21_uo_approval.js renderReportOnBaseline).
    ========================================================= */
 const PM_APPROVAL_STATES = ['Draft','In Review','Pending Approval','Approved'];
 const PM_APPROVAL_BADGE = { Draft:'badge-gray', 'In Review':'badge-amber', 'Pending Approval':'badge-blue', Approved:'badge-green' };
@@ -5854,13 +5893,13 @@ function renderPcsReport(){
       <div>
         <span class="view-eyebrow">Export PCS Report</span>
         <h1 class="view-title">${escapeXml(pm.name)} · Process Control Strategy Report</h1>
-        <p class="view-sub">승인된(Approved) Process Map 정보를 종합한 보고서입니다. 화면에서 검토한 뒤 다운로드하거나 인쇄/PDF로 저장할 수 있습니다.</p>
+        <p class="view-sub">${reportWorkingCopy ? '승인 전 작업본입니다 — 지금 편집 중인 내용으로 만든 중간 결과이며 공식 문서가 아닙니다. 인쇄·다운로드에도 작업본 표시가 함께 나갑니다.' : '승인된(Approved) Process Map 정보를 종합한 보고서입니다. 화면에서 검토한 뒤 다운로드하거나 인쇄/PDF로 저장할 수 있습니다.'}</p>
       </div>
       <div class="view-actions">
-        ${!pm._reportStatus||pm._reportStatus==='Draft' ? `<button class="btn" data-on-click="setReportStatus" data-a-click="${pcsArgs([String(pm.id), 'In Review'])}">${icon('arrowR')}<span style="margin-left:4px;">Send for Review</span></button>` : ''}
+        ${reportWorkingCopy ? '' : `${!pm._reportStatus||pm._reportStatus==='Draft' ? `<button class="btn" data-on-click="setReportStatus" data-a-click="${pcsArgs([String(pm.id), 'In Review'])}">${icon('arrowR')}<span style="margin-left:4px;">Send for Review</span></button>` : ''}
         ${pm._reportStatus==='In Review' ? `<button class="btn" data-on-click="setReportStatus" data-a-click="${pcsArgs([String(pm.id), 'Pending Approval'])}">${icon('arrowR')}<span style="margin-left:4px;">Send for Approval</span></button>` : ''}
-        ${pm._reportStatus==='Pending Approval' ? `<button class="btn btn-primary" data-on-click="setReportStatus" data-a-click="${pcsArgs([String(pm.id), 'Published'])}">${icon('check')}<span style="margin-left:4px;">Publish</span></button>` : ''}
-        <span class="badge ${({'Draft':'badge-gray','In Review':'badge-amber','Pending Approval':'badge-blue','Published':'badge-green'})[pm._reportStatus||'Draft']||'badge-gray'}"><span class="badge-dot"></span>${pm._reportStatus||'Draft'}</span>
+        ${pm._reportStatus==='Pending Approval' ? `<button class="btn btn-primary" data-on-click="setReportStatus" data-a-click="${pcsArgs([String(pm.id), 'Published'])}">${icon('check')}<span style="margin-left:4px;">Publish</span></button>` : ''}`}
+        ${reportWorkingCopy ? `<span class="badge badge-amber" data-report-badge><span class="badge-dot"></span>작업본 · ${escapeXml(reportWorkingCopy.status)}</span>` : `<span class="badge ${({'Draft':'badge-gray','In Review':'badge-amber','Pending Approval':'badge-blue','Published':'badge-green'})[pm._reportStatus||'Draft']||'badge-gray'}"><span class="badge-dot"></span>${pm._reportStatus||'Draft'}</span>`}
         <button class="btn" data-on-click="openBomReport" data-a-click="${pcsArgs([String(pm.id)])}">${icon('flask')}<span style="margin-left:4px;">BOM</span></button>
         <button class="btn" data-on-click="exportPcsReportDocx" data-a-click="${pcsArgs([String(pm.id)])}">${icon('download')}<span style="margin-left:4px;">Word</span></button>
         <button class="btn" data-on-click="downloadPcsReport" data-a-click="${pcsArgs([String(pm.id)])}">${icon('download')}<span style="margin-left:4px;">HTML</span></button>
@@ -6179,7 +6218,7 @@ function renderBomReport(){
       <div>
         <span class="view-eyebrow">Export BOM Report</span>
         <h1 class="view-title">${escapeXml(pm.name)} · Bill of Material Report</h1>
-        <p class="view-sub">승인된(Approved) Process Map의 각 Unit Operation에서 사용 중인 Material을 BOM Level(Unit Operation → 물질 클래스 → Material) 구조로 종합한 보고서입니다.</p>
+        <p class="view-sub">${reportWorkingCopy ? '승인 전 작업본입니다 — 지금 편집 중인 Material 구성으로 만든 중간 결과이며 공식 문서가 아닙니다.' : '승인된(Approved) Process Map의 각 Unit Operation에서 사용 중인 Material을 BOM Level(Unit Operation → 물질 클래스 → Material) 구조로 종합한 보고서입니다.'}</p>
       </div>
       <div class="view-actions">
         <button class="btn" data-on-click="openPcsReport" data-a-click="${pcsArgs([String(pm.id)])}">${icon('fileText')}<span style="margin-left:4px;">PCS Report 보기</span></button>
@@ -19528,29 +19567,18 @@ function uoNeedsQa(node){
 function advanceUo(nodeId){
   const n = uoNode(nodeId);
   if(!n) return;
-  const cur = uoStatusOf(nodeId);
-  if(cur === 'Draft'){
-    if(!uoSetStatus(nodeId, 'In Review', '검토 요청')) return;
-    n.uoSubmittedHash = uoHash(uoContentOf(nodeId));
-  } else if(cur === 'In Review' || cur === 'Reviewed' || cur === 'QA Review'){
-    if(uoUnapprovedChange(nodeId)){
-      uiAlert('검토 요청 이후 내용이 바뀌었습니다.\n반려해 Draft로 되돌린 뒤 다시 검토를 요청하세요.', { title:'승인을 진행할 수 없습니다' });
-      return;
-    }
-    if(cur === 'In Review'){ if(!uoSetStatus(nodeId, 'Reviewed', 'Reviewed by')) return; }
-    else if(cur === 'Reviewed' && uoNeedsQa(n)){ if(!uoSetStatus(nodeId, 'QA Review', 'Approved by')) return; }
-    else {
-      if(!uoSetStatus(nodeId, 'Approved', cur === 'QA Review' ? 'QA 확인' : 'Approved by')) return;
-      const at = uoNow(), by = uoActor();
-      n.uoVersion = (n.uoVersion || 0) + 1;
-      n.uoHistory[n.uoHistory.length-1].version = n.uoVersion;
-      n.uoSubmittedHash = null;
-      takeUoSnapshot(nodeId, n.uoVersion, by, at);
-      const issued = tryIssueMinorBaseline(n.pmId, by);
-      const pm = DATA.processMaps.find(m=>m.id===n.pmId);
-      if(issued) uoLockNotice(`${n.name} v${n.uoVersion} 승인 — Process Map ${issued} 발행`);
-      else if(pm && pm.status === 'Approved') uoLockNotice(`${n.name} v${n.uoVersion} 승인 — 나머지 Unit Operation이 모두 승인되면 새 Process Map 버전이 발행됩니다`);
-    }
+  // v108: 결재 묶음에 든 UO는 묶음 화면에서 진행한다
+  const pkg = typeof apOpenPackageOf === 'function' && apOpenPackageOf(DATA, nodeId, uoStatusOf);
+  if(pkg){ uoLockNotice(`"${n.name}"은(는) 결재 묶음 ${pkg.no}에서 진행 중입니다. 묶음 화면에서 진행하세요.`); return; }
+  const r = uoAdvanceCore(nodeId);   // 21b_approval_package.js — 단일 승인과 결재 묶음이 같은 규칙을 쓴다
+  if(!r.ok && r.reason === 'changed'){
+    uiAlert('검토 요청 이후 내용이 바뀌었습니다.\n반려해 Draft로 되돌린 뒤 다시 검토를 요청하세요.', { title:'승인을 진행할 수 없습니다' });
+    return;
+  }
+  if(r.ok && r.to === 'Approved'){
+    const pm = DATA.processMaps.find(m=>m.id===n.pmId);
+    if(r.issued) uoLockNotice(`${n.name} v${n.uoVersion} 승인 — Process Map ${r.issued} 발행`);
+    else if(pm && pm.status === 'Approved') uoLockNotice(`${n.name} v${n.uoVersion} 승인 — 나머지 Unit Operation이 모두 승인되면 새 Process Map 버전이 발행됩니다`);
   }
   render();
 }
@@ -19783,6 +19811,7 @@ function renderPmUoStrip(pm){
     <div class="uo-strip">
       <div class="uo-strip-head">${icon('shield')}<span>Unit Operation 승인 <b>${approved} / ${r.nodes.length}</b></span><span class="uo-strip-note">${note}</span></div>
       <div class="uo-strip-chips">${chips || '<span class="uo-strip-note">Unit Operation이 없습니다.</span>'}</div>
+      ${renderApStripSection(pm)}
       ${alerts}
     </div>`;
 }
@@ -19794,7 +19823,11 @@ function renderUoApprovalCard(node){
   const needsQa = uoNeedsQa(node);
   const btn = (label, fn, primary)=>`<button class="btn btn-sm ${primary?'btn-primary':''}" ${pcsOn('click', fn, [node.id])}>${label}</button>`;
   let actions = '', hint = '';
-  if(st === 'Draft'){
+  const pkg = apOpenPackageOf(DATA, node.id, uoStatusOf);   // v108 결재 묶음
+  if(pkg){
+    actions = `<button class="btn btn-sm btn-primary" data-on-click="apOpenModal" data-a-click="${pcsArgs([String(pkg.id)])}">결재 묶음 ${escapeXml(pkg.no)} 열기</button>`;
+    hint = `결재 묶음 ${escapeXml(pkg.no)}에서 진행 중입니다. 검토·승인·반려는 묶음 화면에서 합니다.`;
+  } else if(st === 'Draft'){
     actions = btn('검토 요청', 'advanceUo', true);
     hint = '검토를 요청하면 PFD, 리스트, Work Instruction이 잠깁니다.';
   } else if(st === 'In Review'){
@@ -19869,16 +19902,49 @@ function renderUoVersionTable(pm){
   return `<div class="pcs-table-caption">Unit Operation 버전 — ${pm.baseline.version} 기준선</div>
     <table class="pcs-report-table" style="margin-bottom:22px;"><thead><tr><th>Unit Operation</th><th>Version</th><th>Approved At</th><th>Approved By</th></tr></thead><tbody>${rows}</tbody></table>`;
 }
+/* v108: 보고서 상태(순수 함수). 공식본(Approved)은 Process Map 승인 + 기준선이 있을 때만.
+   그 전에는 지금 편집 중인 내용(작업본)을 Draft(아직 회람 시작 전) 또는 In Approval(회람 중이거나 일부 승인)로 보여 준다.
+   승인된 Process Map을 개정 중이면 기본은 승인본, view='working'이면 작업본(In Approval). */
+function reportDocState(pmStatus, hasBaseline, uoStatuses, view, hasPendingRevision){
+  const official = pmStatus === 'Approved' && hasBaseline;
+  if(official && !(view === 'working' && hasPendingRevision)) return { status:'Approved', working:false };
+  if(official) return { status:'In Approval', working:true, revision:true };
+  const started = (uoStatuses || []).some(s => s !== 'Draft') || pmStatus === 'In Review' || pmStatus === 'Pending Approval';
+  return { status: started ? 'In Approval' : 'Draft', working:true, revision:false };
+}
+var reportWorkingCopy = null;   // 작업본을 그리는 동안만 값이 있다(보고서 발행 버튼 숨김 등). var: 로드 중 참조돼도 TDZ 없음
+function setReportView(view){ getActiveTab().ctx.reportView = view; render(); }
+/* 작업본 머리(종이 안 — 인쇄·HTML·Word 내보내기에 함께 나간다) */
+function renderReportWorkingHead(pm, state, nodes){
+  const approved = nodes.filter(n => uoStatusOf(n.id) === 'Approved').length;
+  const rows = nodes.map(n => { const st = uoStatusOf(n.id), snap = getUoSnapshot(n.id);
+    return `<tr data-report-uo="${escapeXmlAttr(n.id)}"><td>${escapeXml(n.name)}</td><td>${escapeXml(st)}</td><td>${snap ? 'v' + snap.version : '-'}</td></tr>`; }).join('');
+  return `<div class="report-working-head" data-report-state="${escapeXmlAttr(state.status)}">
+    <b>승인 전 작업본 · ${escapeXml(state.status)}</b> — 공식 문서가 아닙니다. ${state.revision ? `승인본은 ${escapeXml(pm.baseline.version)}이며, 아래 내용은 개정 중인 값입니다.` : '지금 편집 중인 내용을 보여 줍니다.'} Unit Operation 승인 ${approved} / ${nodes.length}
+    <table><thead><tr><th>Unit Operation</th><th>상태</th><th>승인본</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
 function renderReportOnBaseline(renderFn){
   const pmId = getActiveTab().ctx.reportPmId;
   const pm = DATA.processMaps.find(m=>m.id===pmId);
-  let notice = '';
-  if(pm && pm.baseline){
-    const r = pmUoReadiness(pmId);   // 스냅샷을 끼워 넣기 전의 실제 상태
-    const pending = [...new Set([...r.notApproved, ...r.changed, ...r.drift.map(d=>d.node)])];
-    if(pending.length) notice = `<div class="note-banner no-print">${icon('shield')}<span>이 보고서는 기준선 ${pm.baseline.version}의 승인본으로 만들어집니다. 재작업 중이거나 재검토가 필요한 Unit Operation(${pending.map(n=>escapeXml(n.name)).join(', ')})의 변경은 다시 승인된 뒤에 반영됩니다.</span></div>`;
+  if(!pm) return renderFn();
+  const r = pmUoReadiness(pmId);   // 스냅샷을 끼워 넣기 전의 실제 상태
+  const pending = [...new Set([...r.notApproved, ...r.changed, ...r.drift.map(d=>d.node)])];
+  const view = getActiveTab().ctx.reportView || 'official';
+  const state = reportDocState(pm.status, !!pm.baseline, r.nodes.map(n => uoStatusOf(n.id)), view, pending.length > 0);
+  const toggle = pm.status === 'Approved' && pm.baseline && pending.length ? `<div class="report-view-toggle no-print" data-report-toggle>
+      <span>보기:</span>
+      <button class="btn btn-sm ${state.working ? '' : 'btn-primary'}" data-on-click="setReportView" data-a-click="${pcsArgs(['official'])}">승인본 (${escapeXml(pm.baseline.version)})</button>
+      <button class="btn btn-sm ${state.working ? 'btn-primary' : ''}" data-on-click="setReportView" data-a-click="${pcsArgs(['working'])}">작업본 (개정 중)</button></div>` : '';
+  if(!state.working){
+    const notice = pending.length ? `<div class="note-banner no-print">${icon('shield')}<span>이 보고서는 기준선 ${pm.baseline.version}의 승인본으로 만들어집니다. 재작업 중이거나 재검토가 필요한 Unit Operation(${pending.map(n=>escapeXml(n.name)).join(', ')})의 변경은 다시 승인된 뒤에 반영됩니다.</span></div>` : '';
+    return toggle + notice + withPmBaseline(pmId, renderFn);
   }
-  return notice + withPmBaseline(pmId, renderFn);
+  reportWorkingCopy = state;
+  let html;
+  try { html = renderFn(); } finally { reportWorkingCopy = null; }
+  const head = renderReportWorkingHead(pm, state, r.nodes);
+  html = html.replace(/<div class="pcs-report-paper" id="(\w+)">/, (m, id) => `<div class="pcs-report-paper report-working" id="${id}" data-watermark="${state.status === 'Draft' ? 'DRAFT' : 'IN APPROVAL'}">${head}`);
+  return toggle + html;
 }
 
 /* ---------- 초기화 ---------- */
@@ -19908,6 +19974,275 @@ function initUoApproval(){
 }
 initUoApproval();
 installUoGuards();
+/* =========================================================
+   v108 — 결재 묶음 (Approval Package)  21b_approval_package.js
+   UO가 많은 Process Map에서 UO를 하나씩 회람하지 않고, 여러 UO를 묶어 한 번에 상신·검토·승인한다.
+   · 상신: 고른 Draft UO들이 한꺼번에 In Review가 된다(UO마다 감사 기록, 메모에 묶음 번호).
+   · 단계: 묶음의 단계 = 아직 남은 UO 중 가장 앞선 상태. 단계 버튼 한 번 = 그 단계에 있는 모든 UO를 다음 상태로.
+           다음 상태는 단일 UO와 같은 규칙(uoAdvanceCore, 전이표 TRANSITIONS.UnitOperation)을 따른다 —
+           승인된 Process Map의 개정이면 Approved 대신 QA Review를 거친다.
+   · 반려: 묶음 전체 또는 고른 UO만 Draft로. 반려된 UO는 묶음에서 빠지고 이력에 남는다.
+   · 기록: UO별 상태 이력·버전·승인본은 단일 승인과 똑같이 남고, 묶음 자체의 상신·단계·반려도 Audit Trail에 남는다.
+   · 묶음에 든 UO는 단일 승인 버튼으로 따로 진행하지 않는다(묶음 화면에서 진행·반려).
+   ========================================================= */
+
+/* 묶음 단계 버튼 — 선언적 표. from 상태에 있는 UO들이 대상이다. */
+const AP_STEPS = [
+  { key:'review',  from:'In Review', label:'검토 완료 (Reviewed)' },
+  { key:'approve', from:'Reviewed',  label:'승인 (Approved)' },
+  { key:'qa',      from:'QA Review', label:'QA 확인' },
+];
+const AP_STAGE_ORDER = ['In Review', 'Reviewed', 'QA Review', 'Approved'];
+
+/* ---------- 순수 함수 ---------- */
+/* 묶음의 현재 단계. statusOf(nodeId) → UO 상태. 반환 { stage, active:[{id,status}], approved, total, step } */
+function apStage(pkg, statusOf){
+  const active = (pkg.nodeIds || []).map(id => ({ id, status: statusOf(id) }));
+  const approved = active.filter(m => m.status === 'Approved').length;
+  const pending = active.filter(m => m.status !== 'Approved');
+  let stage;
+  if(!active.length) stage = 'Returned';
+  else if(!pending.length) stage = 'Approved';
+  else stage = pending.map(m => m.status).sort((a, b) => AP_STAGE_ORDER.indexOf(a) - AP_STAGE_ORDER.indexOf(b))[0];
+  const step = AP_STEPS.find(s => s.from === stage) || null;
+  return { stage, active, approved, total: active.length, step };
+}
+/* 열린(끝나지 않은) 묶음인가 */
+function apIsOpen(pkg, statusOf){ const s = apStage(pkg, statusOf).stage; return s !== 'Approved' && s !== 'Returned'; }
+/* UO가 들어 있는 열린 묶음 */
+function apOpenPackageOf(data, nodeId, statusOf){
+  return (data.approvalPackages || []).find(p => (p.nodeIds || []).includes(nodeId) && apIsOpen(p, statusOf)) || null;
+}
+/* 묶음 번호: 가장 큰 번호 다음(AP-001…) */
+function apNextNo(packages){
+  const max = (packages || []).reduce((m, p) => Math.max(m, parseInt(String(p.no || '').replace(/\D/g, ''), 10) || 0), 0);
+  return 'AP-' + String(max + 1).padStart(3, '0');
+}
+const apStatusOf = id => uoStatusOf(id);
+
+/* ---------- 단일 UO 진행의 핵심(단일 승인 advanceUo와 결재 묶음이 함께 쓴다) ----------
+   반환 { ok, reason?, to?, issued? } — 화면 알림·render는 부른 쪽이 한다. */
+function uoAdvanceCore(nodeId, noteSuffix){
+  const n = uoNode(nodeId);
+  if(!n) return { ok:false, reason:'missing' };
+  const cur = uoStatusOf(nodeId);
+  const sfx = noteSuffix ? ' · ' + noteSuffix : '';
+  if(cur === 'Draft'){
+    if(!uoSetStatus(nodeId, 'In Review', '검토 요청' + sfx)) return { ok:false, reason:'transition' };
+    n.uoSubmittedHash = uoHash(uoContentOf(nodeId));
+    return { ok:true, to:'In Review' };
+  }
+  if(cur === 'In Review' || cur === 'Reviewed' || cur === 'QA Review'){
+    if(uoUnapprovedChange(nodeId)) return { ok:false, reason:'changed' };
+    if(cur === 'In Review'){ return uoSetStatus(nodeId, 'Reviewed', 'Reviewed by' + sfx) ? { ok:true, to:'Reviewed' } : { ok:false, reason:'transition' }; }
+    if(cur === 'Reviewed' && uoNeedsQa(n)){ return uoSetStatus(nodeId, 'QA Review', 'Approved by' + sfx) ? { ok:true, to:'QA Review' } : { ok:false, reason:'transition' }; }
+    if(!uoSetStatus(nodeId, 'Approved', (cur === 'QA Review' ? 'QA 확인' : 'Approved by') + sfx)) return { ok:false, reason:'transition' };
+    const at = uoNow(), by = uoActor();
+    n.uoVersion = (n.uoVersion || 0) + 1;
+    n.uoHistory[n.uoHistory.length-1].version = n.uoVersion;
+    n.uoSubmittedHash = null;
+    takeUoSnapshot(nodeId, n.uoVersion, by, at);
+    const issued = tryIssueMinorBaseline(n.pmId, by);
+    return { ok:true, to:'Approved', issued };
+  }
+  return { ok:false, reason:'status' };
+}
+
+/* ---------- store 함수: 변경 + 감사 기록 + 검증 ---------- */
+/* 상신: 고른 UO(모두 Draft, 같은 Process Map, 다른 열린 묶음에 없음)를 묶어 In Review로. 반환 { ok, pkg?, reason? } */
+function apCreate(pmId, nodeIds, title){
+  const ids = [...new Set(nodeIds || [])];
+  if(!ids.length) return { ok:false, reason:'상신할 Unit Operation을 하나 이상 고르세요.' };
+  const pm = DATA.processMaps.find(m => m.id === pmId);
+  if(!pm) return { ok:false, reason:'Process Map이 없습니다.' };
+  if(pm.status === 'In Review' || pm.status === 'Pending Approval') return { ok:false, reason:'Process Map이 승인 회람 중이라 Unit Operation을 상신할 수 없습니다.' };
+  const bad = ids.filter(id => { const n = uoNode(id); return !n || n.pmId !== pmId || uoStatusOf(id) !== 'Draft' || apOpenPackageOf(DATA, id, apStatusOf); });
+  if(bad.length) return { ok:false, reason:'Draft가 아니거나 다른 결재 묶음에 든 Unit Operation이 있습니다: ' + bad.map(id => (uoNode(id) || {}).name || id).join(', ') };
+  if(!DATA.approvalPackages) DATA.approvalPackages = [];
+  const pkg = { id: genId('ap'), no: apNextNo(DATA.approvalPackages), pmId, title: String(title || '').trim() || `${pm.code} Unit Operation 일괄 승인`,
+    nodeIds: ids, removed: [], createdBy: uoActor(), createdAt: uoNow(), history: [] };
+  ids.forEach(id => uoAdvanceCore(id, pkg.no));
+  pkg.history.push({ action:'상신', by: uoActor(), role: (STATE.auth && STATE.auth.role) || '', at: uoNow(), nodeIds: ids.slice(), to:'In Review' });
+  DATA.approvalPackages.push(pkg);
+  logAudit('Approval Package', 'Create', `${pkg.no} ${pkg.title} · ${pm.code} · UO ${ids.length}개 상신`, null, pkg.id);
+  validateData(DATA);
+  return { ok:true, pkg };
+}
+/* 단계 진행: 지금 단계에 있는 UO들을 모두 다음 상태로. 상신 이후 내용이 바뀐 UO가 있으면 아무것도 하지 않고 알린다. */
+function apAdvance(apId){
+  const pkg = (DATA.approvalPackages || []).find(p => p.id === apId);
+  if(!pkg) return { ok:false, reason:'결재 묶음이 없습니다.' };
+  const st = apStage(pkg, apStatusOf);
+  if(!st.step) return { ok:false, reason:'진행할 단계가 없습니다.' };
+  const targets = st.active.filter(m => m.status === st.step.from).map(m => m.id);
+  const changed = targets.filter(id => uoUnapprovedChange(id));
+  if(changed.length) return { ok:false, reason:'상신 이후 내용이 바뀐 Unit Operation이 있습니다. 반려한 뒤 다시 상신하세요:\n' + changed.map(id => '  · ' + uoNode(id).name).join('\n'), changed };
+  const issued = [];
+  const moved = [];
+  targets.forEach(id => { const r = uoAdvanceCore(id, pkg.no); if(r.ok){ moved.push(id); if(r.issued) issued.push(r.issued); } });
+  const after = apStage(pkg, apStatusOf);
+  pkg.history.push({ action: st.step.label, by: uoActor(), role: (STATE.auth && STATE.auth.role) || '', at: uoNow(), nodeIds: moved, to: after.stage });
+  if(after.stage === 'Approved') pkg.closedAt = uoNow();
+  logAudit('Approval Package', st.step.label, `${pkg.no} · UO ${moved.length}개 ${st.step.from} → ${after.stage}`, st.step.from, after.stage);
+  validateData(DATA);
+  return { ok:true, moved, stage: after.stage, issued };
+}
+/* 반려: nodeIds가 없으면 묶음 전체. 승인이 끝난 UO는 반려하지 않는다. */
+function apReturn(apId, nodeIds, reason){
+  const pkg = (DATA.approvalPackages || []).find(p => p.id === apId);
+  if(!pkg) return { ok:false, reason:'결재 묶음이 없습니다.' };
+  const pool = (nodeIds && nodeIds.length ? nodeIds : pkg.nodeIds).filter(id => pkg.nodeIds.includes(id) && uoStatusOf(id) !== 'Approved' && uoStatusOf(id) !== 'Draft');
+  if(!pool.length) return { ok:false, reason:'반려할 Unit Operation이 없습니다.' };
+  const note = String(reason || '').trim();
+  pool.forEach(id => {
+    if(uoSetStatus(id, 'Draft', `반려 · ${pkg.no}${note ? ' · ' + note : ''}`)){
+      uoNode(id).uoSubmittedHash = null;
+      pkg.removed.push({ nodeId: id, at: uoNow(), by: uoActor(), reason: note });
+    }
+  });
+  pkg.nodeIds = pkg.nodeIds.filter(id => !pool.includes(id));
+  const after = apStage(pkg, apStatusOf);
+  pkg.history.push({ action: nodeIds && nodeIds.length ? '선택 반려' : '전체 반려', by: uoActor(), role: (STATE.auth && STATE.auth.role) || '', at: uoNow(), nodeIds: pool, to: after.stage, note });
+  if(after.stage === 'Approved' || after.stage === 'Returned') pkg.closedAt = uoNow();
+  logAudit('Approval Package', 'Return', `${pkg.no} · UO ${pool.length}개 반려${note ? ' · ' + note : ''}`, null, after.stage);
+  validateData(DATA);
+  return { ok:true, returned: pool, stage: after.stage };
+}
+
+/* ---------- 화면 ---------- */
+/* Process Map 상단 승인 현황 줄에 붙는 결재 묶음 영역 */
+function renderApStripSection(pm){
+  const open = (DATA.approvalPackages || []).filter(p => p.pmId === pm.id && apIsOpen(p, apStatusOf));
+  const drafts = getProcessNodes(pm.id).filter(n => uoStatusOf(n.id) === 'Draft' && !apOpenPackageOf(DATA, n.id, apStatusOf));
+  const chips = open.map(p => { const s = apStage(p, apStatusOf);
+    return `<span class="uo-chip ap-chip" data-ap-id="${escapeXmlAttr(p.id)}" data-on-click="apOpenModal" data-a-click="${pcsArgs([String(p.id)])}" title="결재 묶음 열기">
+      <span class="badge ${UO_STATUS_BADGE[s.stage] || 'badge-gray'}"><span class="badge-dot"></span>${escapeXml(s.stage)}</span>
+      <span class="uo-chip-name">${escapeXml(p.no)} · UO ${s.total}개</span><span class="uo-chip-ver">${s.approved}/${s.total}</span></span>`; }).join('');
+  const done = (DATA.approvalPackages || []).filter(p => p.pmId === pm.id && !apIsOpen(p, apStatusOf)).length;
+  return `<div class="ap-strip">
+      <span class="ap-strip-label">${icon('layers')} 결재 묶음</span>
+      ${chips || '<span class="uo-strip-note">진행 중인 결재 묶음 없음</span>'}
+      ${done ? `<span class="uo-strip-note">완료 ${done}건</span>` : ''}
+      <button class="btn btn-sm ${drafts.length ? 'btn-primary' : ''}" id="apCreateBtn" ${drafts.length ? '' : 'disabled title="상신할 Draft Unit Operation이 없습니다"'} data-on-click="apOpenCreate" data-a-click="${pcsArgs([String(pm.id)])}">${icon('plus')} 여러 UO 상신 (${drafts.length})</button>
+    </div>`;
+}
+function apModalRoot(){ return document.getElementById('globalModalRoot') || (() => { const d = document.createElement('div'); d.id = 'globalModalRoot'; document.body.appendChild(d); return d; })(); }
+
+/* 상신 창: Draft UO를 체크해 묶는다 */
+function apOpenCreate(pmId){
+  const pm = DATA.processMaps.find(m => m.id === pmId);
+  if(!pm) return;
+  const nodes = getProcessNodes(pmId);
+  const eligible = nodes.filter(n => uoStatusOf(n.id) === 'Draft' && !apOpenPackageOf(DATA, n.id, apStatusOf));
+  STATE.apCreate = { pmId, checked: new Set(eligible.map(n => n.id)), title: `${pm.code} Unit Operation 일괄 승인 (${uoNow().slice(0, 10)})`, error: '' };
+  apRenderCreate();
+}
+function apRenderCreate(){
+  const s = STATE.apCreate; if(!s) return;
+  const nodes = getProcessNodes(s.pmId);
+  const rows = nodes.map(n => {
+    const st = uoStatusOf(n.id), inPkg = apOpenPackageOf(DATA, n.id, apStatusOf);
+    const ok = st === 'Draft' && !inPkg;
+    return `<label class="ap-row ${ok ? '' : 'disabled'}" data-ap-cand="${escapeXmlAttr(n.id)}">
+      <input type="checkbox" ${ok ? '' : 'disabled'} ${s.checked.has(n.id) ? 'checked' : ''} ${ok ? pcsOn('change', 'apToggleCreate', [n.id]) : ''}>
+      <span class="ap-row-name">${escapeXml(n.name)}</span>
+      ${uoBadge(st)}<span class="ap-row-note">${inPkg ? escapeXml(inPkg.no) + ' 진행 중' : (ok ? '' : '상신 대상 아님')}</span></label>`;
+  }).join('');
+  const n = s.checked.size;
+  apModalRoot().innerHTML = `
+    <div class="modal-overlay" data-on-click="if_cb546e">
+      <div class="modal-card" style="max-width:640px;" data-ap-create>
+        <div class="modal-header">여러 Unit Operation 상신 — 결재 묶음</div>
+        <div class="modal-body">
+          <p style="font-size:12.5px; color:var(--ink-500); margin:0 0 10px;">고른 Unit Operation이 한꺼번에 검토 요청(In Review)되고 내용이 잠깁니다. 검토·승인도 묶음 화면에서 한 번에 진행합니다. 기록은 Unit Operation마다 따로 남습니다.</p>
+          <div class="login-field"><label>묶음 제목</label><input id="apTitle" class="pfd-detail-input" value="${escapeXmlAttr(s.title)}" ${pcsOn('input', 'pcsCallWithValue', ['apSetCreateTitle'])}></div>
+          <div style="display:flex; gap:8px; margin:8px 0;"><button class="btn btn-sm" data-on-click="apCreateSelectAll" data-a-click="${pcsArgs([true])}">Draft 모두 선택</button><button class="btn btn-sm" data-on-click="apCreateSelectAll" data-a-click="${pcsArgs([false])}">선택 해제</button></div>
+          <div class="ap-list" style="max-height:46vh; overflow:auto;">${rows}</div>
+          ${s.error ? `<p class="pcs-import-msg error">${escapeXml(s.error)}</p>` : ''}
+        </div>
+        <div class="modal-actions"><button class="btn" data-on-click="closeGlobalModal">취소</button><button class="btn btn-primary" id="apSubmitBtn" ${n ? '' : 'disabled'} data-on-click="apSubmitCreate">${n}개 상신</button></div>
+      </div>
+    </div>`;
+}
+function apToggleCreate(nodeId){ const s = STATE.apCreate; if(!s) return; if(s.checked.has(nodeId)) s.checked.delete(nodeId); else s.checked.add(nodeId); apRenderCreate(); }
+function apSetCreateTitle(v){ if(STATE.apCreate) STATE.apCreate.title = v; }
+function apCreateSelectAll(on){
+  const s = STATE.apCreate; if(!s) return;
+  s.checked = new Set(on ? getProcessNodes(s.pmId).filter(n => uoStatusOf(n.id) === 'Draft' && !apOpenPackageOf(DATA, n.id, apStatusOf)).map(n => n.id) : []);
+  apRenderCreate();
+}
+function apSubmitCreate(){
+  const s = STATE.apCreate; if(!s) return;
+  const r = apCreate(s.pmId, [...s.checked], s.title);
+  if(!r.ok){ s.error = r.reason; apRenderCreate(); return; }
+  STATE.apCreate = null;
+  uoLockNotice(`${r.pkg.no} 상신 — Unit Operation ${r.pkg.nodeIds.length}개 검토 요청`);
+  render();
+  apOpenModal(r.pkg.id);
+}
+
+/* 묶음 창: 구성 UO와 상태, 단계 버튼, 반려, 이력 */
+function apOpenModal(apId){ STATE.apView = { id: apId, checked: new Set(), error: '' }; apRenderModal(); }
+function apRenderModal(){
+  const v = STATE.apView; if(!v) return;
+  const pkg = (DATA.approvalPackages || []).find(p => p.id === v.id);
+  if(!pkg){ closeGlobalModal(); return; }
+  const pm = DATA.processMaps.find(m => m.id === pkg.pmId);
+  const st = apStage(pkg, apStatusOf);
+  const open = st.stage !== 'Approved' && st.stage !== 'Returned';
+  const targets = st.step ? st.active.filter(m => m.status === st.step.from).length : 0;
+  const rows = st.active.map(m => { const n = uoNode(m.id); const can = open && m.status !== 'Approved';
+    return `<label class="ap-row" data-ap-member="${escapeXmlAttr(m.id)}">
+      <input type="checkbox" ${can ? '' : 'disabled'} ${v.checked.has(m.id) ? 'checked' : ''} ${can ? pcsOn('change', 'apToggleMember', [m.id]) : ''}>
+      <span class="ap-row-name">${escapeXml(n ? n.name : m.id)}</span>${uoBadge(m.status)}<span class="ap-row-note">v${uoVersionOf(m.id)}${uoUnapprovedChange(m.id) ? ' · <b style="color:var(--red-600);">상신 후 변경됨</b>' : ''}</span></label>`; }).join('')
+    + (pkg.removed || []).map(r => { const n = uoNode(r.nodeId);
+      return `<div class="ap-row disabled" data-ap-removed="${escapeXmlAttr(r.nodeId)}"><span style="width:16px;"></span><span class="ap-row-name">${escapeXml(n ? n.name : r.nodeId)}</span><span class="badge badge-gray"><span class="badge-dot"></span>반려됨</span><span class="ap-row-note">${escapeXml(r.at)}${r.reason ? ' · ' + escapeXml(r.reason) : ''}</span></div>`; }).join('');
+  const hist = (pkg.history || []).slice().reverse().map(h => `<div class="pm-history-row"><span class="badge badge-gray">${escapeXml(h.action)}</span><span class="pm-history-by">${escapeXml(h.by || '-')}${h.role ? ' (' + escapeXml(h.role) + ')' : ''} · UO ${(h.nodeIds || []).length}개 → ${escapeXml(h.to || '')}${h.note ? ' · ' + escapeXml(h.note) : ''}</span><span class="pm-history-at mono">${escapeXml(h.at)}</span></div>`).join('');
+  apModalRoot().innerHTML = `
+    <div class="modal-overlay" data-on-click="if_cb546e">
+      <div class="modal-card" style="max-width:700px;" data-ap-modal="${escapeXmlAttr(pkg.id)}">
+        <div class="modal-header" style="display:flex; align-items:center; gap:10px;">${escapeXml(pkg.no)} · ${escapeXml(pkg.title)} <span style="margin-left:auto;">${uoBadge(st.stage)}</span></div>
+        <div class="modal-body">
+          <div class="pm-meta-grid" style="margin-bottom:12px;">
+            <div class="pm-meta-cell"><div class="pm-meta-label">Process Map</div><div class="pm-meta-val">${escapeXml(pm ? pm.code + ' ' + pm.name : '-')}</div></div>
+            <div class="pm-meta-cell"><div class="pm-meta-label">진행</div><div class="pm-meta-val" data-ap-progress>${st.approved} / ${st.total} 승인</div></div>
+            <div class="pm-meta-cell"><div class="pm-meta-label">상신</div><div class="pm-meta-val">${escapeXml(pkg.createdBy)} · ${escapeXml(pkg.createdAt)}</div></div>
+          </div>
+          <div class="ap-list" style="max-height:38vh; overflow:auto;">${rows}</div>
+          ${v.error ? `<p class="pcs-import-msg error" style="white-space:pre-line;">${escapeXml(v.error)}</p>` : ''}
+          ${hist ? `<details class="uo-card-history" style="margin-top:10px;"><summary>묶음 이력 (${pkg.history.length})</summary><div class="pm-history-list">${hist}</div></details>` : ''}
+        </div>
+        <div class="modal-actions">
+          ${open ? `<button class="btn" id="apReturnSelBtn" ${v.checked.size ? '' : 'disabled'} data-on-click="apReturnFromModal" data-a-click="${pcsArgs([true])}">선택 반려 (${v.checked.size})</button>
+          <button class="btn" id="apReturnAllBtn" data-on-click="apReturnFromModal" data-a-click="${pcsArgs([false])}">전체 반려</button>` : ''}
+          <button class="btn" data-on-click="closeGlobalModal">닫기</button>
+          ${st.step ? `<button class="btn btn-primary" id="apAdvanceBtn" data-on-click="apAdvanceFromModal">${targets}개 ${escapeXml(st.step.label)}</button>` : ''}
+        </div>
+      </div>
+    </div>`;
+}
+function apToggleMember(nodeId){ const v = STATE.apView; if(!v) return; if(v.checked.has(nodeId)) v.checked.delete(nodeId); else v.checked.add(nodeId); apRenderModal(); }
+async function apAdvanceFromModal(){
+  const v = STATE.apView; if(!v) return;
+  const pkg = DATA.approvalPackages.find(p => p.id === v.id); const st = apStage(pkg, apStatusOf);
+  if(!st.step) return;
+  const n = st.active.filter(m => m.status === st.step.from).length;
+  if(!(await uiConfirm(`${pkg.no}의 Unit Operation ${n}개를 "${st.step.label}" 처리합니다.\n처리자: ${uoActor()} (${(STATE.auth && STATE.auth.role) || '-'})`, { title: st.step.label, okLabel: st.step.label }))) return;
+  const r = apAdvance(v.id);
+  v.error = r.ok ? '' : r.reason; v.checked = new Set();
+  if(r.ok) uoLockNotice(`${pkg.no} — ${r.moved.length}개 ${st.step.label}${r.issued && r.issued.length ? ` · Process Map ${r.issued[r.issued.length - 1]} 발행` : ''}`);
+  render(); apRenderModal();
+}
+async function apReturnFromModal(selectedOnly){
+  const v = STATE.apView; if(!v) return;
+  const pkg = DATA.approvalPackages.find(p => p.id === v.id);
+  const ids = selectedOnly ? [...v.checked] : null;
+  const reason = await uiPrompt('', '', { title: selectedOnly ? `선택한 ${ids.length}개 반려` : `${pkg.no} 전체 반려`, label:'반려 사유', okLabel:'반려', placeholder:'예: P&ID 태그 확인 필요' });
+  if(reason === null || reason === undefined) return;
+  const r = apReturn(v.id, ids, reason);
+  v.error = r.ok ? '' : r.reason; v.checked = new Set();
+  render(); apRenderModal();
+}
 /* ============================================================================
    22_pfd_arrange.js — v82
    옛 개별 PFD 화면에만 있던 기능을 현재 에디터(보드 엔진)로 옮긴 모듈.
@@ -26670,6 +27005,16 @@ const PCS_CALLABLE = new Set([
   'pfdEditorGoBack',
   'pcsFbResolveConflict',
   'pcsFbSaveStoredFromInputs',
+  'apOpenModal',
+  'apOpenCreate',
+  'apToggleCreate',
+  'apSetCreateTitle',
+  'apCreateSelectAll',
+  'apSubmitCreate',
+  'apToggleMember',
+  'apAdvanceFromModal',
+  'apReturnFromModal',
+  'setReportView',
   'addSuppSampleReq',
   'addSupplementalSample',
   'addUnitOperation',
