@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="pcs-api-base" content="">
 <meta name="pcs-firebase" content="{&quot;apiKey&quot;:&quot;AIzaSyASB4CKv15IwJUp8pIVKXFtOYwKlY7y1es&quot;,&quot;databaseURL&quot;:&quot;https://pcs-demo-18101-default-rtdb.asia-southeast1.firebasedatabase.app&quot;}">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-u2b2hdOs9nE/r0ZOPkBn35Odqevi0aGrAuUTyuvCmFk=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-z0cwO/XzdXu/fAVogSkfAZqHh/2JbVjOoZUMwAYAu4M=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'none'">
 <title>PCS Platform · Process Control System</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -419,6 +419,18 @@ button:focus-visible, .crumb:focus-visible, [tabindex]:focus-visible, input:focu
 .pm-panel-close{flex-shrink:0; width:28px; height:28px; border-radius:7px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--ink-500); background:transparent;}
 .pm-panel-close:hover{background:var(--line-soft); color:var(--red-600);}
 .pm-panel-body{flex:1; overflow:auto; padding:22px;}
+/* v110 UO 패널 탭·전체화면 */
+.pm-panel-tabs{display:flex; gap:2px; padding:6px 10px 0; border-bottom:1px solid var(--line); background:#FAF8F8; overflow-x:auto; flex-shrink:0; scrollbar-width:thin;}
+.pm-panel-tablist{display:flex; gap:2px; flex:none;}
+.pm-panel-tab{flex:none; border:none; background:none; padding:7px 10px 8px; font-size:11.5px; font-weight:600; color:var(--ink-500); cursor:pointer; border-bottom:2px solid transparent; font-family:inherit; display:inline-flex; align-items:center; gap:4px; white-space:nowrap;}
+.pm-panel-tab:hover{color:var(--burgundy-900);}
+.pm-panel-tab.active{color:var(--burgundy-900); border-bottom-color:var(--red-600);}
+.pm-panel-tab-n{font-size:10px; font-weight:700; background:var(--line-soft); color:var(--ink-500); border-radius:8px; padding:0 5px;}
+.pm-panel-tab.active .pm-panel-tab-n{background:var(--pink-50); color:var(--red-600);}
+.pm-side-panel.pm-panel-full{position:fixed; inset:12px; width:auto !important; max-height:none; z-index:150; border-radius:12px; box-shadow:0 0 0 100vmax rgba(36,19,19,.35), 0 20px 60px rgba(36,19,19,.28); animation:none;}
+.pm-side-panel.pm-panel-full .pm-panel-body{padding:26px 34px;}
+.pm-side-panel.pm-panel-full .pm-panel-topbar{padding:10px 16px;}
+.pm-side-panel.pm-panel-full .pm-panel-crumb{font-size:13px;}
 .pm-panel-body .view-head{margin-bottom:16px;}
 .pm-panel-body .view-title{font-size:18px;}
 .pm-panel-body .view-sub{font-size:12px;}
@@ -6371,7 +6383,41 @@ function toggleProcessMapEdit(){
    PM 우측 슬라이드 패널 — Veeva 스타일 "좌측 메인 캔버스 고정 + 우측 메타데이터 패널"
    panel.type: 'menu'(노드 메뉴) | 'list' | 'wi' | 'meta'(편집모드 메타 에디터)
    ========================================================= */
-function closePmPanel(){ getActiveTab().ctx.pmPanel = null; closeProcessContextMenu(); render(); }
+function closePmPanel(){ getActiveTab().ctx.pmPanel = null; getActiveTab().ctx.pmPanelFull = false; closeProcessContextMenu(); render(); }
+/* v110 UO 패널 전체화면 — Work Instruction 같은 문서 작업을 넓게(PFD 편집기처럼 화면을 덮는다). Esc로 끝낸다. */
+function togglePmPanelFull(on){
+  const ctx = getActiveTab().ctx;
+  ctx.pmPanelFull = on == null ? !ctx.pmPanelFull : !!on;
+  render();
+}
+function pmPanelFullKeydown(e){
+  if(e.key !== 'Escape' || e.defaultPrevented) return;
+  const tab = getActiveTab && getActiveTab();
+  if(!tab || !tab.ctx || !tab.ctx.pmPanelFull || !tab.ctx.pmPanel) return;
+  if(typeof uiDialogIsOpen === 'function' && uiDialogIsOpen()) return;
+  if(document.querySelector('.modal-overlay, .wi-modal-overlay')) return;   // 떠 있는 창부터 닫는다
+  e.preventDefault();
+  togglePmPanelFull(false);
+}
+if(typeof document !== 'undefined' && document.addEventListener) document.addEventListener('keydown', pmPanelFullKeydown);
+/* v110 UO 패널 상단 탭: 개요 · Work Instruction · 리스트 5종 · 변경 이력 (+ PFD 열기) — 아래로 내려가야 보이던 메뉴를 위로 */
+const PM_PANEL_TABS = [['menu', '', '개요'], ['wi', '', 'Work Instruction'], ['history', '', '변경 이력'], ['list', 'equipment', 'Equipment'], ['list', 'material', 'Material'],
+  ['list', 'parameter', 'Parameter'], ['list', 'training', 'Training'], ['list', 'sampling', 'Sampling']];
+function openPmPanelTab(nodeId, type, listKey){
+  if(type === 'menu') return openPmPanelMenu(nodeId);
+  if(type === 'wi') return openPmPanelWi(nodeId);
+  if(type === 'list') return openPmPanelList(nodeId, listKey);
+  if(type === 'history') return openPmPanelHistory(nodeId);
+}
+function renderPmPanelTabs(node, panel){
+  const bucket = ensureNodeListBucket(node.id);
+  const count = (t, k) => t === 'list' ? (bucket[k] || []).length : t === 'history' ? uoAuditEntries(DATA.auditTrail, node.id).length : t === 'wi' ? ((DATA.workInstructions[node.id] || {}).steps || []).length : null;
+  return `<div class="pm-panel-tabs"><div class="pm-panel-tablist" role="tablist" aria-label="Unit Operation 화면">${PM_PANEL_TABS.map(([t, k, label]) => {
+      const on = panel.type === t && (t !== 'list' || panel.listKey === k);
+      const c = count(t, k);
+      return `<button type="button" role="tab" aria-selected="${on}" class="pm-panel-tab ${on ? 'active' : ''}" data-panel-tab="${t}${k ? ':' + k : ''}" data-on-click="openPmPanelTab" data-a-click="${pcsArgs([String(node.id), t, k])}">${label}${c != null ? `<span class="pm-panel-tab-n">${c}</span>` : ''}</button>`;
+    }).join('')}</div><button type="button" class="pm-panel-tab" data-panel-tab="pfd" data-on-click="openPfdFromNode" data-a-click="${pcsArgs([String(node.id)])}" title="PFD 편집기 열기">PFD ↗</button></div>`;
+}
 
 /* Process Map 우측 사이드 패널의 현재 폭(px) — 탭(ctx)별로 기억해, 다른 노드를 클릭해도 사용자가 조절한 폭이 유지된다 */
 function getPmPanelWidth(){
@@ -6490,11 +6536,17 @@ function renderPmPanel(pmId, panel){
     body = renderUoHistoryBody(node, panel);
   }
 
-  return `<div class="pm-side-panel" style="width:${panelWidthPx}px;">
+  const full = !!getActiveTab().ctx.pmPanelFull;
+  return `<div class="pm-side-panel ${full ? 'pm-panel-full' : ''}" style="width:${panelWidthPx}px;" data-panel-full="${full}">
     <div class="pm-panel-topbar">
+      ${full ? `<button class="btn btn-sm" id="pmPanelExitFull" data-on-click="togglePmPanelFull" data-a-click="${pcsArgs([false])}" title="전체화면 끝내기 (Esc)">← ${escapeXml(pm ? pm.code + ' ' + pm.name : 'Process Map')}</button>` : ''}
       <div class="pm-panel-crumb">${crumb}</div>
-      <div class="pm-panel-close" data-on-click="closePmPanel">${icon('close')}</div>
+      <div style="display:flex; gap:4px; flex-shrink:0;">
+        <button class="btn btn-sm" id="pmPanelFullBtn" data-on-click="togglePmPanelFull" title="${full ? '전체화면 끝내기 (Esc)' : '전체화면으로 넓게 작업 (Work Instruction 작성 등)'}">${full ? '⤡ 작게' : '⤢ 전체화면'}</button>
+        <div class="pm-panel-close" data-on-click="closePmPanel">${icon('close')}</div>
+      </div>
     </div>
+    ${renderPmPanelTabs(node, panel)}
     <div class="pm-panel-body">${body}</div>
   </div>`;
 }
@@ -27581,6 +27633,8 @@ const PCS_CALLABLE = new Set([
   'setReportView',
   'openPmPanelHistory',
   'setUoHistoryArea',
+  'togglePmPanelFull',
+  'openPmPanelTab',
   'addSuppSampleReq',
   'addSupplementalSample',
   'addUnitOperation',
@@ -29034,7 +29088,7 @@ function pcsA11yKeydown(e){
   if(e.key === 'Escape'){
     if(typeof uiDialogIsOpen === 'function' && uiDialogIsOpen()) return;   // 앱 대화상자는 스스로 닫는다
     // position:fixed라 offsetParent로는 보이는지 알 수 없다 → getClientRects
-    const overlays = [...document.querySelectorAll('.modal-overlay')].filter(o => o.getClientRects().length > 0 && typeof o.onclick === 'function');
+    const overlays = [...document.querySelectorAll('.modal-overlay, .wi-modal-overlay')].filter(o => o.getClientRects().length > 0 && typeof o.onclick === 'function');
     const top = overlays[overlays.length - 1];
     if(top){ e.preventDefault(); top.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window })); }
   }
