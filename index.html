@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="pcs-api-base" content="">
 <meta name="pcs-firebase" content="{&quot;apiKey&quot;:&quot;AIzaSyASB4CKv15IwJUp8pIVKXFtOYwKlY7y1es&quot;,&quot;databaseURL&quot;:&quot;https://pcs-demo-18101-default-rtdb.asia-southeast1.firebasedatabase.app&quot;}">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-eL0oEGFQ67b8iMqUEHcsJ9F5kf6ukcs2FEaAFRC9n50=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-vGWkXtsLkSkgqSXd08LdplBu9hcwSgCqs8u+u3qxskw=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'none'">
 <title>PCS Platform · Process Control System</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -368,7 +368,7 @@ button:focus-visible, .crumb:focus-visible, [tabindex]:focus-visible, input:focu
 .pm-meta-val{font-size:13px; color:var(--burgundy-900); font-weight:600;}
 
 /* ===== Process Map — Free-drag canvas (tree links + free position) ===== */
-#pmCanvasWrap{position:relative; min-height:650px; overflow:auto; background:
+#pmCanvasWrap{position:relative; min-height:520px; height:calc(100vh - 210px); overflow:auto; overscroll-behavior:contain; background:
   radial-gradient(circle, #E7E2E1 1px, transparent 1px) 0 0/22px 22px, #FCFBFB;
 }
 #pmCanvasWrap.pm-panning{cursor:grabbing;}
@@ -828,9 +828,9 @@ button:focus-visible, .crumb:focus-visible, [tabindex]:focus-visible, input:focu
 .pfd-editor-body{flex:1; display:flex; min-height:0; position:relative;}
 
 /* 좌측 사이드바 (다크) */
-.pfd-editor-left{width:236px; flex-shrink:0; background:#F7F5F4; border-right:1px solid #E7E3E1; position:relative; transition:width .2s; display:flex;}
+.pfd-editor-left{width:var(--pfd-left-w, 236px); flex-shrink:0; background:#F7F5F4; border-right:1px solid #E7E3E1; position:relative; transition:width .2s; display:flex;}
 .pfd-editor.left-collapsed .pfd-editor-left{width:0;}
-.pfd-editor-left-inner{width:236px; display:flex; flex-direction:column; min-height:0; overflow:hidden;}
+.pfd-editor-left-inner{width:var(--pfd-left-w, 236px); display:flex; flex-direction:column; min-height:0; overflow:hidden;}
 .pfd-editor.left-collapsed .pfd-editor-left-inner{opacity:0; pointer-events:none;}
 .pfd-editor-collapse-btn{position:absolute; top:12px; z-index:20; width:20px; height:32px; border:1px solid #E7E3E1; background:#FFFFFF; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:13px; color:#6B6560;}
 .pfd-editor-collapse-btn.left{right:-10px; border-radius:0 7px 7px 0;}
@@ -962,9 +962,9 @@ button:focus-visible, .crumb:focus-visible, [tabindex]:focus-visible, input:focu
 .pfd-bottombar-sep{width:1px; height:26px; background:#E7E3E1; margin:0 4px;}
 
 /* 우측 사이드바 (다크) */
-.pfd-editor-right{width:264px; flex-shrink:0; background:#F7F5F4; border-left:1px solid #E7E3E1; position:relative; transition:width .2s; display:flex;}
+.pfd-editor-right{width:var(--pfd-right-w, 264px); flex-shrink:0; background:#F7F5F4; border-left:1px solid #E7E3E1; position:relative; transition:width .2s; display:flex;}
 .pfd-editor.right-collapsed .pfd-editor-right{width:0;}
-.pfd-editor-right-inner{width:264px; display:flex; flex-direction:column; min-height:0; overflow-y:auto;}
+.pfd-editor-right-inner{width:var(--pfd-right-w, 264px); display:flex; flex-direction:column; min-height:0; overflow-y:auto;}
 .pfd-editor.right-collapsed .pfd-editor-right-inner{opacity:0; pointer-events:none;}
 .pfd-editor-right-tabs{display:flex; gap:2px; padding:7px; background:#FFFFFF; border-bottom:1px solid #E7E3E1; position:sticky; top:0; z-index:2;}
 .pfd-editor-right-body{padding:12px; flex:1;}
@@ -2353,7 +2353,7 @@ textarea.ui-dialog-input{resize:vertical; min-height:72px;}
 .pm-mm-nodes .pm-mm-root{fill:#3D0C16;}
 .pm-mm-view{fill:rgba(192,24,42,.07); stroke:#C0182A; stroke-width:1.2;}
 .pm-view.pm-focus > .view-head, .pm-view.pm-focus > .pm-meta-grid, .pm-view.pm-focus > .uo-strip, .pm-view.pm-focus > .pm-legend, .pm-view.pm-focus > .pm-edit-hint{display:none;}
-.pm-view.pm-focus #pmCanvasWrap{min-height:calc(100vh - 150px);}
+.pm-view.pm-focus #pmCanvasWrap{min-height:calc(100vh - 150px); height:calc(100vh - 150px);}
 .pm-focus-exit{position:absolute; top:12px; right:12px; z-index:30; font-size:12px; padding:6px 10px; border-radius:8px; border:1px solid var(--line); background:#fff; box-shadow:var(--shadow-sm); cursor:pointer; font-family:inherit;}
 #pmCanvasWrap.pm-kanban-mode{background:#F7F4F4;}
 .pm-kb{padding:62px 16px 18px;}
@@ -2440,6 +2440,24 @@ textarea.ui-dialog-input{resize:vertical; min-height:72px;}
 .pcs-cursor-share.on{color:#C0182A; border-color:#E5B8BF;}
 .pm-kb-name{display:block; width:100%; text-align:left; border:0; background:none; padding:0; cursor:pointer; font-family:inherit;}
 .pm-kb-name:focus-visible{outline:2px solid #C0182A; outline-offset:2px; border-radius:4px;}
+
+/* v120 패널 폭 조절·접기 */
+.pfd-panel-resize{position:absolute; top:0; bottom:0; width:9px; cursor:col-resize; z-index:15; background:transparent; transition:background .12s;}
+.pfd-panel-resize.left{right:-5px;}
+.pfd-panel-resize.right{left:-5px;}
+.pfd-panel-resize::after{content:''; position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:3px; height:40px; border-radius:2px; background:#D9D3D0; opacity:0; transition:opacity .12s;}
+.pfd-panel-resize:hover, .pfd-panel-resize.resizing{background:rgba(124,58,237,.10);}
+.pfd-panel-resize:hover::after, .pfd-panel-resize.resizing::after{opacity:1; background:#7C3AED;}
+.pfd-editor.pfd-resizing .pfd-editor-left, .pfd-editor.pfd-resizing .pfd-editor-right{transition:none;}
+.pfd-editor.left-live .pfd-editor-left{width:var(--pfd-left-live);}
+.pfd-editor.left-live .pfd-editor-left-inner{width:max(var(--pfd-left-live), 180px); opacity:1; pointer-events:none;}
+.pfd-editor.right-live .pfd-editor-right{width:var(--pfd-right-live);}
+.pfd-editor.right-live .pfd-editor-right-inner{width:max(var(--pfd-right-live), 220px); opacity:1; pointer-events:none;}
+.pfd-editor.left-will-collapse .pfd-editor-left-inner, .pfd-editor.right-will-collapse .pfd-editor-right-inner{opacity:.3;}
+.pm-side-panel.will-collapse{opacity:.35;}
+#pmCanvasWrap.pm-panning, #pmCanvasWrap.pm-panning *{cursor:grabbing !important;}
+.pfd-editor.left-collapsed .pfd-panel-resize.left{right:-10px;}
+.pfd-editor.right-collapsed .pfd-panel-resize.right{left:-10px;}
 </style>
 </head>
 <body>
@@ -4924,14 +4942,22 @@ function render(){
 /* -------- DASHBOARD -------- */
 /* ============================================================================
    05b_release_notes.js — v111  앱 버전과 "이번 버전에서 바뀐 점"
-   · PCS_APP_VERSION은 build.sh가 빌드 번호로 바꿔 넣는다(v119 자리).
+   · PCS_APP_VERSION은 build.sh가 빌드 번호로 바꿔 넣는다(v120 자리).
    · PCS_RELEASE_NOTES 맨 앞 항목은 항상 이번 빌드 버전이어야 한다(tests/unit/release-notes.test.cjs가 검사).
      버전을 올릴 때 여기 맨 앞에 한 항목을 넣는다. 테스트하는 사람이 무엇을 눌러 보면 되는지(try)를 같이 쓴다.
    · 오른쪽 위 사용자 메뉴 → "버전 vN · 바뀐 점" 으로 열고, 새 버전으로 처음 열면 알림을 한 번 띄운다.
    ========================================================================== */
-var PCS_APP_VERSION = 'v119';
+var PCS_APP_VERSION = 'v120';
 
 const PCS_RELEASE_NOTES = [
+  { version: 'v120', date: '2026-11-21', title: '패널 폭 조절·접기, Process Map 무한 캔버스',
+    items: [
+      'PFD 편집기 왼쪽(섹션·도형·에셋·레이어)·오른쪽(속성) 패널과 Process Map의 UO 패널 경계를 끌어 폭을 바꿉니다. 끝까지 줄이면 접히고, 접힌 경계를 다시 끌어 내면 펼쳐집니다. 경계를 두 번 누르면 접기·펼치기.',
+      'PFD 패널 폭은 이 브라우저에 기억됩니다. 폭을 바꿔도 도면은 화면에서 제자리입니다.',
+      'Process Map 맵이 무한 캔버스가 되었습니다: 빈 곳을 끌어 화면 이동, Ctrl(⌘)+휠·트랙패드 집기로 마우스 자리 중심 확대·축소(25~200%), 노드를 왼쪽·위 바깥으로 끌어도 캔버스가 넓어집니다.',
+      '노드를 끄는 동안 보이는 칸 가장자리에 가면 그쪽으로 저절로 스크롤됩니다. 캔버스 칸 높이는 화면에 맞춰 고정되어 페이지가 길어지지 않습니다.',
+    ],
+    try: ['PFD 편집기에서 왼쪽 패널 경계를 오른쪽으로 끌기 → 왼쪽 끝까지 끌기(접힘)', 'Process Map 빈 곳을 끌어 보기, Ctrl+휠'] },
   { version: 'v119', date: '2026-11-20', title: '구조 이력·비교·되돌리기, 커서 공유 끄기',
     items: [
       'Process Map 도구 막대의 🕘(구조 이력): 구조가 바뀔 때마다 쌓인 시점 목록 → 그 시점의 구조, 지금(또는 다른 시점·승인 버전)과의 차이(추가·삭제·이동·이름·종류·순서).',
@@ -6209,7 +6235,7 @@ function renderProcessMap(){
         <div id="pmToolbarHost"></div>
         <div id="pmCanvasWrap" data-pmid="${pm.id}"></div>
       </div>
-      ${sidePanel ? `<div class="pm-resize-handle" data-on-mousedown="startPmPanelResize_1e78b1" title="드래그하여 패널 폭 조절"></div>` : ''}
+      ${sidePanel ? `<div class="pm-resize-handle" role="separator" aria-orientation="vertical" aria-label="패널 폭 — 끌어서 조절, 끝까지 줄이면 접힘" data-on-mousedown="startPmPanelResize_1e78b1" data-on-dblclick="closePmPanel" title="끌어서 패널 폭 조절 · 끝까지 줄이면 접힘 · 두 번 누르면 닫기"></div>` : ''}
       ${sidePanel}
     </div>
     <div class="pm-legend">
@@ -7373,7 +7399,8 @@ function pmInlineBox(st){
   else if(st.mode === 'before') x = ref.x - PM_NODE_W - 40;
   const k = pmView.scale;
   const sr = svg.getBoundingClientRect(), wr = wrap.getBoundingClientRect();
-  return { left: sr.left - wr.left + wrap.scrollLeft + x * k, top: sr.top - wr.top + wrap.scrollTop + y * k, w: PM_NODE_W * k, h: PM_NODE_H * k };
+  const fr = pmFrameOf(st.pmId);   // v120: 캔버스 틀 원점
+  return { left: sr.left - wr.left + wrap.scrollLeft + (x - fr.x) * k, top: sr.top - wr.top + wrap.scrollTop + (y - fr.y) * k, w: PM_NODE_W * k, h: PM_NODE_H * k };
 }
 function pmRenderInline(){
   const st = STATE.pmInline;
@@ -8512,12 +8539,18 @@ function pmKanbanMoveUi(uoId, stageId){
 /* 순수: 맞추기 배율 — 내용(w·h)을 보이는 칸(vw·vh)에 넣는 배율(0.25~1.8) */
 function pmFitScale(w, h, vw, vh){ if(!(w > 0 && h > 0 && vw > 0 && vh > 0)) return 1; return Math.max(0.25, Math.min(1.8, +(Math.min((vw - 24) / w, (vh - 24) / h)).toFixed(2))); }
 function pmCanvasSize(){ const svg = document.getElementById('pmCanvas'); const vb = svg && svg.viewBox && svg.viewBox.baseVal; return vb ? { w: vb.width, h: vb.height } : null; }
+/* v120: 무한 캔버스라 빈 공간이 아니라 내용(노드) 범위를 화면에 맞춘다 */
 function pmFitToScreen(){
-  const wrap = document.getElementById('pmCanvasWrap'), sz = pmCanvasSize();
-  if(!wrap || !sz) return;
-  pmView.scale = pmFitScale(sz.w, sz.h, wrap.clientWidth, wrap.clientHeight);
-  STATE.pmCanvasScroll = STATE.pmCanvasScroll || {}; STATE.pmCanvasScroll[wrap.getAttribute('data-pmid')] = { l: 0, t: 0 };
+  const wrap = document.getElementById('pmCanvasWrap');
+  if(!wrap || !wrap.querySelector('#pmCanvas')) return;
+  const pmId = wrap.getAttribute('data-pmid');
+  const cb = pmFrameOf(pmId).cb;
+  pmView.scale = pmFitScale(cb.x2 - cb.x1 + 40, cb.y2 - cb.y1 + 40, wrap.clientWidth, wrap.clientHeight);
   renderPmCanvas();
+  const f = pmFrameOf(pmId), k = pmView.scale;
+  wrap.scrollLeft = Math.max(0, (cb.x1 - f.x - 20) * k); wrap.scrollTop = Math.max(0, (cb.y1 - f.y - 20) * k);
+  STATE.pmCanvasScroll[pmId] = { l: wrap.scrollLeft, t: wrap.scrollTop };
+  pmRenderMinimap();
 }
 /* 선택한 노드(가지)를 화면 가운데로 */
 function pmCenterSelected(){
@@ -8525,9 +8558,9 @@ function pmCenterSelected(){
   const pmId = wrap.getAttribute('data-pmid');
   const sel = getActiveTab().ctx.selectedProcessNodeId || 'ROOT';
   const p = pmViewPos(pmId, sel); if(!p) return;
-  const w = sel === 'ROOT' ? PM_ROOT_W : PM_NODE_W, k = pmView.scale;
-  wrap.scrollLeft = Math.max(0, (p.x + w / 2) * k - wrap.clientWidth / 2);
-  wrap.scrollTop = Math.max(0, (p.y + PM_NODE_H / 2) * k - wrap.clientHeight / 2);
+  const w = sel === 'ROOT' ? PM_ROOT_W : PM_NODE_W, k = pmView.scale, fr = pmFrameOf(pmId);
+  wrap.scrollLeft = Math.max(0, (p.x - fr.x + w / 2) * k - wrap.clientWidth / 2);
+  wrap.scrollTop = Math.max(0, (p.y - fr.y + PM_NODE_H / 2) * k - wrap.clientHeight / 2);
   STATE.pmCanvasScroll = STATE.pmCanvasScroll || {}; STATE.pmCanvasScroll[pmId] = { l: wrap.scrollLeft, t: wrap.scrollTop };
   pmRenderMinimap();
 }
@@ -8541,11 +8574,12 @@ function pmRenderMinimap(){
   const pmId = wrap.getAttribute('data-pmid');
   const sz = pmCanvasSize(); const v = pmViewCache && pmViewCache.pmId === pmId ? pmViewCache : pmViewLayout(pmId);
   const MW = 200, MH = Math.max(60, Math.min(160, Math.round(MW * sz.h / sz.w))), k = Math.min(MW / sz.w, MH / sz.h);
-  const rects = Object.keys(v.pos).map(id => `<rect x="${(v.pos[id].x * k).toFixed(1)}" y="${(v.pos[id].y * k).toFixed(1)}" width="${(PM_NODE_W * k).toFixed(1)}" height="${(PM_NODE_H * k).toFixed(1)}" rx="1"/>`).join('');
+  const fr = pmFrameOf(pmId);   // v120: 캔버스 틀 원점 기준
+  const rects = Object.keys(v.pos).map(id => `<rect x="${((v.pos[id].x - fr.x) * k).toFixed(1)}" y="${((v.pos[id].y - fr.y) * k).toFixed(1)}" width="${(PM_NODE_W * k).toFixed(1)}" height="${(PM_NODE_H * k).toFixed(1)}" rx="1"/>`).join('');
   const s = pmView.scale;
   const vp = { x: wrap.scrollLeft / s * k, y: wrap.scrollTop / s * k, w: wrap.clientWidth / s * k, h: wrap.clientHeight / s * k };
   if(!mm){ mm = document.createElement('div'); mm.id = 'pmMinimap'; mm.className = 'pm-minimap'; mm.setAttribute('aria-label', '미니맵 — 누르면 그곳으로'); card.appendChild(mm); }
-  mm.innerHTML = `<svg width="${MW}" height="${MH}" viewBox="0 0 ${MW} ${MH}"><g class="pm-mm-nodes">${rects}<rect class="pm-mm-root" x="${v.root.x * k}" y="${v.root.y * k}" width="${PM_ROOT_W * k}" height="${PM_NODE_H * k}"/></g><rect class="pm-mm-view" data-mm-view x="${vp.x.toFixed(1)}" y="${vp.y.toFixed(1)}" width="${Math.min(MW, vp.w).toFixed(1)}" height="${Math.min(MH, vp.h).toFixed(1)}"/></svg>`;
+  mm.innerHTML = `<svg width="${MW}" height="${MH}" viewBox="0 0 ${MW} ${MH}"><g class="pm-mm-nodes">${rects}<rect class="pm-mm-root" x="${(v.root.x - fr.x) * k}" y="${(v.root.y - fr.y) * k}" width="${PM_ROOT_W * k}" height="${PM_NODE_H * k}"/></g><rect class="pm-mm-view" data-mm-view x="${vp.x.toFixed(1)}" y="${vp.y.toFixed(1)}" width="${Math.min(MW, vp.w).toFixed(1)}" height="${Math.min(MH, vp.h).toFixed(1)}"/></svg>`;
   mm.__k = k;
   if(!mm.__bound){
     mm.__bound = true;
@@ -8589,12 +8623,15 @@ function pmBuildExportSvg(){
   const c = svg.cloneNode(true);
   c.querySelectorAll('.pm-plus, #pmFlowConnectPreview, [data-flow-handle], [data-add-handle]').forEach(e => e.remove());
   c.querySelectorAll('.pm-selected, .pm-multi').forEach(e => e.classList.remove('pm-selected', 'pm-multi'));
-  const vb = svg.viewBox.baseVal, w = Math.round(vb.width), h = Math.round(vb.height);
+  // v120: 무한 캔버스의 빈 공간은 빼고 내용 범위(+ 여백 30)만
+  const cb = pmFrameOf(document.getElementById('pmCanvasWrap').getAttribute('data-pmid')).cb;
+  const vx = Math.floor(cb.x1 - 30), vy = Math.floor(cb.y1 - 30), w = Math.ceil(cb.x2 - cb.x1 + 60), h = Math.ceil(cb.y2 - cb.y1 + 60);
+  c.setAttribute('viewBox', `${vx} ${vy} ${w} ${h}`);
   c.setAttribute('xmlns', 'http://www.w3.org/2000/svg'); c.setAttribute('width', w); c.setAttribute('height', h);
   c.removeAttribute('id'); c.setAttribute('font-family', "Pretendard, 'Malgun Gothic', Arial, sans-serif");
   const style = document.createElementNS('http://www.w3.org/2000/svg', 'style'); style.textContent = pmExportCss();
   c.insertBefore(style, c.firstChild);
-  const bg = document.createElementNS('http://www.w3.org/2000/svg', 'rect'); bg.setAttribute('width', w); bg.setAttribute('height', h); bg.setAttribute('fill', '#FFFFFF');
+  const bg = document.createElementNS('http://www.w3.org/2000/svg', 'rect'); bg.setAttribute('x', vx); bg.setAttribute('y', vy); bg.setAttribute('width', w); bg.setAttribute('height', h); bg.setAttribute('fill', '#FFFFFF');
   c.insertBefore(bg, style.nextSibling);
   return { svg: new XMLSerializer().serializeToString(c), w, h };
 }
@@ -9161,6 +9198,111 @@ function pcsToggleCursorShare(){
   uiToast(on ? '내 커서 공유를 켰습니다' : '내 커서 공유를 껐습니다 — 다른 사람에게 내 마우스 위치와 선택한 도형이 보이지 않습니다');
   render();
 }
+/* ============================================================================
+   07i_pm_canvas.js — v120  Process Map 무한 캔버스(PFD 보드처럼)
+   · 캔버스는 내용 둘레로 늘 빈 공간을 둔다: 왼쪽·위 PM_CANVAS_PAD, 오른쪽·아래는 화면 한 장만큼.
+     노드를 바깥으로 끌면(자유 배치에서는 음수 좌표도 된다) 다음 그리기에서 캔버스가 그쪽으로 넓어지고, 보던 자리는 그대로다.
+   · 빈 곳을 끌면 화면 이동(가운데 단추 끌기도), 휠은 스크롤, Ctrl(⌘)+휠·트랙패드 집기는 마우스 자리를 중심으로 확대·축소(25~200%).
+   · 위치 계산은 순수 함수(pmContentBounds·pmCanvasFrame·pmScrollForFrame), 화면은 그 결과만 쓴다.
+   ========================================================================== */
+var PM_CANVAS_PAD = 400;
+var PM_ZOOM_MIN = 0.25, PM_ZOOM_MAX = 2;
+var pmFrameCache = {};    // pmId → { x, y, w, h, k, cb } 마지막으로 그린 캔버스 틀
+var pmPanState = null;    // { sx, sy, sl, st, moved }
+
+/* ---------- 순수 함수 ---------- */
+/* 내용 범위: 노드·루트·표 줄 띠 */
+function pmContentBounds(nodes, root, bands){
+  let x1 = root.x, y1 = root.y, x2 = root.x + 220, y2 = root.y + PM_NODE_H;
+  (nodes || []).forEach(n => { x1 = Math.min(x1, n.x); y1 = Math.min(y1, n.y - 18); x2 = Math.max(x2, n.x + PM_NODE_W); y2 = Math.max(y2, n.y + PM_NODE_H + 18); });
+  (bands || []).forEach(b => { y1 = Math.min(y1, b.y); y2 = Math.max(y2, b.y + b.h); });
+  return { x1, y1, x2, y2 };
+}
+/* 캔버스 틀(viewBox): 내용 + 왼쪽·위 여백 + 오른쪽·아래 화면 한 장. vw·vh = 보이는 칸(px), k = 배율 */
+function pmCanvasFrame(cb, vw, vh, k){
+  const s = k > 0 ? k : 1;
+  const x = Math.floor(cb.x1 - PM_CANVAS_PAD), y = Math.floor(cb.y1 - PM_CANVAS_PAD);
+  const w = Math.ceil(cb.x2 - x + Math.max(PM_CANVAS_PAD, (vw || 1200) / s));
+  const h = Math.ceil(cb.y2 - y + Math.max(PM_CANVAS_PAD * 0.75, (vh || 650) / s));
+  return { x, y, w, h };
+}
+/* 틀·배율이 바뀌어도 화면 왼쪽 위에 보이던 캔버스 점이 그대로 오도록 스크롤 값을 옮긴다. prev 없으면 내용 왼쪽 위가 보이게 */
+function pmScrollForFrame(saved, prev, next, k, cb){
+  if(!saved || !prev) return { l: Math.max(0, (cb.x1 - next.x - 30) * k), t: Math.max(0, (cb.y1 - next.y - 30) * k) };
+  const px = saved.l / (prev.k || k) + prev.x, py = saved.t / (prev.k || k) + prev.y;
+  return { l: Math.max(0, (px - next.x) * k), t: Math.max(0, (py - next.y) * k) };
+}
+/* 마우스 자리를 중심으로 배율 바꾸기: pt = 그 자리의 캔버스 점, (ox, oy) = 칸 안의 마우스 위치 */
+function pmScrollForZoom(pt, frame, k, ox, oy){ return { l: Math.max(0, (pt.x - frame.x) * k - ox), t: Math.max(0, (pt.y - frame.y) * k - oy) }; }
+function pmClampZoom(k){ return Math.max(PM_ZOOM_MIN, Math.min(PM_ZOOM_MAX, Math.round(k * 100) / 100)); }
+
+/* ---------- 화면 ---------- */
+function pmFrameOf(pmId){ return pmFrameCache[pmId] || { x: 0, y: 0, w: 1200, h: 800, k: pmView.scale, cb: { x1: 0, y1: 0, x2: 600, y2: 400 } }; }
+/* renderPmCanvas가 그리기 전에 부른다 → 틀 */
+function pmCanvasFrameFor(wrap, pmId, nodes, root, bands){
+  const cb = pmContentBounds(nodes, root, bands);
+  const f = pmCanvasFrame(cb, wrap.clientWidth, wrap.clientHeight, pmView.scale);
+  return Object.assign(f, { k: pmView.scale, cb });
+}
+/* 그린 뒤: 스크롤 맞추기(보던 자리 유지) */
+function pmCanvasAfterRender(wrap, pmId, frame){
+  STATE.pmCanvasScroll = STATE.pmCanvasScroll || {};
+  const prev = pmFrameCache[pmId];
+  const sc = pmScrollForFrame(STATE.pmCanvasScroll[pmId], prev, frame, frame.k, frame.cb);
+  pmFrameCache[pmId] = frame;
+  wrap.scrollLeft = sc.l; wrap.scrollTop = sc.t;
+  STATE.pmCanvasScroll[pmId] = { l: wrap.scrollLeft, t: wrap.scrollTop };
+  if(!wrap.__pmWheel){
+    wrap.__pmWheel = true;
+    wrap.addEventListener('wheel', e => {
+      if(!(e.ctrlKey || e.metaKey) || !wrap.querySelector('#pmCanvas')) return;   // 휠만 = 스크롤
+      e.preventDefault();
+      pmZoomAt(pmView.scale * (e.deltaY < 0 ? 1.1 : 1 / 1.1), e.clientX, e.clientY);
+    }, { passive: false });
+  }
+}
+/* 확대·축소(cx, cy = 화면 좌표, 없으면 보이는 칸 가운데) */
+function pmZoomAt(k, cx, cy){
+  const wrap = document.getElementById('pmCanvasWrap');
+  if(!wrap) return;
+  const pmId = wrap.getAttribute('data-pmid');
+  const nk = pmClampZoom(k);
+  const r = wrap.getBoundingClientRect();
+  const ox = cx != null ? cx - r.left : wrap.clientWidth / 2, oy = cy != null ? cy - r.top : wrap.clientHeight / 2;
+  const f = pmFrameOf(pmId), ok = pmView.scale;
+  const pt = { x: (wrap.scrollLeft + ox) / ok + f.x, y: (wrap.scrollTop + oy) / ok + f.y };
+  pmView.scale = nk;
+  renderPmCanvas();
+  const nf = pmFrameOf(pmId);
+  const sc = pmScrollForZoom(pt, nf, nk, ox, oy);
+  wrap.scrollLeft = sc.l; wrap.scrollTop = sc.t;
+  STATE.pmCanvasScroll[pmId] = { l: wrap.scrollLeft, t: wrap.scrollTop };
+  pmFrameCache[pmId] = Object.assign({}, nf, { k: nk });
+  pmRenderMinimap();
+}
+/* 빈 곳 끌기(왼쪽 단추) 또는 가운데 단추 끌기 → 화면 이동 */
+function pmPanStart(svg, e){
+  const onEmpty = !e.target.closest('.pm-node-g, [data-flow-edge-id], .pm-plus, [data-flow-handle], [data-add-handle]');
+  if(!(e.button === 1 || (e.button === 0 && onEmpty && !e.ctrlKey && !e.metaKey && !e.shiftKey))) return;
+  const wrap = document.getElementById('pmCanvasWrap');
+  if(!wrap) return;
+  e.preventDefault();
+  pmPanState = { sx: e.clientX, sy: e.clientY, sl: wrap.scrollLeft, st: wrap.scrollTop, moved: false };
+  const move = ev => {
+    const dx = ev.clientX - pmPanState.sx, dy = ev.clientY - pmPanState.sy;
+    if(!pmPanState.moved && Math.abs(dx) + Math.abs(dy) < 4) return;
+    pmPanState.moved = true; wrap.classList.add('pm-panning');
+    wrap.scrollLeft = pmPanState.sl - dx; wrap.scrollTop = pmPanState.st - dy;
+  };
+  const up = () => {
+    document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', up);
+    wrap.classList.remove('pm-panning');
+    const moved = pmPanState && pmPanState.moved;
+    pmPanState = moved ? { moved: true, done: Date.now() } : null;   // 바로 뒤 click은 무시(팝업 닫기·선택 해제 안 함)
+  };
+  document.addEventListener('mousemove', move); document.addEventListener('mouseup', up);
+}
+function pmPanJustEnded(){ return !!(pmPanState && pmPanState.done && Date.now() - pmPanState.done < 300); }
 function openBomReport(pmId){
   goTo('bomReport', { reportPmId: pmId }, { label:'BOM Report', tag:'BOM' });
 }
@@ -9388,40 +9530,7 @@ function getPmPanelWidth(){
   return (tab && tab.ctx && tab.ctx.pmPanelWidth) || 600;
 }
 
-/* 캔버스 ↔ 사이드 패널 사이의 드래그 리사이즈 — 윈도우 창 크기 조절하듯 마우스로 경계를 끌어 폭을 바꾼다.
-   드래그 중에는 매 mousemove마다 전체 render()를 호출하지 않고 DOM 스타일만 직접 갱신해 부드럽게 움직이고,
-   마우스를 떼는 순간 ctx.pmPanelWidth에 최종값을 저장해 이후 렌더링에도 유지되게 한다. */
-function startPmPanelResize(e){
-  e.preventDefault();
-  const tab = getActiveTab();
-  const startX = e.clientX;
-  const startWidth = getPmPanelWidth();
-  const containerEl = document.querySelector('.pm-container');
-  const panelEl = document.querySelector('.pm-side-panel');
-  const cardEl = document.querySelector('.pm-container > .card');
-  const handleEl = e.currentTarget;
-  if(!containerEl || !panelEl || !cardEl) return;
-  const containerW = containerEl.getBoundingClientRect().width;
-  const minW = 340;
-  const maxW = Math.max(minW, containerW - 300 - 48); // 300=캔버스 최소폭, 48=핸들+gap 여유
-  handleEl.classList.add('resizing');
-  document.body.style.userSelect = 'none';
-  function onMove(ev){
-    const delta = startX - ev.clientX; // 핸들을 왼쪽으로 끌면(패널 쪽으로) 패널이 넓어짐
-    const newWidth = Math.max(minW, Math.min(maxW, startWidth + delta));
-    panelEl.style.width = newWidth + 'px';
-    cardEl.style.maxWidth = `calc(100% - ${newWidth + 48}px)`;
-    tab.ctx.pmPanelWidth = newWidth;
-  }
-  function onUp(){
-    document.removeEventListener('mousemove', onMove);
-    document.removeEventListener('mouseup', onUp);
-    document.body.style.userSelect = '';
-    handleEl.classList.remove('resizing');
-  }
-  document.addEventListener('mousemove', onMove);
-  document.addEventListener('mouseup', onUp);
-}
+/* v120: 캔버스 ↔ 사이드 패널 경계 끌기는 13b_panel_resize.js pmStartPanelResize(끝까지 줄이면 접힘) */
 function openPmPanelMenu(nodeId){
   getActiveTab().ctx.pmPanel = { type:'menu', nodeId };
   render();
@@ -9697,8 +9806,9 @@ function renderPmFlowEdgePopup(){
   if(!edge) return;
   const div = document.createElement('div');
   div.className = 'pfd-edge-popup';
-  div.style.left = (x*pmView.scale) + 'px';
-  div.style.top = (y*pmView.scale) + 'px';
+  const fr = pmFrameOf(pmId);   // v120: 캔버스 틀의 왼쪽 위가 (0,0)이 아니다
+  div.style.left = ((x - fr.x)*pmView.scale) + 'px';
+  div.style.top = ((y - fr.y)*pmView.scale) + 'px';
   div.onmousedown = (ev)=>ev.stopPropagation();
   div.innerHTML = pmFlowEdgePopupHtml(pmId, edge);   // v118: 모양·굵기·화살표·색·글
   layer.appendChild(div);
@@ -9717,8 +9827,8 @@ function isPmAncestor(pmId, candidateAncestorId, nodeId){
 }
 
 /* v117: 배치는 07f_pm_layout.js(pm.layout 설정 + 그릴 때 계산, store 함수 pmSetLayout·pmSetStageLayout). 예전 applyPmLayout은 DATA 좌표를 직접 바꿔 지웠다 */
-function pmZoom(delta){ pmView.scale = Math.max(0.5, Math.min(1.8, +(pmView.scale+delta).toFixed(2))); renderPmCanvas(); }
-function pmZoomReset(){ pmView.scale = 1; renderPmCanvas(); }
+function pmZoom(delta){ pmZoomAt(pmView.scale + delta); }   // v120: 보이는 칸 가운데를 중심으로
+function pmZoomReset(){ pmZoomAt(1); }
 let pmScaleBeforeFullscreen = null;
 function pmToggleFullscreen(){
   const el = document.querySelector('.pm-container');
@@ -9768,10 +9878,9 @@ function renderPmCanvas(){
   const rootId = 'ROOT';
   const rootNode = { id: rootId, x: view.root.x, y: view.root.y, name: `${pm.code} ${pm.kind} PCS` };
 
-  let maxX = 400, maxY = 300;
-  nodes.forEach(n=>{ maxX=Math.max(maxX, n.x+PM_NODE_W+80); maxY=Math.max(maxY, n.y+PM_NODE_H+80); });
-  maxX = Math.max(maxX, rootNode.x+300); maxY = Math.max(maxY, rootNode.y+PM_NODE_H+80);
-  view.bands.forEach(b=>{ maxY = Math.max(maxY, b.y + b.h + 40); });
+  // v120 무한 캔버스: 내용 둘레로 늘 빈 공간(07i_pm_canvas.js)
+  const frame = pmCanvasFrameFor(wrap, pmId, nodes, rootNode, view.bands);
+  const maxX = frame.cb.x2 + 30;
 
   const selectedId = tab.ctx.selectedProcessNodeId;
   const allBoxes = [pmNodeBox(rootNode,true), ...nodes.map(n=>pmNodeBox(n,false))];
@@ -9787,10 +9896,9 @@ function renderPmCanvas(){
     ? `<g class="pm-plus" data-plus="child" data-plus-node="ROOT" transform="translate(${rootNode.x+110},${rootNode.y+PM_NODE_H+16})" role="button" aria-label="하위 추가"><title>하위 추가 (Space)</title><circle r="8"/><text text-anchor="middle" dominant-baseline="central">+</text></g>`
     : '';
   const flowEdgesSvg = pmFlowEdgesSvg(pmId, allBoxes, rootId, nodes);
-  wrap.innerHTML = pmCanvasHtml(pm, maxX, maxY, edges, rootSvg, rootAddHandle, nodesSvg, flowEdgesSvg);
-  // v114: 다시 그려도(노드를 눌러 패널이 열려도) 캔버스 스크롤 위치를 지킨다 — 전에는 0으로 돌아가 두 번째 클릭이 다른 노드에 맞았다
-  const sc = (STATE.pmCanvasScroll || {})[pmId];
-  if(sc){ wrap.scrollLeft = sc.l; wrap.scrollTop = sc.t; }
+  wrap.innerHTML = pmCanvasHtml(pm, frame, edges, rootSvg, rootAddHandle, nodesSvg, flowEdgesSvg);
+  // v114: 다시 그려도 캔버스 스크롤 위치를 지킨다. v120: 캔버스 틀이 넓어지거나 배율이 바뀌어도 보던 자리 그대로
+  pmCanvasAfterRender(wrap, pmId, frame);
   if(!wrap.__scrollKept){ wrap.__scrollKept = true; wrap.addEventListener('scroll', ()=>{ STATE.pmCanvasScroll = STATE.pmCanvasScroll || {}; STATE.pmCanvasScroll[wrap.getAttribute('data-pmid')] = { l: wrap.scrollLeft, t: wrap.scrollTop }; }, { passive:true }); }
   attachPmCanvasEvents(wrap, pmId);
   pmRenderMinimap();   // v117 미니맵(켜져 있으면)
@@ -9982,9 +10090,9 @@ function pmToolbarHtml(pm){
 /* v116 Parameter 중요도(CPP·KPP) 표시 */
 function critBadge(v){ return v === 'CPP' ? '<span class="crit-badge cpp">CPP</span>' : v === 'KPP' ? '<span class="crit-badge kpp">KPP</span>' : `<span class="crit-none">${escapeXml(v || '-')}</span>`; }
 /* 캔버스(SVG·흐름선 층) */
-function pmCanvasHtml(pm, maxX, maxY, edges, rootSvg, rootAddHandle, nodesSvg, flowEdgesSvg){
+function pmCanvasHtml(pm, f, edges, rootSvg, rootAddHandle, nodesSvg, flowEdgesSvg){
   return `
-    <svg id="pmCanvas" width="${maxX*pmView.scale}" height="${maxY*pmView.scale}" viewBox="0 0 ${maxX} ${maxY}">
+    <svg id="pmCanvas" width="${Math.round(f.w*pmView.scale)}" height="${Math.round(f.h*pmView.scale)}" viewBox="${f.x} ${f.y} ${f.w} ${f.h}">
       <defs>
         <marker id="pmFlowArrow" markerWidth="9" markerHeight="9" refX="7" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 Z" fill="#C0182A"/></marker>
         <marker id="pmSeqArrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#B8A3A6"/></marker>
@@ -10063,18 +10171,30 @@ function attachPmCanvasEvents(wrap, pmId){
       renderPmCanvas();
     });
   });
+  svg.addEventListener('mousedown', e=>pmPanStart(svg, e));   // v120: 빈 곳 끌기 = 화면 이동
   svg.addEventListener('click', (e)=>{
+    if(pmPanJustEnded()) return;
     if(e.target.closest('[data-flow-edge-id]')) return;
     if(e.target.closest('.pm-node-g')) return;
     if(pmSelectedFlowEdgeId || pmFlowEdgePopup) closePmFlowEdgePopup();
   });
   svg.querySelectorAll('.pm-node-g').forEach(g=>pmAttachNodeEvents(svg, g, pmId, tab));
-  svg.addEventListener('mousemove', e=>pmCanvasMouseMove(svg, pmId, e));
   svg.addEventListener('mouseup', pmEndCanvasDrag);
-  svg.addEventListener('mouseleave', pmEndCanvasDrag);
+  // v120: 끄는 동안은 캔버스 밖(보이는 칸 밖)으로 나가도 계속 — 칸 가장자리 근처면 그쪽으로 스크롤(무한 캔버스)
   if(!window.__pmGlobalMouseUpAttached){
     window.__pmGlobalMouseUpAttached = true;
     document.addEventListener('mouseup', pmEndCanvasDrag);
+    document.addEventListener('mousemove', e=>{
+      if(!pmDrag && !pmFlowConnectFrom) return;
+      const s = document.getElementById('pmCanvas'), w = document.getElementById('pmCanvasWrap');
+      if(!s || !w) return;
+      const r = w.getBoundingClientRect(), edge = 36, step = 14;
+      if(pmDrag){
+        if(e.clientX > r.right - edge) w.scrollLeft += step; else if(e.clientX < r.left + edge) w.scrollLeft -= step;
+        if(e.clientY > r.bottom - edge) w.scrollTop += step; else if(e.clientY < r.top + edge) w.scrollTop -= step;
+      }
+      pmCanvasMouseMove(s, w.getAttribute('data-pmid'), e);
+    });
   }
 }
 function pmSvgPoint(svg, e){
@@ -10175,8 +10295,8 @@ function pmCanvasMouseMove(svg, pmId, e){
   const node = DATA.nodes.find(n=>n.id===pmDrag.nodeId);
   if(!node) return;
   const at = pmDrag.free ? node : pmDrag.at;
-  at.x = Math.max(10, svgX - pmDrag.offsetX);
-  at.y = Math.max(10, svgY - pmDrag.offsetY);
+  at.x = Math.round(svgX - pmDrag.offsetX);   // v120 무한 캔버스: 왼쪽·위로도(음수 좌표) — 다음 그리기에서 캔버스가 넓어진다
+  at.y = Math.round(svgY - pmDrag.offsetY);
 
   // 드래그 중인 노드가 다른 노드 박스 위에 겹쳐지면 "여기에 놓으면 부모가 바뀜" 대상으로 표시(자기 자신/자손은 제외 — 순환 방지)
   const allNodes = pmVisibleTreeNodes(pmId);
@@ -12999,7 +13119,7 @@ function renderPfdBoard(){
   const titleName = focusNode ? focusNode.name : 'PFD 디자인 보드';
   const eyebrowName = focusNode ? (pm.name + ' · Unit Operation') : escapeXml(pm.name);
   return `
-    <div class="pfd-editor ${pfdBoardUI.leftCollapsed?'left-collapsed':''} ${pfdBoardUI.rightCollapsed?'right-collapsed':''} ${focusNodeId?'focus-mode':''}" id="pfdEditor" data-focus="${focusNodeId||''}">
+    <div class="pfd-editor ${pfdBoardUI.leftCollapsed?'left-collapsed':''} ${pfdBoardUI.rightCollapsed?'right-collapsed':''} ${focusNodeId?'focus-mode':''}" id="pfdEditor" data-focus="${focusNodeId||''}" style="${pfdPanelVarsStyle()}">
       <div class="pfd-editor-topbar">
         <div class="pfd-editor-title">
           ${renderPfdEditorNavButtons(pmId, focusNodeId)}
@@ -13034,6 +13154,7 @@ function renderPfdBoard(){
             <div class="pfd-editor-left-content" id="pfdEditorLeftContent">${renderPfdBoardLeftContent(pmId)}</div>
           </div>
           <button class="pfd-editor-collapse-btn left" data-on-click="togglePfdBoardLeft" title="사이드바 접기/펼치기">${pfdBoardUI.leftCollapsed?'›':'‹'}</button>
+          ${pfdPanelResizeHandle('left')}
         </div>
 
         <div class="pfd-editor-center">
@@ -13056,6 +13177,7 @@ function renderPfdBoard(){
 
         <div class="pfd-editor-right" id="pfdEditorRight">
           <button class="pfd-editor-collapse-btn right" data-on-click="togglePfdBoardRight" title="사이드바 접기/펼치기">${pfdBoardUI.rightCollapsed?'‹':'›'}</button>
+          ${pfdPanelResizeHandle('right')}
           <div class="pfd-editor-right-inner" id="pfdEditorRightInner">${renderPfdBoardRightPanel()}</div>
         </div>
       </div>
@@ -17678,6 +17800,129 @@ function pfdOpenEdgeColorPicker(anchorEl, nodeId, edgeId){
     logAudit('PFD','연결선 색상 변경', `${nodeId}·${edgeId}`);
     validateData(DATA);
     renderPfdBoardCanvas(); renderPfdBoardEdgePopup(); refreshPfdBoardChrome();
+  });
+}
+/* ============================================================================
+   13b_panel_resize.js — v120  사이드 패널 폭 조절(끌기) + 끝까지 줄이면 접기
+   · PFD 편집기 왼쪽(섹션·도형·에셋·레이어)·오른쪽(속성) 패널, Process Map 오른쪽 UO 패널.
+   · 경계를 끌어 폭을 바꾸고, 최소 폭보다 더 줄이면(접기 선 아래) 놓는 순간 접힌다. 접힌 경계를 다시 끌어 내면 펼쳐진다.
+     경계를 두 번 누르면 접기·펼치기. 폭은 이 브라우저에 기억(PFD) / 탭마다(Process Map).
+   · PFD는 끄는 동안 도면이 화면에서 그대로다(v111 패널 접기와 같은 규칙 — 왼쪽 패널이 넓어진 만큼 화면 이동을 되돌림).
+   ========================================================================== */
+var PFD_PANEL_LIMITS = { left: { min: 180, max: 560, def: 236 }, right: { min: 220, max: 600, def: 264 } };
+var PM_PANEL_LIMITS = { min: 280, def: 600 };
+var PANEL_COLLAPSE_BELOW = 120;   // 이보다 좁게 끌어 놓으면 접는다
+
+/* ---------- 순수 함수 ---------- */
+/* 끈 결과: start = 시작 폭(접혀 있었으면 0), delta = 넓어지는 쪽으로 움직인 px → { w(펼칠 폭), collapsed } */
+function panelDragResult(start, delta, min, max, collapseBelow){
+  const raw = start + delta;
+  if(raw < collapseBelow) return { w: null, collapsed: true };
+  return { w: Math.round(Math.max(min, Math.min(max, raw))), collapsed: false };
+}
+/* 공통 끌기: dir = 1(오른쪽으로 끌면 넓어짐) | -1(왼쪽으로 끌면 넓어짐) */
+function panelStartDrag(e, o){
+  e.preventDefault();
+  const sx = e.clientX;
+  let last = { w: o.start || o.lastW, collapsed: !o.start };
+  document.body.style.userSelect = 'none';
+  if(o.handle) o.handle.classList.add('resizing');
+  const move = ev => {
+    const r = panelDragResult(o.start, (ev.clientX - sx) * o.dir, o.min, o.max(), PANEL_COLLAPSE_BELOW);
+    last = r;
+    o.live(r.collapsed ? Math.max(0, o.start + (ev.clientX - sx) * o.dir) : r.w, r.collapsed);
+  };
+  const up = () => {
+    document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', up);
+    document.body.style.userSelect = '';
+    if(o.handle) o.handle.classList.remove('resizing');
+    o.end(last.collapsed ? null : last.w, last.collapsed);
+  };
+  document.addEventListener('mousemove', move); document.addEventListener('mouseup', up);
+}
+
+/* ---------- PFD 편집기 ---------- */
+function pfdPanelWidth(side){
+  if(pfdBoardUI[side + 'W'] == null){
+    let saved = {}; try { saved = JSON.parse(localStorage.getItem('pcs_pfd_panel_w') || '{}') || {}; } catch(_){}
+    const L = PFD_PANEL_LIMITS[side];
+    pfdBoardUI[side + 'W'] = Math.max(L.min, Math.min(L.max, Number(saved[side]) || L.def));
+  }
+  return pfdBoardUI[side + 'W'];
+}
+function pfdPanelVarsStyle(){ return `--pfd-left-w:${pfdPanelWidth('left')}px; --pfd-right-w:${pfdPanelWidth('right')}px;`; }
+function pfdSavePanelWidths(){ try { localStorage.setItem('pcs_pfd_panel_w', JSON.stringify({ left: pfdPanelWidth('left'), right: pfdPanelWidth('right') })); } catch(_){} }
+/* 끄는 중 캔버스(SVG) 크기만 바로 맞춘다 — 전체 다시 그리기는 놓을 때 한 번 */
+function pfdFitSvgToWrap(){
+  const w = document.getElementById('pfdBoardCanvasWrap'), svg = document.getElementById('pfdBoardSvg');
+  if(!w || !svg) return;
+  const r = w.getBoundingClientRect(), W = Math.round(r.width) || 1000, H = Math.round(r.height) || 640;
+  svg.setAttribute('width', W); svg.setAttribute('height', H); svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  if(typeof pfdPatchViewport === 'function') pfdPatchViewport();
+}
+function pfdStartPanelResize(e, side){
+  const ed = document.getElementById('pfdEditor');
+  if(!ed) return;
+  const L = PFD_PANEL_LIMITS[side], key = side + 'Collapsed';
+  const leftEdge = () => { const lp = ed.querySelector('.pfd-editor-left'); return lp ? lp.getBoundingClientRect().width : 0; };
+  const pan0 = pfdBoardState.panX, left0 = leftEdge();
+  const otherW = () => side === 'left' ? (pfdBoardUI.rightCollapsed ? 0 : pfdPanelWidth('right')) : (pfdBoardUI.leftCollapsed ? 0 : pfdPanelWidth('left'));
+  ed.classList.add('pfd-resizing');
+  panelStartDrag(e, {
+    handle: e.currentTarget, dir: side === 'left' ? 1 : -1, min: L.min,
+    max: () => Math.min(L.max, Math.max(L.min, ed.getBoundingClientRect().width - otherW() - 360)),   // 캔버스는 360px 이상 남긴다
+    start: pfdBoardUI[key] ? 0 : pfdPanelWidth(side), lastW: pfdPanelWidth(side),
+    live: (w, collapsed) => {
+      ed.style.setProperty(`--pfd-${side}-live`, w + 'px');
+      ed.classList.add(`${side}-live`);
+      ed.classList.toggle(`${side}-will-collapse`, collapsed);
+      if(side === 'left') pfdBoardState.panX = pfdPanKeepScreen(pan0, left0, leftEdge());
+      pfdFitSvgToWrap();
+    },
+    end: (w, collapsed) => {
+      ed.classList.remove('pfd-resizing', `${side}-live`, `${side}-will-collapse`);
+      ed.style.removeProperty(`--pfd-${side}-live`);
+      if(!collapsed){ pfdBoardUI[side + 'W'] = w; ed.style.setProperty(`--pfd-${side}-w`, w + 'px'); pfdSavePanelWidths(); }
+      pfdBoardUI[key] = collapsed;
+      ed.classList.toggle(`${side}-collapsed`, collapsed);
+      const b = ed.querySelector('.pfd-editor-collapse-btn.' + side);
+      if(b) b.textContent = side === 'left' ? (collapsed ? '›' : '‹') : (collapsed ? '‹' : '›');
+      if(side === 'left') pfdBoardState.panX = pfdPanKeepScreen(pan0, left0, leftEdge());
+      pfdFitSvgToWrap();
+      renderPfdBoardCanvas();
+    },
+  });
+}
+function pfdPanelResizeHandle(side){
+  return `<div class="pfd-panel-resize ${side}" role="separator" aria-orientation="vertical" aria-label="${side === 'left' ? '왼쪽' : '오른쪽'} 패널 폭 — 끌어서 조절, 끝까지 줄이면 접힘, 두 번 누르면 접기·펼치기" title="끌어서 폭 조절 · 끝까지 줄이면 접힘 · 두 번 누르면 접기/펼치기" data-on-mousedown="pfdPanelResize_h" data-a-mousedown="${pcsArgs([side])}" data-on-dblclick="pfdPanelToggle_h" data-a-dblclick="${pcsArgs([side])}"></div>`;
+}
+
+/* ---------- Process Map UO 패널 ---------- */
+/* 끝까지 줄이면 패널을 닫는다(폭은 기억 — 노드를 다시 누르면 그 폭으로 열린다) */
+function pmStartPanelResize(e){
+  const tab = getActiveTab();
+  const containerEl = document.querySelector('.pm-container');
+  const panelEl = document.querySelector('.pm-side-panel');
+  const cardEl = document.querySelector('.pm-container > .card');
+  if(!containerEl || !panelEl || !cardEl) return;
+  const start = getPmPanelWidth();
+  panelEl.style.animation = 'none';
+  panelStartDrag(e, {
+    handle: e.currentTarget, dir: -1, min: PM_PANEL_LIMITS.min, start, lastW: start,
+    max: () => Math.max(PM_PANEL_LIMITS.min, containerEl.getBoundingClientRect().width - 300 - 48),   // 캔버스 최소 300
+    live: (w, collapsed) => {
+      panelEl.style.width = w + 'px';
+      panelEl.classList.toggle('will-collapse', collapsed);
+      cardEl.style.maxWidth = `calc(100% - ${w + 48}px)`;
+    },
+    end: (w, collapsed) => {
+      panelEl.classList.remove('will-collapse');
+      if(collapsed){ closePmPanel(); uiToast('패널을 접었습니다 — 노드를 누르면 다시 열립니다'); return; }
+      tab.ctx.pmPanelWidth = w;
+      panelEl.style.width = w + 'px';
+      cardEl.style.maxWidth = `calc(100% - ${w + 48}px)`;
+      if(typeof pmRenderMinimap === 'function') pmRenderMinimap();
+    },
   });
 }
 function pfdEdgeEndpoints(edge, fromShape, toShape){
@@ -31362,6 +31607,9 @@ const PCS_HANDLERS = {
   pcsCallWithValue(event, a){ return pcsCall(a[0], a.slice(1).concat([this.value])); },
   /* 공용: [함수, 인자…] + 체크 상자 → 함수(인자…, this.checked) */
   pcsCallWithChecked(event, a){ return pcsCall(a[0], a.slice(1).concat([this.checked])); },
+  /* v120 패널 경계: 끌기(이벤트가 필요) · 두 번 누르기 */
+  pfdPanelResize_h(event, a){ pfdStartPanelResize(event, a[0]); },
+  pfdPanelToggle_h(event, a){ pfdTogglePanelKeepView(a[0]); },
   /* 공용: [함수, 인자…, 속성, 최소, 최대, 기본] + 숫자 입력 → 범위 안으로 */
   pcsCallWithNumber(event, a){
     const [min, max, dflt] = a.slice(-3); const head = a.slice(0, -3);
@@ -31581,7 +31829,7 @@ const PCS_HANDLERS = {
   },
   /* 07_process_map.js · onmousedown */
   startPmPanelResize_1e78b1(event, a){
-    startPmPanelResize(event)
+    pmStartPanelResize(event)
   },
   /* 07_process_map.js · onblur */
   syncReportEdit_335c5b(event, a){
