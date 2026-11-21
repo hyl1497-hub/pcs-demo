@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="pcs-api-base" content="">
 <meta name="pcs-firebase" content="{&quot;apiKey&quot;:&quot;AIzaSyASB4CKv15IwJUp8pIVKXFtOYwKlY7y1es&quot;,&quot;databaseURL&quot;:&quot;https://pcs-demo-18101-default-rtdb.asia-southeast1.firebasedatabase.app&quot;}">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-b9O/fsTYjAmVv/v+nquQZGS7onQBC9Y8Rb02Ma803JE=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-qP7XzsaCoDZEl2NSW1peYCFPkwmDsUFAfVtNHZyIYQQ=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'none'">
 <title>PCS Platform · Process Control System</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -2465,6 +2465,27 @@ textarea.ui-dialog-input{resize:vertical; min-height:72px;}
 .uo-owner-field{display:flex; flex-direction:column; gap:3px; flex:1 1 140px; font-size:11px; color:var(--ink-500);}
 .pm-kb-owner{font-size:11.5px; color:#2F6FB5; margin-bottom:2px; font-weight:600;}
 .pm-kb-noowner{color:var(--ink-400); font-weight:400;}
+
+/* v122 Mass Balance 상세 */
+.mb-basis{white-space:nowrap; display:inline-block; margin-top:2px; font-size:9px; font-weight:800; padding:0 5px; border-radius:4px; letter-spacing:.03em;}
+.mb-basis.mass{background:#E6F7F2; color:#0D7A5F;}
+.mb-basis.vol{background:#FFF4E5; color:#9A5B00;}
+.mb-detail-btn{display:block; margin-top:5px; border:0; background:none; padding:0; font-size:10.5px; color:#2F6FB5; cursor:pointer; font-family:inherit; text-align:left;}
+.mb-detail-btn.on{font-weight:700;}
+.mb-detail-row > td{background:#FBFAF8; padding:10px 14px !important; border-bottom:1px solid var(--line);}
+.mb-detail{display:flex; flex-direction:column; gap:8px; container-type:inline-size; min-width:0;}
+.mb-detail-sums{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
+@container (max-width:680px){ .mb-detail-sums{grid-template-columns:1fr;} }
+.mb-site-sum{font-size:11.5px; line-height:1.6; padding:7px 10px; border-radius:8px; border:1px solid var(--line-soft);}
+.mb-site-sum.mb-s{background:#F8FBFF;} .mb-site-sum.mb-r{background:#FCF8FF;}
+.mb-site-label{font-size:10.5px; letter-spacing:.04em; color:var(--ink-500);}
+.mb-detail-ctrl{display:flex; flex-wrap:wrap; gap:12px; align-items:center; font-size:11.5px;}
+.mb-detail-ctrl label{display:inline-flex; align-items:center; gap:5px;}
+.mb-extra-wrap{overflow-x:auto; max-width:100%;}
+.mb-extra-table{font-size:11.5px; width:auto !important;}
+.mb-extra-table select{width:auto; max-width:140px;}
+.mb-extra-table td, .mb-extra-table th{padding:4px 6px !important;}
+.mb-detail-add{display:flex; flex-wrap:wrap; gap:5px;}
 </style>
 </head>
 <body>
@@ -3300,6 +3321,9 @@ function validateData(data){
   // v113: Mass Balance Step의 주인 UO, BOM 소요량 규칙
   Object.entries(data.massBalance||{}).forEach(([pmId, mb])=>{
     (mb.streams||[]).forEach(s=>{
+      // v122: 추가 투입·곁가지 산출 줄, 사이클
+      (s.extras||[]).forEach(x=>{ if(!x.id || !['in','out'].includes(x.dir)) errors.push(`[Mass Balance] Step ${s.id} 곁가지 줄 ${x.id || '?'} 형식 오류`); });
+      if(s.cycles !== undefined && !(Number.isInteger(s.cycles) && s.cycles >= 1)) errors.push(`[Mass Balance] Step ${s.id} 사이클 ${s.cycles} 오류`);
       if(!s.nodeId) return;
       const n = (data.nodes||[]).find(x=>x.id===s.nodeId);
       if(!n) errors.push(`[고아 참조] MB Step ${s.id} → Node ${s.nodeId} 미존재`);
@@ -4948,14 +4972,23 @@ function render(){
 /* -------- DASHBOARD -------- */
 /* ============================================================================
    05b_release_notes.js — v111  앱 버전과 "이번 버전에서 바뀐 점"
-   · PCS_APP_VERSION은 build.sh가 빌드 번호로 바꿔 넣는다(v121 자리).
+   · PCS_APP_VERSION은 build.sh가 빌드 번호로 바꿔 넣는다(v122 자리).
    · PCS_RELEASE_NOTES 맨 앞 항목은 항상 이번 빌드 버전이어야 한다(tests/unit/release-notes.test.cjs가 검사).
      버전을 올릴 때 여기 맨 앞에 한 항목을 넣는다. 테스트하는 사람이 무엇을 눌러 보면 되는지(try)를 같이 쓴다.
    · 오른쪽 위 사용자 메뉴 → "버전 vN · 바뀐 점" 으로 열고, 새 버전으로 처음 열면 알림을 한 번 띄운다.
    ========================================================================== */
-var PCS_APP_VERSION = 'v121';
+var PCS_APP_VERSION = 'v122';
 
 const PCS_RELEASE_NOTES = [
+  { version: 'v122', date: '2026-11-21', title: 'Mass Balance — 질량 수율, 곁가지 산출, 사이클, Step별 Scale',
+    items: [
+      'Step 수율은 이제 제품 질량(부피 × 농도 g/L) 기준입니다. 농도를 안 넣은 Step은 예전처럼 부피 비율로 계산하고 수율 옆에 "부피" 꼬리표가, 질량으로 계산한 Step은 "질량" 꼬리표가 붙습니다.',
+      'Step 이름 아래 "▸ 상세"를 누르면 버퍼·Feed 같은 추가 투입과 Flow-through·Strip·폐액·QC 샘플·Hold-up 같은 곁가지 산출을 여러 줄 적을 수 있습니다. "들어온 합 = 나간 합 + 손실"과 "회수 + 곁가지 + 행방 모름" 비율을 바로 보여 줍니다.',
+      '크로마토그래피 사이클 수를 적습니다. 값을 사이클당으로 적으면 배치 합계와 BOM 소요량이 사이클 수만큼 곱해집니다.',
+      'Step마다 Scale Factor를 따로 둘 수 있고, "Receiving 채우기"로 Sending × Scale 값을 Receiving 칸에 넣습니다(감사 기록).',
+      '검증: 곁가지까지 합친 제품이 투입보다 많으면 오류, 행방 모를 제품이 10%를 넘으면 참고, 농도가 하나도 없는 Process Map은 "질량 수율을 쓰려면 농도를" 안내.',
+    ],
+    try: ['참고 PCS ⚖ Mass Balance → Protein A Capture "▸ 상세"', 'UF/DF에 QC 샘플 줄 추가 → 사이클 3·사이클당 → Step Scale 2 → Receiving 채우기'] },
   { version: 'v121', date: '2026-11-21', title: 'Mass Balance를 Process Map 안으로, UO 담당자, 지운 UO 내용 복원, 벡터 PDF',
     items: [
       'Mass Balance는 이제 왼쪽 메뉴가 아니라 Process Map 머리의 "⚖ Mass Balance" 단추(누적 수율 표시)에서 엽니다. PFD 편집기·UO 패널에서도 열리고, "Process Map 열기"로 돌아옵니다.',
@@ -20960,16 +20993,9 @@ function getMbLabelForEdge(nodeId, edgeId){
 }
 
 /* ── 자동 계산 ── */
-function mbCalcStepYield(s, pfx){
-  const inp=parseFloat(s[pfx+'input']), out=parseFloat(s[pfx+'output']);
-  if(isNaN(inp)||isNaN(out)||inp===0) return null;
-  return Math.round(out/inp*1000)/10;
-}
-function mbCalcLoss(s, pfx){
-  const inp=parseFloat(s[pfx+'input']), out=parseFloat(s[pfx+'output']);
-  if(isNaN(inp)||isNaN(out)) return null;
-  return Math.round((inp-out)*1000)/1000;
-}
+/* v122: Step 수율은 제품 질량 기준(농도가 있으면) — 17c_mb_model.js mbYieldOf. 손실은 부피 수지(추가 투입·곁가지·사이클 포함) */
+function mbCalcStepYield(s, pfx){ return mbYieldOf(s, pfx); }
+function mbCalcLoss(s, pfx){ return mbStepBalance(s, pfx).volLoss; }
 function mbCalcCumYield(streams, pfx){
   /* streams = 정렬된 전체 스트림 배열 */
   let cum=1;
@@ -21570,6 +21596,7 @@ function mbEditStepsTable(pmId, pm, mb, rt, streams, edgeOpts){
                   value="${escapeXmlAttr(s.stepName||'')}"
                   data-on-change="mbUiSet_69b4c7" data-a-change="${pcsArgs([String(pmId), String(s.id)])}">
                 ${mbOwnerSelect(pmId, s)}
+                ${mbDetailToggleHtml(s)}
               </td>
               <td style="padding:8px 8px;text-align:center;">
                 <input class="pfd-detail-input" style="width:46px;font-size:11px;text-align:center;" type="number" min="1"
@@ -21605,7 +21632,7 @@ function mbEditStepsTable(pmId, pm, mb, rt, streams, edgeOpts){
                 <div style="font-size:13px;font-weight:800;font-family:'IBM Plex Mono',monospace;
                   color:${sy===null?'var(--ink-400)':sy>=90?'#2E7D32':sy>=70?'#E65100':'#C62828'};">
                   ${sy!==null?sy+'%':'–'}
-                </div>
+                </div>${mbYieldBasisTag(s,'s_')}
                 <div style="font-size:9px;color:var(--ink-400);margin-top:1px;">
                   Loss: ${sLoss!==null?sLoss+' '+(s.s_unit||''):'–'}
                 </div>
@@ -21639,7 +21666,7 @@ function mbEditStepsTable(pmId, pm, mb, rt, streams, edgeOpts){
                 <div style="font-size:13px;font-weight:800;font-family:'IBM Plex Mono',monospace;
                   color:${ry===null?'var(--ink-400)':ry>=90?'#2E7D32':ry>=70?'#E65100':'#C62828'};">
                   ${ry!==null?ry+'%':'–'}
-                </div>
+                </div>${mbYieldBasisTag(s,'r_')}
                 <div style="font-size:9px;color:var(--ink-400);margin-top:1px;">
                   Loss: ${rLoss!==null?rLoss+' '+(s.r_unit||''):'–'}
                 </div>
@@ -21656,7 +21683,7 @@ function mbEditStepsTable(pmId, pm, mb, rt, streams, edgeOpts){
                   ${icon('trash')}
                 </button>
               </td>
-            </tr>`;
+            </tr>${mbStepDetailRow(pmId, s, 12, !s.nodeId || uoEditable(s.nodeId))}`;
           })}
         </tbody>
       </table>
@@ -21893,7 +21920,7 @@ function bomRequirement(o){
     const which = r.basis === 'mbInput' ? '투입' : '회수';
     if(!s) return out(null, `${o.uoName || ''} · Mass Balance Step 없음`, '이 Unit Operation에 Mass Balance Step이 없습니다');
     const pfx = recv ? 'r_' : 's_';
-    const raw = parseFloat(String(s[pfx + (r.basis === 'mbInput' ? 'input' : 'output')] ?? '').replace(/,/g, ''));
+    const raw = mbTotalNum(s, s[pfx + (r.basis === 'mbInput' ? 'input' : 'output')]);   // v122: 사이클당으로 적은 값은 × 사이클
     const su = s[pfx + 'unit'] || 'L';
     const where = `${o.uoName || ''} · MB "${s.stepName || 'Step'}" ${recv ? 'Receiving' : 'Sending'} ${which}`;
     if(!isFinite(raw)) return out(null, `${where} 값 없음`, `Step "${s.stepName || ''}"의 ${recv ? 'Receiving' : 'Sending'} ${which}량이 비어 있습니다`);
@@ -22081,12 +22108,12 @@ function renderUoMassBalanceBody(node){
   const dis = editable ? '' : 'disabled';
   const streams = mbStreamsOfUo(node.id);
   const field = (s, f, w) => `<input class="pfd-detail-input mb-uo-in" style="width:${w || 74}px;" value="${escapeXmlAttr(String(s[f] ?? ''))}" ${dis} aria-label="${escapeXmlAttr(f)}" ${pcsOn('change', 'mbSetField', [pmId, s.id, f])}>`;
-  const yld = (s, p) => { const y = mbCalcStepYield(s, p); return y === null ? '–' : y + '%'; };
+  const yld = (s, p) => { const y = mbCalcStepYield(s, p); return (y === null ? '–' : y + '%') + mbYieldBasisTag(s, p); };
   const stepRows = streams.map(s => `<tr data-uo-mb-step="${escapeXmlAttr(s.id)}">
-      <td>${field(s, 'stepName', 140)}</td>
+      <td>${field(s, 'stepName', 140)}${mbDetailToggleHtml(s)}</td>
       <td class="mb-s">${field(s, 's_input')}</td><td class="mb-s">${field(s, 's_output')}</td><td class="mb-s mono">${escapeXml(s.s_unit || 'L')}</td><td class="mb-s mono">${yld(s, 's_')}</td>
       <td class="mb-r">${field(s, 'r_input')}</td><td class="mb-r">${field(s, 'r_output')}</td><td class="mb-r mono">${yld(s, 'r_')}</td>
-      <td>${editable ? `<button class="btn btn-sm" title="Step 삭제" aria-label="Step 삭제" data-on-click="mbConfirmRemoveStream" data-a-click="${pcsArgs([pmId, s.id])}">${icon('trash')}</button>` : ''}</td></tr>`).join('');
+      <td>${editable ? `<button class="btn btn-sm" title="Step 삭제" aria-label="Step 삭제" data-on-click="mbConfirmRemoveStream" data-a-click="${pcsArgs([pmId, s.id])}">${icon('trash')}</button>` : ''}</td></tr>${mbStepDetailRow(pmId, s, 9, editable)}`).join('');
   const total = mbStageTotal(streams, ver === 'receiving' ? 'r_' : 's_');
   const bom = bomRequirementRowsForPm(pmId, ver, 1).filter(r => r.node.id === node.id);
   const stepOpts = (r) => `<option value="">첫 Step</option>` + streams.map(s => `<option value="${escapeXmlAttr(s.id)}" ${r.rule.streamId === s.id ? 'selected' : ''}>${escapeXml(s.stepName || s.id)}</option>`).join('');
@@ -22178,6 +22205,222 @@ function bomReportSet(key, value){
   else if(key === 'bomBatches') ctx.bomBatches = Math.max(1, Math.min(999, parseInt(value, 10) || 1));
   else return;
   render();
+}
+/* ============================================================================
+   17c_mb_model.js — v122  Mass Balance 모델 보완
+   · 수율은 제품 질량 기준: 부피(L·mL) × 농도(g/L)로 질량을 내 "질량 수율"을 Step 수율로 쓴다. 농도가 없으면 예전처럼 부피 비율(표시에 "부피" 꼬리표).
+     질량 단위(g·kg)로 적은 Step은 값 그대로 질량. 부피 변화(×배)는 따로 보여 준다(버퍼·희석으로 늘 수 있다).
+   · Step마다 추가 투입(버퍼·Feed)과 곁가지 산출(Flow-through·Strip·폐액·QC 샘플·Hold-up) 여러 줄 — s.extras[{ id, dir, kind, name, s_vol, s_conc, r_vol, r_conc }].
+     부피 수지 "들어온 합 = 나간 합 + 손실", 제품 수지 "회수 + 곁가지 + 행방 모름 = 100%".
+   · 크로마토그래피 사이클: s.cycles(≥1), s.perCycle(값을 사이클당으로 적음 → 배치 값 = 값 × 사이클). 수율 비율은 그대로, 배치 합계·BOM 소요량이 사이클을 따른다.
+   · Step별 Scale Factor s.scale(비우면 Process Map 값) — Receiving 예상값(= Sending × Scale)과 "Receiving 채우기".
+   ========================================================================== */
+var MB_EXTRA_KINDS = [
+  ['buffer', '버퍼·희석액', 'in'], ['feed', 'Feed·첨가', 'in'],
+  ['flowthrough', 'Flow-through', 'out'], ['strip', 'Strip·Regeneration', 'out'], ['waste', '폐액', 'out'],
+  ['sample', 'QC 샘플', 'out'], ['holdup', 'Hold-up·라인 잔량', 'out'], ['other', '기타', 'both'],
+];
+var MB_EXTRA_FIELDS = ['kind', 'name', 's_vol', 's_conc', 'r_vol', 'r_conc', 'dir'];
+
+/* ---------- 순수 함수 ---------- */
+function mbCycles(s){ const c = parseInt(s && s.cycles, 10); return c > 1 ? c : 1; }
+/* 배치 값(사이클당으로 적었으면 × 사이클) */
+function mbTotalNum(s, raw){ const v = mbNum(raw); if(v == null || Number.isNaN(v)) return v; return s && s.perCycle ? v * mbCycles(s) : v; }
+/* 양 → 제품 질량(g). unit: L·mL(부피 × 농도 g/L) 또는 g·kg(그대로). 계산할 수 없으면 null */
+function mbMassG(amount, unit, conc){
+  if(amount == null || Number.isNaN(amount)) return null;
+  const u = unit || 'L';
+  if(u === 'g') return amount;
+  if(u === 'kg') return amount * 1000;
+  if(u === 'L' || u === 'mL'){
+    const c = mbNum(conc);
+    if(c == null || Number.isNaN(c)) return null;
+    return (u === 'mL' ? amount / 1000 : amount) * c;
+  }
+  return null;
+}
+/* Step 하나의 수지(배치 기준). pfx 's_'|'r_' */
+function mbStepBalance(s, pfx){
+  const unit = s[pfx + 'unit'] || 'L';
+  const inV = mbTotalNum(s, s[pfx + 'input']), outV = mbTotalNum(s, s[pfx + 'output']);
+  const ex = (s.extras || []).map(x => {
+    const dir = x.dir || ((MB_EXTRA_KINDS.find(k => k[0] === x.kind) || [])[2] === 'in' ? 'in' : 'out');
+    const v = mbTotalNum(s, x[pfx === 's_' ? 's_vol' : 'r_vol']);
+    return { x, dir, v: Number.isNaN(v) ? null : v, m: mbMassG(Number.isNaN(v) ? null : v, unit, x[pfx === 's_' ? 's_conc' : 'r_conc']) };
+  });
+  const sum = (dir, k) => ex.filter(e => e.dir === dir && e[k] != null).reduce((a, e) => a + e[k], 0);
+  const sideInV = sum('in', 'v'), sideOutV = sum('out', 'v');
+  const ok = v => v != null && !Number.isNaN(v);
+  const totalIn = ok(inV) ? inV + sideInV : null, totalOut = ok(outV) ? outV + sideOutV : null;
+  const inM = ok(inV) ? mbMassG(inV, unit, s[pfx + 'concentrationIn']) : null;
+  const outM = ok(outV) ? mbMassG(outV, unit, s[pfx + 'concentration']) : null;
+  const sideInM = sum('in', 'm'), sideOutM = sum('out', 'm');
+  const feedM = inM != null ? inM + sideInM : null;
+  const r1 = v => v == null ? null : Math.round(v * 10) / 10;
+  const massYield = feedM && outM != null ? r1(outM / feedM * 100) : null;
+  const sidePct = feedM && ex.some(e => e.dir === 'out' && e.m != null) ? r1(sideOutM / feedM * 100) : null;
+  return {
+    unit, inV, outV, sideInV, sideOutV, totalIn, totalOut,
+    volLoss: totalIn != null && totalOut != null ? Math.round((totalIn - totalOut) * 1000) / 1000 : null,
+    volRatio: ok(inV) && inV !== 0 && ok(outV) ? Math.round(outV / inV * 100) / 100 : null,
+    inM, outM, sideInM, sideOutM, feedM, massYield, sidePct,
+    unaccounted: massYield != null && sidePct != null ? r1(100 - massYield - sidePct) : null,
+    basis: massYield != null ? 'mass' : 'volume', cycles: mbCycles(s), extras: ex,
+  };
+}
+/* Step 수율(%): 질량 수율이 있으면 그것, 없으면 부피 비율(예전 방식) */
+function mbYieldOf(s, pfx){
+  const b = mbStepBalance(s, pfx);
+  if(b.massYield != null) return b.massYield;
+  const inp = parseFloat(s[pfx + 'input']), out = parseFloat(s[pfx + 'output']);
+  if(isNaN(inp) || isNaN(out) || inp === 0) return null;
+  return Math.round(out / inp * 1000) / 10;
+}
+/* Step별 Scale: 비우면 Process Map 값 */
+function mbStepScale(s, mb){ const v = parseFloat(s && s.scale); return isFinite(v) && v > 0 ? v : (parseFloat(mb && mb.scaleFactor) > 0 ? parseFloat(mb.scaleFactor) : 1); }
+/* Receiving 예상(= Sending × Scale, 농도는 같게) */
+function mbReceivingPlan(s, mb){
+  const k = mbStepScale(s, mb);
+  const mul = v => { const n = mbNum(v); return n == null || Number.isNaN(n) ? '' : String(Math.round(n * k * 1000) / 1000); };
+  return {
+    scale: k,
+    fields: { r_input: mul(s.s_input), r_output: mul(s.s_output), r_unit: s.s_unit || 'L',
+      r_concentrationIn: s.r_concentrationIn || s.s_concentrationIn || '', r_concentration: s.r_concentration || s.s_concentration || '' },
+    extras: (s.extras || []).map(x => ({ id: x.id, r_vol: mul(x.s_vol), r_conc: x.r_conc || x.s_conc || '' })),
+  };
+}
+/* 질량 근거가 없는 Step 수(부피 단위인데 농도 없음) */
+function mbNoConcSteps(streams, pfx){ return (streams || []).filter(s => /^(L|mL)$/.test(s[pfx + 'unit'] || 'L') && mbStepBalance(s, pfx).massYield == null && s[pfx + 'input'] !== '' && s[pfx + 'input'] != null); }
+
+/* ---------- store ---------- */
+function mbExtraDefaults(kind){ const k = MB_EXTRA_KINDS.find(x => x[0] === kind) || MB_EXTRA_KINDS[MB_EXTRA_KINDS.length - 1]; return { kind: k[0], dir: k[2] === 'in' ? 'in' : 'out', name: k[1], s_vol: '', s_conc: '', r_vol: '', r_conc: '' }; }
+/* [store] 추가 투입·곁가지 산출 줄 더하기 → id */
+function mbAddExtra(pmId, sid, kind){
+  const s = getMbStreamById(pmId, sid);
+  if(!s) return null;
+  const x = Object.assign({ id: genId('mbx') }, mbExtraDefaults(kind));
+  s.extras = (s.extras || []).concat([x]);
+  logAudit('Mass Balance', '곁가지 줄 추가', `${pmId} · ${s.stepName || sid} · ${x.dir === 'in' ? '추가 투입' : '곁가지 산출'} ${x.name}`, null, x.id, { nodeId: s.nodeId, pmId });
+  validateData(DATA);
+  return x.id;
+}
+function mbSetExtraField(pmId, sid, xid, field, value){
+  const s = getMbStreamById(pmId, sid);
+  const x = s && (s.extras || []).find(e => e.id === xid);
+  if(!x || !MB_EXTRA_FIELDS.includes(field)) return false;
+  let v = String(value == null ? '' : value).trim();
+  if(field === 'dir' && !['in', 'out'].includes(v)) return false;
+  if(field === 'kind'){ if(!MB_EXTRA_KINDS.some(k => k[0] === v)) return false; }
+  if(/_(vol|conc)$/.test(field) && v !== '' && !isFinite(parseFloat(v))) return false;
+  if(x[field] === v) return false;
+  const old = x[field];
+  x[field] = v;
+  if(field === 'kind'){ const d = mbExtraDefaults(v); if((MB_EXTRA_KINDS.find(k => k[0] === v) || [])[2] !== 'both') x.dir = d.dir; }
+  logAudit('Mass Balance', '곁가지 줄 값', `${pmId} · ${s.stepName || sid} · ${x.name} ${field} = ${v}`, old, v, { nodeId: s.nodeId, pmId });
+  validateData(DATA);
+  return true;
+}
+function mbRemoveExtra(pmId, sid, xid){
+  const s = getMbStreamById(pmId, sid);
+  const x = s && (s.extras || []).find(e => e.id === xid);
+  if(!x) return false;
+  s.extras = s.extras.filter(e => e.id !== xid);
+  if(!s.extras.length) delete s.extras;
+  logAudit('Mass Balance', '곁가지 줄 삭제', `${pmId} · ${s.stepName || sid} · ${x.name}`, xid, null, { nodeId: s.nodeId, pmId });
+  validateData(DATA);
+  return true;
+}
+/* [store] Receiving을 Sending × Scale로 채우기 */
+function mbFillReceiving(pmId, sid){
+  const s = getMbStreamById(pmId, sid);
+  if(!s) return false;
+  const p = mbReceivingPlan(s, ensureMb(pmId));
+  let changed = 0;
+  Object.entries(p.fields).forEach(([k, v]) => { if(v !== '' && s[k] !== v){ s[k] = v; changed++; } });
+  p.extras.forEach(e => { const x = s.extras.find(y => y.id === e.id); if(x){ if(e.r_vol !== '' && x.r_vol !== e.r_vol){ x.r_vol = e.r_vol; changed++; } if(e.r_conc && x.r_conc !== e.r_conc){ x.r_conc = e.r_conc; changed++; } } });
+  if(!changed) return false;
+  logAudit('Mass Balance', 'Receiving 채우기', `${pmId} · ${s.stepName || sid} = Sending × ${p.scale}`, null, null, { nodeId: s.nodeId, pmId });
+  validateData(DATA);
+  return true;
+}
+
+/* ---------- 화면 ---------- */
+function mbUiAddExtra(pmId, sid, kind){ if(mbAddExtra(pmId, sid, kind)){ STATE.mbDetailOpen = Object.assign({}, STATE.mbDetailOpen, { [sid]: true }); render(); } }
+function mbUiSetExtra(pmId, sid, xid, field, v){ if(mbSetExtraField(pmId, sid, xid, field, v)) render(); }
+function mbUiRemoveExtra(pmId, sid, xid){ if(mbRemoveExtra(pmId, sid, xid)) render(); }
+function mbUiFillReceiving(pmId, sid){ if(mbFillReceiving(pmId, sid)){ render(); uiToast('Receiving 값을 Sending × Scale로 채웠습니다', { kind: 'success' }); } else uiToast('바꿀 값이 없습니다'); }
+function mbToggleDetail(sid){ const o = Object.assign({}, STATE.mbDetailOpen); o[sid] = !o[sid]; STATE.mbDetailOpen = o; render(); }
+const mbFmt = (v, d) => v == null || Number.isNaN(v) ? '–' : (Math.round(v * Math.pow(10, d == null ? 1 : d)) / Math.pow(10, d == null ? 1 : d)).toLocaleString('ko-KR');
+const mbFmtMass = g => g == null ? '–' : g >= 1000 ? mbFmt(g / 1000, 2) + ' kg' : mbFmt(g, 1) + ' g';
+/* Step 수율 칸 꼬리표: 질량 / 부피 */
+function mbYieldBasisTag(s, pfx){ const b = mbStepBalance(s, pfx); return b.basis === 'mass' ? '<span class="mb-basis mass" title="제품 질량(부피 × 농도) 기준">질량</span>' : (mbYieldOf(s, pfx) != null ? '<span class="mb-basis vol" title="농도가 없어 부피 비율로 계산 — 농도를 넣으면 질량 수율">부피</span>' : ''); }
+/* "상세" 단추(Step 이름 칸) */
+function mbDetailToggleHtml(s){
+  const open = !!(STATE.mbDetailOpen || {})[s.id];
+  const n = (s.extras || []).length, c = mbCycles(s);
+  const bits = [c > 1 ? `사이클 ${c}${s.perCycle ? '(사이클당)' : ''}` : '', n ? `곁가지 ${n}` : '', s.scale ? `Scale ×${s.scale}` : ''].filter(Boolean).join(' · ');
+  return `<button class="mb-detail-btn ${open ? 'on' : ''}" data-mb-detail-btn="${escapeXmlAttr(s.id)}" aria-expanded="${open}" data-on-click="mbToggleDetail" data-a-click="${pcsArgs([s.id])}">${open ? '▾' : '▸'} 상세${bits ? ' · ' + escapeXml(bits) : ''}</button>`;
+}
+function mbSiteSummaryHtml(s, pfx, label){
+  const b = mbStepBalance(s, pfx);
+  const u = escapeXml(b.unit);
+  const vol = b.totalIn != null ? `들어온 합 <b>${mbFmt(b.totalIn, 2)}</b> = 나간 합 <b>${mbFmt(b.totalOut, 2)}</b> + 손실 <b>${mbFmt(b.volLoss, 2)}</b> ${u}${b.cycles > 1 ? ` <span class="mb-uo-sub">(배치 — 사이클 ${b.cycles}${s.perCycle ? ' × 사이클당 값' : ''})</span>` : ''}` : '<span class="mb-uo-sub">투입량이 비어 있습니다</span>';
+  const mass = b.massYield != null
+    ? `제품 <b>${mbFmtMass(b.feedM)}</b> → 회수 <b>${mbFmtMass(b.outM)}</b> · 질량 수율 <b>${b.massYield}%</b>${b.sidePct != null ? ` · 곁가지 ${b.sidePct}% · 행방 모름 ${b.unaccounted}%` : ''}`
+    : `<span class="mb-uo-sub">농도(g/L)를 넣으면 질량 수율을 계산합니다${b.volRatio != null ? ` — 지금은 부피 비율 ×${b.volRatio}` : ''}</span>`;
+  return `<div class="mb-site-sum ${pfx === 's_' ? 'mb-s' : 'mb-r'}" data-mb-sum="${pfx}"><b class="mb-site-label">${label}</b><div>${vol}</div><div>${mass}${b.massYield != null && b.volRatio != null ? ` · 부피 변화 ×${b.volRatio}` : ''}</div></div>`;
+}
+/* Step 상세 줄(펼쳤을 때): 수지 요약, 사이클·Step Scale·Receiving 채우기, 추가 투입·곁가지 산출 표 */
+function mbStepDetailHtml(pmId, s, editable){
+  const mb = ensureMb(pmId);
+  const dis = editable ? '' : 'disabled';
+  const plan = mbReceivingPlan(s, mb);
+  const inp = (x, f, ph, w) => `<input class="pfd-detail-input" style="width:${w || 80}px;" value="${escapeXmlAttr(String(x[f] ?? ''))}" placeholder="${ph}" ${dis} aria-label="${escapeXmlAttr((x.name || '') + ' ' + ph)}" data-mbx-field="${f}" ${pcsOn('change', 'pcsCallWithValue', ['mbUiSetExtra', pmId, s.id, x.id, f])}>`;
+  const rows = (s.extras || []).map(x => `<tr data-mbx="${escapeXmlAttr(x.id)}">
+      <td><select class="pfd-detail-select" ${dis} aria-label="방향" ${pcsOn('change', 'pcsCallWithValue', ['mbUiSetExtra', pmId, s.id, x.id, 'dir'])}><option value="in" ${x.dir === 'in' ? 'selected' : ''}>투입 ＋</option><option value="out" ${x.dir !== 'in' ? 'selected' : ''}>산출 －</option></select></td>
+      <td><select class="pfd-detail-select" ${dis} aria-label="종류" ${pcsOn('change', 'pcsCallWithValue', ['mbUiSetExtra', pmId, s.id, x.id, 'kind'])}>${MB_EXTRA_KINDS.map(k => `<option value="${k[0]}" ${x.kind === k[0] ? 'selected' : ''}>${escapeXml(k[1])}</option>`).join('')}</select></td>
+      <td>${inp(x, 'name', '이름', 130)}</td>
+      <td class="mb-s">${inp(x, 's_vol', '부피')}</td><td class="mb-s">${inp(x, 's_conc', '농도 g/L', 70)}</td>
+      <td class="mb-r">${inp(x, 'r_vol', '부피')}</td><td class="mb-r">${inp(x, 'r_conc', '농도 g/L', 70)}</td>
+      <td>${editable ? `<button class="btn btn-sm" aria-label="줄 삭제" data-on-click="mbUiRemoveExtra" data-a-click="${pcsArgs([pmId, s.id, x.id])}">${icon('trash')}</button>` : ''}</td></tr>`).join('');
+  return `<div class="mb-detail" data-mb-detail="${escapeXmlAttr(s.id)}">
+    <div class="mb-detail-sums">${mbSiteSummaryHtml(s, 's_', 'Sending')}${mbSiteSummaryHtml(s, 'r_', 'Receiving')}</div>
+    <div class="mb-detail-ctrl">
+      <label>사이클 <input class="pfd-detail-input" type="number" min="1" style="width:56px;" value="${mbCycles(s)}" ${dis} aria-label="사이클 수" data-mb-cycles ${pcsOn('change', 'pcsCallWithValue', ['mbUiSet', pmId, s.id, 'cycles'])}></label>
+      <label><input type="checkbox" ${s.perCycle ? 'checked' : ''} ${dis} data-mb-percycle ${pcsOn('change', 'pcsCallWithChecked', ['mbUiSet', pmId, s.id, 'perCycle'])}> 값은 사이클당(배치 = × 사이클)</label>
+      <label>Step Scale <input class="pfd-detail-input" style="width:64px;" value="${escapeXmlAttr(String(s.scale || ''))}" placeholder="${escapeXmlAttr(String(mb.scaleFactor || 1))}" ${dis} aria-label="Step Scale Factor" data-mb-scale ${pcsOn('change', 'pcsCallWithValue', ['mbUiSet', pmId, s.id, 'scale'])}></label>
+      <span class="mb-uo-sub">Receiving 예상: 투입 ${escapeXml(plan.fields.r_input || '–')} · 회수 ${escapeXml(plan.fields.r_output || '–')} ${escapeXml(plan.fields.r_unit)} (Sending × ${plan.scale})</span>
+      ${editable ? `<button class="btn btn-sm" data-mb-fill-r data-on-click="mbUiFillReceiving" data-a-click="${pcsArgs([pmId, s.id])}">Receiving 채우기</button>` : ''}
+    </div>
+    <div class="mb-extra-wrap"><table class="data-table mb-extra-table"><thead><tr><th>방향</th><th>종류</th><th>이름</th><th class="mb-s">Sending 부피</th><th class="mb-s">농도</th><th class="mb-r">Receiving 부피</th><th class="mb-r">농도</th><th></th></tr></thead>
+      <tbody>${rows || `<tr><td colspan="8" class="mb-uo-sub" style="text-align:center; padding:8px;">추가 투입·곁가지 산출이 없습니다 — 버퍼·Feed, Flow-through·Strip·폐액·QC 샘플을 적으면 수지를 맞춰 봅니다.</td></tr>`}</tbody></table></div>
+    ${editable ? `<div class="mb-detail-add">${MB_EXTRA_KINDS.filter(k => k[0] !== 'other').map(k => `<button class="btn btn-sm" data-mb-add-extra="${k[0]}" data-on-click="mbUiAddExtra" data-a-click="${pcsArgs([pmId, s.id, k[0]])}">${k[2] === 'in' ? '＋' : '－'} ${escapeXml(k[1])}</button>`).join('')}</div>` : ''}
+  </div>`;
+}
+function mbStepDetailRow(pmId, s, cols, editable){
+  if(!(STATE.mbDetailOpen || {})[s.id]) return '';
+  return `<tr class="mb-detail-row" data-mb-detail-row="${escapeXmlAttr(s.id)}"><td colspan="${cols}">${mbStepDetailHtml(pmId, s, editable)}</td></tr>`;
+}
+
+/* ---------- 시드: 참고 PCS Protein A Capture 한 Step에 질량·사이클·곁가지 예시(실제 store 함수, 시드라 감사 기록은 남기지 않음) ----------
+   값은 Parameter Master 참고 값에서 계산했다: 투입 농도 = Product Titer 8 g/L, 회수 농도 = 15000 L × 8 g/L × ProA Step Yield 85% ÷ 3583 L,
+   사이클 = ProA Cycles 4(배치 합계로 적음), 용출 버퍼 3583 L 투입, Flow-through 15000 L(제품 0.4 g/L — 데모 참고 값). 40_pfd_validation.js에서 부른다. */
+function seedMbModelExample(){
+  if(!DATA.processMaps.some(p => p.id === 'pm_toz')) return;
+  const s = ensureMb('pm_toz').streams.find(x => x.stepName === 'Protein A Capture');
+  if(!s || s.s_concentrationIn || (s.extras || []).length) return;
+  const auditLen = DATA.auditTrail.length;
+  const p = id => { const m = getMasterItem('parameter', id); return m ? Number(m.target) : null; };
+  const titer = p('param_product_titer') || 8, y = (p('param_proa_yield') || 85) / 100, cyc = p('param_proa_cycles') || 4;
+  const inp = parseFloat(s.s_input), out = parseFloat(s.s_output);
+  mbSetStreamField('pm_toz', s.id, 's_concentrationIn', String(titer));
+  mbSetStreamField('pm_toz', s.id, 's_concentration', String(Math.round(inp * titer * y / out * 100) / 100));
+  mbSetStreamField('pm_toz', s.id, 'cycles', cyc);
+  const b = mbAddExtra('pm_toz', s.id, 'buffer');
+  mbSetExtraField('pm_toz', s.id, b, 'name', '용출 버퍼(Elution)'); mbSetExtraField('pm_toz', s.id, b, 's_vol', String(out)); mbSetExtraField('pm_toz', s.id, b, 's_conc', '0');
+  const f = mbAddExtra('pm_toz', s.id, 'flowthrough');
+  mbSetExtraField('pm_toz', s.id, f, 's_vol', String(inp)); mbSetExtraField('pm_toz', s.id, f, 's_conc', '0.4');
+  DATA.auditTrail.length = auditLen;
 }
 /* =========================================================
    PCS Platform — v74 Knowledge Graph Query Layer
@@ -23476,6 +23719,7 @@ const UO_CONTENT_MUTATORS = {
   // v113 UO의 Mass Balance Step·BOM 소요량 규칙(주인 없는 Step은 막지 않는다)
   mbSetStreamField:mbStreamOwner, mbLinkEdge:mbStreamOwner, mbUnlinkEdge:mbStreamOwner, mbRemoveStream:mbStreamOwner, mbConfirmRemoveStream:mbStreamOwner,
   mbSelectCell:mbStreamOwner, mbClearCell:mbStreamOwner, openMbCellPicker:mbStreamOwner,
+  mbAddExtra:mbStreamOwner, mbSetExtraField:mbStreamOwner, mbRemoveExtra:mbStreamOwner, mbFillReceiving:mbStreamOwner,   // v122
   mbAddStreamForUo:uoArg(0), mbUiAddStreamForUo:uoArg(0), bomSetRuleField:uoArg(0), bomUiSetRuleField:uoArg(0),
 };
 /* Process Map 구조를 바꾸는 함수 — 값은 pmId를 찾는 방법 */
@@ -29808,7 +30052,8 @@ function mbValidateStreams(streams, pfx, keepOrder){
   const site = pfx === 'r_' ? 'Receiving' : 'Sending';
   list.forEach((s, i)=>{
     const name = s.stepName || `Step ${i + 1}`;
-    const inp = mbNum(s[pfx + 'input']), outp = mbNum(s[pfx + 'output']), loss = mbNum(s[pfx + 'loss']);
+    const inp = mbTotalNum(s, s[pfx + 'input']), outp = mbTotalNum(s, s[pfx + 'output']), loss = mbTotalNum(s, s[pfx + 'loss']);
+    const bal = mbStepBalance(s, pfx);   // v122: 추가 투입·곁가지·사이클
     const add = (level, code, msg)=>out.push({ level, code, streamId: s.id, step: name, site, msg: `${name}: ${msg}` });
     if([inp, outp, loss].some(v=>Number.isNaN(v))){ add('error', 'nan', '숫자가 아닌 값이 있습니다'); return; }
     if([inp, outp, loss].some(v=>v != null && v < 0)){ add('error', 'negative', '음수 값이 있습니다'); return; }
@@ -29817,15 +30062,16 @@ function mbValidateStreams(streams, pfx, keepOrder){
     // 부피(L·mL)는 완충액·희석으로 늘 수 있다 → 농도가 있으면 질량(부피×농도)으로, 없으면 참고만. 질량 단위는 늘면 오류
     const unit = s[pfx + 'unit'] || 'L', isVol = /^(L|mL)$/.test(unit);
     const cIn = mbNum(s[pfx + 'concentrationIn']), cOut = mbNum(s[pfx + 'concentration']);
-    if(isVol && cIn > 0 && cOut > 0){
-      const mIn = inp * cIn, mOut = outp * cOut;
+    if(isVol && bal.feedM != null && bal.outM != null){
+      const mIn = bal.feedM, mOut = bal.outM + bal.sideOutM;
       if(mOut > mIn * (1 + MB_TOL)) add('error', 'mass>100', `회수 질량(${Math.round(mOut)})이 투입 질량(${Math.round(mIn)})보다 큽니다 — 질량 수율 ${Math.round(mOut / mIn * 1000) / 10}%`);
     } else if(outp > inp * (1 + MB_TOL)){
       if(isVol) add('info', 'volume-up', `회수 부피(${outp} ${unit})가 투입(${inp} ${unit})보다 큽니다 — 완충액·희석이 들어간 단계인지 확인하세요(농도를 넣으면 질량으로 검증)`);
       else add('error', 'yield>100', `회수량(${outp} ${unit})이 투입량(${inp} ${unit})보다 큽니다 — 수율 ${Math.round(outp / inp * 1000) / 10}%`);
     }
-    if(loss != null && Math.abs((inp - outp) - loss) > Math.max(inp * MB_TOL, 1e-9)) add('warn', 'loss-mismatch', `손실량(${loss})이 투입−회수(${Math.round((inp - outp) * 1000) / 1000})와 다릅니다`);
-    const prev = list[i - 1], prevOut = prev ? mbNum(prev[pfx + 'output']) : null;
+    if(loss != null && bal.volLoss != null && Math.abs(bal.volLoss - loss) > Math.max(bal.totalIn * MB_TOL, 1e-9)) add('warn', 'loss-mismatch', `손실량(${loss})이 들어온 합−나간 합(${bal.volLoss})과 다릅니다${(s.extras || []).length ? ' — 추가 투입·곁가지 포함' : ''}`);
+    if(bal.unaccounted != null && bal.unaccounted > 10) add('info', 'unaccounted', `제품 ${bal.unaccounted}%가 회수·곁가지 어디에도 없습니다 — 빠진 산출(Strip·폐액 등)이 있는지 확인하세요`);
+    const prev = list[i - 1], prevOut = prev ? mbTotalNum(prev, prev[pfx + 'output']) : null;
     if(prev && prevOut != null && !Number.isNaN(prevOut) && prev[pfx + 'unit'] === s[pfx + 'unit'] && inp > prevOut * (1 + MB_TOL))
       add('warn', 'not-conserved', `투입량(${inp})이 이전 단계(${prev.stepName || 'Step ' + i}) 회수량(${prevOut})보다 큽니다 — 추가 투입이 있으면 비고에 남기세요`);
   });
@@ -29852,6 +30098,8 @@ function mbValidate(pmId){
   const mb = ensureMb(pmId);
   const pfx = (mb.activeVersion || 'sending') === 'sending' ? 's_' : 'r_';
   const issues = mbValidateStreams(mbOrderedStreams(pmId), pfx, true).map(x=>Object.assign({ area:'stream' }, x));
+  const noConc = mbNoConcSteps(mb.streams, pfx);   // v122: 질량 근거 없는 Step — 한 줄로
+  if(noConc.length) issues.push({ area:'stream', level:'info', code:'no-conc', msg:`Step ${noConc.length}개는 농도가 없어 수율을 부피 비율로 계산했습니다(${noConc.slice(0, 4).map(s=>s.stepName || 'Step').join(', ')}${noConc.length > 4 ? ' …' : ''}) — 투입·회수 농도(g/L)를 넣으면 질량 수율` });
   // 매핑이 가리키는 연결선이 없음
   mb.streams.forEach(s=>(s.pfdMappings || []).forEach(m=>{
     if(!(DATA.pfdEdges[m.nodeId] || []).some(e=>e.id === m.edgeId))
@@ -29918,10 +30166,12 @@ function mbUnlinkEdge(pmId, sid, nodeId, edgeId){
 /* [store] Step 값 하나 */
 function mbSetStreamField(pmId, sid, field, value){
   const s = getMbStreamById(pmId, sid);
-  if(!s || !(MB_NUM_FIELDS.includes(field) || MB_TEXT_FIELDS.includes(field) || field === 'stepOrder')) return false;
-  const v = field === 'stepOrder' ? (parseInt(value, 10) || 1) : String(value == null ? '' : value).trim();
-  if(s[field] === v) return false;
-  s[field] = v;
+  if(!s || !(MB_NUM_FIELDS.includes(field) || MB_TEXT_FIELDS.includes(field) || ['stepOrder', 'cycles', 'perCycle', 'scale'].includes(field))) return false;
+  // v122: 사이클(1 이상 정수)·사이클당 여부·Step Scale(비우면 Process Map 값)
+  if(field === 'scale' && String(value).trim() !== '' && !(parseFloat(value) > 0)) return false;
+  const v = field === 'stepOrder' ? (parseInt(value, 10) || 1) : field === 'cycles' ? Math.max(1, parseInt(value, 10) || 1) : field === 'perCycle' ? !!value : String(value == null ? '' : value).trim();
+  if((s[field] ?? (field === 'cycles' ? 1 : field === 'perCycle' ? false : '')) === v) return false;
+  if((field === 'cycles' && v === 1) || (field === 'perCycle' && !v) || (field === 'scale' && v === '')) delete s[field]; else s[field] = v;
   logAudit('Mass Balance', 'Step 값 변경', `${pmId} · ${s.stepName || sid} · ${field} = ${v}`);
   validateData(DATA);
   return true;
@@ -29973,6 +30223,7 @@ function seedReferenceMassBalance(){
   });
 }
 seedReferenceMassBalance();
+seedMbModelExample();   // v122: 17c_mb_model.js — ProA 질량·사이클·곁가지 예시
 seedPmHierarchy();   // v112: 07b_pm_hierarchy.js
 pmMigrateVersionTrees(DATA);   // v119: 시드의 승인 버전에도 구조(스키마 3과 같은 규칙)
 seedReferenceBomRules();   // v113: 17b_uo_mass_balance.js
@@ -31449,6 +31700,12 @@ const PCS_CALLABLE = new Set([
   'mbOpenEdit',
   'mbSelectCell',
   'mbUiSetting',
+  'mbUiSet',
+  'mbUiAddExtra',
+  'mbUiSetExtra',
+  'mbUiRemoveExtra',
+  'mbUiFillReceiving',
+  'mbToggleDetail',
   'navSidebar',
   'openAiWizard',
   'openBatchRecord',
