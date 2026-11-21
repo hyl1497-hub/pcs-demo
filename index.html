@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="pcs-api-base" content="">
 <meta name="pcs-firebase" content="{&quot;apiKey&quot;:&quot;AIzaSyASB4CKv15IwJUp8pIVKXFtOYwKlY7y1es&quot;,&quot;databaseURL&quot;:&quot;https://pcs-demo-18101-default-rtdb.asia-southeast1.firebasedatabase.app&quot;}">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-Zo2X1MCJaJlQWdskBH8G/nJYYN4XGrk7lfzrjUyHvg4=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-H4i9PgftLADHCIFBe+E0MGtmlnEW1DeDRPAkxeJOHOs=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'none'">
 <title>PCS Platform · Process Control System</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -2544,6 +2544,246 @@ textarea.ui-dialog-input{resize:vertical; min-height:72px;}
 .seed-ex-setting{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:12px;}
 @media (max-width:720px){ .seed-ex-notice{flex-wrap:wrap;} .seed-ex-actions{width:100%;} }
 .mb-cmp-flag.none{background:var(--ink-50, #F4F4F5); color:var(--ink-600, #52525B); border-color:var(--ink-200, #E4E4E7);}
+
+/* ============================================================
+   v130 Mass Balance 화면 — 표 + 오른쪽 상세 패널, 계산식 편집기, Excel 템플릿
+   연한 배경 대신 흰 카드·또렷한 선·사이트 색(Sending 파랑 / Receiving 보라)은 꼬리표·윗선으로만
+   ============================================================ */
+.view:has(> .fade-enter > .mbx){max-width:1760px;}
+.mbx{--mb-s:#1F5FBF; --mb-s-soft:#EEF4FD; --mb-r:#7A3EBF; --mb-r-soft:#F5EFFC; --mb-line:#E2D8D9; --mb-line-soft:#EFE8E8; --mb-head:#FAF7F7; --mb-sel:#FFF4F5;}
+.sr-only{position:absolute !important; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;}
+.mbx-muted{font-size:12px; color:var(--ink-500); font-weight:400;}
+.mbx-card{background:var(--card); border:1px solid var(--mb-line); border-radius:14px; box-shadow:var(--shadow-sm);}
+.mbx-card-head .btn{white-space:nowrap; flex-shrink:0;}
+.mbx-card-head{display:flex; align-items:flex-start; justify-content:space-between; gap:16px; padding:14px 18px; border-bottom:1px solid var(--mb-line);}
+.mbx-card-title{font-size:14px; font-weight:800; color:var(--burgundy-900); letter-spacing:-.01em;}
+.site-tag{display:inline-flex; align-items:center; gap:5px; font-size:10.5px; font-weight:800; letter-spacing:.04em; text-transform:uppercase; padding:2px 8px; border-radius:99px;}
+.site-tag::before{content:''; width:6px; height:6px; border-radius:50%; background:currentColor;}
+.site-tag.s{color:var(--mb-s, #1F5FBF); background:var(--mb-s-soft, #EEF4FD);} .site-tag.r{color:var(--mb-r, #7A3EBF); background:var(--mb-r-soft, #F5EFFC);}
+.mb-icon-btn{display:inline-grid; place-items:center; width:30px; height:30px; border-radius:8px; border:1px solid var(--mb-line, #E2D8D9); background:#fff; color:var(--ink-700); font-size:15px; line-height:1; cursor:pointer; flex-shrink:0;}
+.mb-icon-btn:hover:not(:disabled){background:#F7F2F2; color:var(--burgundy-900);} .mb-icon-btn:disabled{opacity:.4; cursor:default;}
+.mb-icon-btn.danger{color:var(--red-600);} .mb-icon-btn.danger:hover{background:#FDECEC;}
+.mb-icon-btn svg{width:15px; height:15px;}
+
+/* 도구 줄 */
+.mbx-toolbar{display:flex; align-items:center; flex-wrap:wrap; gap:14px 22px; padding:12px 16px; margin-bottom:14px; background:var(--card); border:1px solid var(--mb-line); border-radius:14px; box-shadow:var(--shadow-sm);}
+.mbx-seg{display:inline-flex; padding:3px; background:#F3EEEE; border-radius:10px; gap:2px;}
+.mbx-seg-btn{display:inline-flex; align-items:center; gap:7px; border:0; background:transparent; padding:7px 14px; border-radius:8px; font:inherit; font-size:12.5px; font-weight:700; color:var(--ink-500); cursor:pointer;}
+.mbx-seg-btn .dot{width:8px; height:8px; border-radius:50%; background:currentColor; opacity:.5;}
+.mbx-seg-btn.on{background:#fff; box-shadow:0 1px 3px rgba(36,19,19,.14);} .mbx-seg-btn.on.site-s{color:var(--mb-s);} .mbx-seg-btn.on.site-r{color:var(--mb-r);} .mbx-seg-btn.on .dot{opacity:1;}
+.mbx-tool-group{display:flex; align-items:center; gap:12px; flex-wrap:wrap;}
+.mbx-excel-tools{margin-left:auto;}
+.mbx-tool-label{font-size:11px; font-weight:800; letter-spacing:.06em; color:var(--ink-500); text-transform:uppercase;}
+.mbx-excel-tools .btn.on{border-color:#0D7A5F; color:#0D7A5F; background:#F1FAF7;}
+.mbx-field{display:inline-flex; align-items:center; gap:7px; font-size:12px; color:var(--ink-700); font-weight:600;}
+.mbx-field > span:first-child{white-space:nowrap;}
+.mbx-field-wide{display:flex; width:100%; margin-top:8px;} .mbx-field-wide .mbx-input{flex:1;}
+.mbx-unit{font-size:11px; color:var(--ink-500); font-weight:500;}
+.mbx-input, .mbx-select{font:inherit; font-size:12.5px; color:var(--ink-900); background:#fff; border:1px solid #D6CBCC; border-radius:8px; padding:6px 9px; min-height:32px;}
+.mbx-input:focus, .mbx-select:focus, .mbx-num:focus, .mbx-title-input:focus, .mb-fx-in:focus{outline:none; border-color:var(--burgundy-700); box-shadow:0 0 0 3px rgba(103,26,44,.14);}
+.mbx-input:disabled, .mbx-select:disabled, .mbx-num:disabled{background:#F6F3F3; color:var(--ink-500); cursor:not-allowed;}
+
+/* Excel 셀 연동 카드 */
+.mbx-excel{padding:14px 18px; margin-bottom:14px; border-top:3px solid #0D7A5F;}
+.mbx-excel-row{display:flex; gap:14px; align-items:flex-start;}
+.mbx-excel-icon{font-size:22px; line-height:1; padding-top:2px;}
+.mbx-excel-main{flex:1; min-width:0;}
+.mbx-excel-actions{display:flex; flex-direction:column; gap:6px; align-items:stretch; flex-shrink:0;}
+.mbx-excel #mbViewerWrap_pm_toz, .mbx-excel [id^="mbViewerWrap_"]{margin:14px 0 0 !important; box-shadow:none;}
+
+/* 요약 카드 */
+.mbx-kpis{display:grid; grid-template-columns:repeat(5, minmax(0, 1fr)); gap:12px; margin-bottom:14px;}
+.mbx-kpi{position:relative; text-align:left; font:inherit; background:var(--card); border:1px solid var(--mb-line); border-radius:12px; padding:10px 14px; box-shadow:var(--shadow-sm); min-width:0;}
+.mbx-kpi.site-s{border-top:3px solid var(--mb-s);} .mbx-kpi.site-r{border-top:3px solid var(--mb-r);}
+.mbx-kpi-btn{cursor:pointer;} .mbx-kpi-btn:hover{border-color:#C9B8BA;}
+.mbx-kpi.warn{border-top:3px solid #C98A1E;} .mbx-kpi.bad{border-top:3px solid var(--red-600);} .mbx-kpi.ok{border-top:3px solid #2E7D4F;}
+.mbx-kpi-label{font-size:11px; font-weight:700; color:var(--ink-500); letter-spacing:.02em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.mbx-kpi-val{font-size:20px; font-weight:800; color:var(--ink-900); margin-top:4px; font-variant-numeric:tabular-nums; letter-spacing:-.02em;}
+.mbx-kpi-val.good{color:#1E7B3E;} .mbx-kpi-val.mid{color:#9A5B00;} .mbx-kpi-val.low, .mbx-kpi-val.over{color:#B42318;}
+.mbx-kpi.bad .mbx-kpi-val{color:#B42318;} .mbx-kpi.warn .mbx-kpi-val{color:#8A5200;}
+.mbx-kpi-sub{font-size:11.5px; color:var(--ink-500); margin-top:2px;}
+.mbx-kpi-bar{height:5px; border-radius:99px; background:#EFE8E8; margin-top:8px; overflow:hidden;}
+.mbx-kpi-bar i{display:block; height:100%; border-radius:99px; background:currentColor;}
+.mbx-kpi.site-s .mbx-kpi-bar{color:var(--mb-s);} .mbx-kpi.site-r .mbx-kpi-bar{color:var(--mb-r);}
+.mbx-checks{display:none;} .mbx-checks.open{display:block;}
+.mbx-checks #mbValidatePanel{border-radius:12px;}
+
+/* 표 + 패널 */
+.mbx-main{display:grid; grid-template-columns:minmax(0, 1fr) 360px; gap:16px; align-items:start; margin-bottom:18px;}
+.mbx-main.has-sel{grid-template-columns:minmax(0, 1fr) 470px;}
+@media (max-width:1280px){ .mbx-main, .mbx-main.has-sel{grid-template-columns:minmax(0, 1fr);} .mbx-kpis{grid-template-columns:repeat(2, minmax(0, 1fr));} }
+.mbx-table-card{min-width:0; overflow:hidden;}
+.mbx-table-wrap{overflow-x:auto;}
+.mbx-table{width:100%; border-collapse:separate; border-spacing:0; font-size:12.5px;}
+.mbx-table col.c-step{width:26%;} .mbx-table col.c-io{width:24%;} .mbx-table col.c-y{width:13%;}
+.mbx-table thead th{position:sticky; top:0; z-index:2; background:var(--mb-head); text-align:left; font-size:11px; font-weight:800; color:var(--ink-700); padding:9px 12px; border-bottom:1px solid var(--mb-line); white-space:nowrap;}
+.mbx-table thead th.site-s{box-shadow:inset 0 3px 0 var(--mb-s);} .mbx-table thead th.site-r{box-shadow:inset 0 3px 0 var(--mb-r);}
+.mbx-table td{padding:8px 10px; border-bottom:1px solid var(--mb-line-soft); vertical-align:middle;}
+.mbx-row{transition:background .12s;}
+.mbx-row:hover{background:#FCF9F9;}
+.mbx-row.sel{background:var(--mb-sel);} .mbx-row.sel td:first-child{box-shadow:inset 4px 0 0 var(--burgundy-700);}
+.mbx-row.locked .mbx-step-name{color:var(--ink-700);}
+.mbx-step-btn{display:flex; align-items:center; gap:9px; width:100%; border:0; background:none; padding:4px 2px; font:inherit; text-align:left; cursor:pointer; color:var(--ink-900); border-radius:6px;}
+.mbx-step-btn:hover .mbx-step-name{color:var(--burgundy-700); text-decoration:underline; text-underline-offset:3px;}
+.mbx-step-no{flex-shrink:0; display:inline-grid; place-items:center; min-width:22px; height:22px; padding:0 5px; border-radius:6px; background:#F1EBEB; color:var(--ink-700); font-size:11px; font-weight:700;}
+.mbx-row.sel .mbx-step-no{background:var(--burgundy-700); color:#fff;}
+.mbx-step-name{font-weight:700; font-size:13px; overflow:hidden; text-overflow:ellipsis;}
+.mbx-step-chev{margin-left:auto; color:var(--ink-400); font-size:18px; line-height:1;}
+.mbx-io{white-space:nowrap;}
+.mbx-num{width:76px; font-size:12.5px; text-align:right; padding:5px 8px; border:1px solid #D6CBCC; border-radius:7px; background:#fff; color:var(--ink-900); font-variant-numeric:tabular-nums;}
+.mbx-io.site-s .mbx-num:hover:not(:disabled){border-color:var(--mb-s);} .mbx-io.site-r .mbx-num:hover:not(:disabled){border-color:var(--mb-r);}
+.mbx-arrow{color:var(--ink-400); margin:0 5px;}
+.mbx-u{font-size:11px; color:var(--ink-500); margin-left:5px;}
+.mbx-io .mb-fx{vertical-align:middle;}
+.mbx-pill{display:inline-block; min-width:48px; text-align:center; font-family:'IBM Plex Mono',monospace; font-size:12px; font-weight:700; padding:2px 8px; border-radius:99px; background:#F1EEEE; color:var(--ink-500);}
+.mbx-pill.good{background:#E6F4EA; color:#1E6B37;} .mbx-pill.mid{background:#FFF1DC; color:#8A5200;} .mbx-pill.low, .mbx-pill.over{background:#FDE8E8; color:#A3141F;}
+.mbx-yield .mb-basis{margin-left:4px;}
+.mbx-loss{font-size:10.5px; color:var(--ink-500); margin-top:3px; white-space:nowrap;}
+.mbx-marks{white-space:normal; padding:2px 0 0 31px;}
+.mbx-mark{display:inline-block; margin:1px 4px 1px 0; padding:1px 6px; border-radius:5px; font-size:10.5px; font-weight:700; background:#F2EEEE; color:var(--ink-700); white-space:nowrap;}
+.mbx-mark-v{padding:0 0 0 6px;} .mbx-mark-v .mb-fill{margin-left:2px;}
+.mbx-mark.fx{background:#EEF4FF; color:#2F5FA8; font-style:italic;} .mbx-mark.xl{background:#E9F6F1; color:#0D6B52;} .mbx-mark.lock{background:transparent;}
+.mbx-table .mb-grp-stage td{background:#F4EEEF; color:var(--burgundy-900); font-weight:800; font-size:12px; padding:9px 12px; border-bottom:1px solid var(--mb-line);}
+.mbx-table .mb-grp-uo td{background:#fff; font-size:12.5px; padding:7px 12px 5px; border-bottom:1px dashed var(--mb-line-soft); color:var(--ink-900);}
+.mbx-table .mb-grp-uo td .mono{color:var(--ink-500); margin-right:4px;}
+.mbx-table .mb-grp-total td{background:#FBF9F9; font-size:11.5px; color:var(--ink-700); padding:8px 12px; border-bottom:1px solid var(--mb-line);}
+.mbx-table .mb-grp-none td{background:#FFF8EC; color:#7A4A00;}
+.mbx-empty{padding:48px 20px; text-align:center; display:flex; flex-direction:column; gap:6px; align-items:center;}
+.mbx-empty-icon{font-size:28px; color:var(--ink-400);}
+
+/* 상세 패널 */
+.mbx-panel{position:sticky; top:12px; max-height:calc(100vh - 24px); overflow:auto; background:var(--card); border:1px solid var(--mb-line); border-radius:14px; box-shadow:var(--shadow-md); min-width:0;}
+.mbx-panel-empty{box-shadow:var(--shadow-sm); border-style:dashed;}
+.mbx-panel-hint{padding:26px 24px; color:var(--ink-700); font-size:12.5px; line-height:1.6;}
+.mbx-panel-hint b{font-size:14px; display:block; margin:6px 0 4px; color:var(--burgundy-900);}
+.mbx-panel-hint ul{margin:10px 0 0; padding-left:18px; color:var(--ink-500);} .mbx-panel-hint li{margin:3px 0;} .mbx-panel-hint li b{display:inline; font-size:12.5px; color:var(--ink-700); margin:0;}
+.mbx-panel-head{position:sticky; top:0; z-index:3; display:flex; align-items:center; gap:8px; padding:12px 14px; background:#fff; border-bottom:1px solid var(--mb-line);}
+.mbx-panel-nav{display:flex; gap:4px;}
+.mbx-title-input{flex:1; min-width:0; font:inherit; font-size:16px; font-weight:800; color:var(--burgundy-900); border:1px solid transparent; border-radius:8px; padding:5px 8px; background:transparent;}
+.mbx-title-input:hover:not(:disabled){border-color:#E2D8D9;}
+.mbx-panel-meta{display:flex; flex-wrap:wrap; gap:10px 14px; align-items:center; padding:10px 16px 4px;}
+.mbx-panel-meta .mbx-field select{margin:0 !important; width:auto !important; max-width:240px; font-size:12px !important;}
+.mbx-field-sm .mbx-input{width:64px;}
+.mbx-pstats{display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:10px 16px;}
+.mbx-pstat{display:flex; align-items:baseline; gap:8px; padding:9px 12px; border-radius:10px; border:1px solid var(--mb-line-soft);}
+.mbx-pstat.site-s{box-shadow:inset 3px 0 0 var(--mb-s);} .mbx-pstat.site-r{box-shadow:inset 3px 0 0 var(--mb-r);}
+.mbx-pstat span{font-size:11px; font-weight:700; color:var(--ink-500);}
+.mbx-pstat b{font-size:18px; font-weight:800; font-variant-numeric:tabular-nums;} .mbx-pstat b.good{color:#1E7B3E;} .mbx-pstat b.mid{color:#9A5B00;} .mbx-pstat b.low, .mbx-pstat b.over{color:#B42318;} .mbx-pstat b.none{color:var(--ink-400);}
+.mbx-pstat small{margin-left:auto; font-size:11px; color:var(--ink-500);}
+.mbx-tabs{display:flex; gap:2px; padding:0 12px; border-bottom:1px solid var(--mb-line); position:sticky; top:55px; z-index:2; background:#fff; overflow-x:auto;}
+.mbx-tab{border:0; background:none; font:inherit; font-size:12.5px; font-weight:700; color:var(--ink-500); padding:10px 10px 9px; border-bottom:2.5px solid transparent; cursor:pointer; white-space:nowrap;}
+.mbx-tab:hover{color:var(--ink-900);}
+.mbx-tab.on{color:var(--burgundy-900); border-bottom-color:var(--burgundy-700);}
+.mbx-tab-n{display:inline-block; min-width:17px; padding:0 5px; margin-left:3px; border-radius:99px; background:#F1EBEB; font-size:10.5px; color:var(--ink-700);}
+.mbx-tab.on .mbx-tab-n{background:var(--burgundy-700); color:#fff;}
+.mbx-tabpanel{padding:14px 16px 18px;}
+.mbx-values{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+.mbx-site{border:1px solid var(--mb-line); border-radius:12px; padding:10px 12px 12px; min-width:0;}
+.mbx-site.site-s{border-top:3px solid var(--mb-s);} .mbx-site.site-r{border-top:3px solid var(--mb-r);}
+.mbx-site-head{font-size:11px; font-weight:700; color:var(--ink-500); margin-bottom:8px;}
+.mbx-vrow{display:flex; flex-direction:column; gap:3px; margin-bottom:8px;}
+.mbx-vrow > label{font-size:11px; font-weight:700; color:var(--ink-700);}
+.mbx-vin{display:flex; align-items:center; gap:5px; flex-wrap:wrap;}
+.mbx-vin .mbx-input{flex:1; min-width:0; width:100%; text-align:right;} .mbx-vin .mbx-select{width:100%;}
+.mbx-fxjump{border:0; background:none; padding:0; cursor:pointer;}
+.mbx-site .mb-site-sum{margin-top:6px; background:#FBF9F9 !important; font-size:11px;}
+.mbx-note{margin:10px 0 0; line-height:1.55;}
+.mbx-sec{margin-bottom:16px;}
+.mbx-sec-title{font-size:12.5px; font-weight:800; color:var(--burgundy-900); margin-bottom:8px;}
+.mbx-chips{display:flex; flex-wrap:wrap; gap:4px;}
+.mbx-chip-x{border:0; background:none; color:#0D7A5F; cursor:pointer; padding:0 0 0 2px; font-size:11px;}
+.mbx-mini{font-size:11.5px;}
+.mbx-tabpanel .mb-detail-ctrl{flex-direction:column; align-items:flex-start; gap:12px; font-size:12.5px;}
+.mbx-tabpanel .mb-detail-ctrl .site-tag{margin-right:2px;}
+
+.mbx-tabpanel .mb-extra-table{width:100% !important;}
+.mbx-tabpanel .mb-detail-add{margin-top:10px;}
+.mbx-dir-in td:first-child{box-shadow:inset 3px 0 0 #2E7D4F;} .mbx-dir-out td:first-child{box-shadow:inset 3px 0 0 #C98A1E;}
+.mb-add-in{color:#1E6B37 !important;} .mb-add-out{color:#8A5200 !important;}
+
+/* 결과(비교표·수율 흐름) */
+.mbx-results > .card, .mbx-charts > .card{border-radius:14px; border-color:var(--mb-line);}
+.mbx-charts{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+.mbx-charts > .card{margin-bottom:20px;}
+@media (max-width:1280px){ .mbx-charts{grid-template-columns:1fr;} }
+
+/* 계산식 편집기 */
+.mb-fx-tools{display:flex; flex-wrap:wrap; align-items:center; gap:5px; padding:8px 10px; margin-bottom:10px; border:1px solid var(--line); border-radius:10px; background:#FCFAFA;}
+.mb-fx-tools-label{font-size:10.5px; font-weight:800; letter-spacing:.06em; color:var(--ink-500); margin-right:2px;}
+.mb-fx-tools-sep{width:1px; height:18px; background:var(--line); margin:0 4px;}
+.mb-fx-tools-tip{margin-left:auto; font-size:11px; color:var(--ink-500);}
+.mb-fx-tools-tip kbd{font-family:'IBM Plex Mono',monospace; font-size:10px; padding:0 4px; border:1px solid #D6CBCC; border-bottom-width:2px; border-radius:4px; background:#fff;}
+.mb-fx-tok{font:inherit; font-size:11px; font-weight:700; padding:3px 9px; border-radius:99px; border:1px solid #D9CFD0; background:#fff; color:var(--ink-700); cursor:pointer; white-space:nowrap;}
+.mb-fx-tok:hover:not(:disabled){border-color:var(--burgundy-700); color:var(--burgundy-900);} .mb-fx-tok:disabled{opacity:.5;}
+.mb-fx-site{border:1px solid var(--line); border-radius:12px; padding:10px 12px; margin-bottom:10px;}
+.mb-fx-site.site-s{border-top:3px solid var(--mb-s, #1F5FBF);} .mb-fx-site.site-r{border-top:3px solid var(--mb-r, #7A3EBF);}
+.mb-fx-site-head{margin-bottom:8px;}
+.mb-fx-grid{display:grid; grid-template-columns:86px minmax(0, 1fr); gap:8px 10px; align-items:start;}
+.mb-fx-gh{font-size:10.5px; font-weight:800; letter-spacing:.04em; text-transform:uppercase; color:var(--ink-500);}
+.mb-fx-gh.site-s{color:var(--mb-s, #1F5FBF);} .mb-fx-gh.site-r{color:var(--mb-r, #7A3EBF);}
+.mb-fx-rowlabel{font-size:12px; font-weight:700; color:var(--ink-700); padding-top:7px; white-space:nowrap;}
+.mb-fx-rowlabel code{display:block; font-size:10.5px; font-weight:500; color:var(--ink-500);}
+.mb-fx-cell{min-width:0;}
+.mb-fx-in{width:100%; min-width:0 !important; font-family:'IBM Plex Mono',monospace; font-size:12px !important; padding:7px 9px; border:1px solid #D6CBCC; border-radius:8px; background:#fff; color:var(--ink-900);}
+.mb-fx-in.dirty{background:#FFFCF2; border-color:#D9B36A;}
+.mb-fx-in:disabled{background:#F6F3F3; color:var(--ink-500);}
+.mb-fx-out{font-size:11.5px; margin-top:3px; color:var(--ink-700); min-height:16px;}
+.mb-fx-out b{font-family:'IBM Plex Mono',monospace;}
+.mb-fx-hint{color:var(--ink-400);}
+.mb-fx-help{line-height:1.7; margin-top:12px;}
+.mb-fx-params-title{font-size:11.5px; font-weight:800; color:var(--ink-700); margin-bottom:5px;}
+.mb-fx-params{display:flex; flex-wrap:wrap; gap:5px; margin-bottom:6px;}
+.mb-fx-param{font:inherit; font-size:11.5px; display:inline-flex; align-items:center; gap:5px; padding:4px 9px; border:1px solid #D9CFD0; border-radius:8px; background:#fff; cursor:pointer; color:var(--ink-900);}
+.mb-fx-param:hover:not(:disabled){border-color:var(--burgundy-700); background:#FFF8F9;} .mb-fx-param code{font-size:11px; color:#2F5FA8;}
+.mb-fx-note{font-size:11.5px; color:var(--ink-500); margin-top:4px;}
+.mb-fx-pop{position:fixed; z-index:5000; width:380px; max-height:300px; overflow:auto; background:#fff; border:1px solid #D9CFD0; border-radius:12px; box-shadow:0 14px 36px rgba(36,19,19,.18); padding:4px; display:none; font-size:12px;}
+.mb-fx-sig{padding:8px 10px; border-bottom:1px solid var(--line-soft); font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--ink-900);}
+.mb-fx-sig u{text-decoration:none; font-weight:800; background:#FFF1C2; padding:0 2px; border-radius:3px;} .mb-fx-sig span{display:block; font-family:'Inter',sans-serif; font-size:11px; color:var(--ink-500); margin-top:2px;}
+.mb-fx-opt{display:grid; grid-template-columns:28px minmax(0, 1fr); grid-template-rows:auto auto; column-gap:6px; padding:6px 8px; border-radius:8px; cursor:pointer;}
+.mb-fx-opt .k{grid-row:1 / span 2; align-self:center; display:inline-grid; place-items:center; height:22px; border-radius:6px; font-size:10.5px; font-weight:800; background:#F1EBEB; color:var(--ink-700);}
+.mb-fx-opt .k-param{background:#EEF4FF; color:#2F5FA8;} .mb-fx-opt .k-fn{background:#FFF1DC; color:#8A5200;} .mb-fx-opt .k-ref{background:#E9F6F1; color:#0D6B52;}
+.mb-fx-opt .l{font-family:'IBM Plex Mono',monospace; font-weight:700; color:var(--ink-900); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.mb-fx-opt .d{font-size:11px; color:var(--ink-500); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.mb-fx-opt.on, .mb-fx-opt:hover{background:#FFF4F5;} .mb-fx-opt.on{box-shadow:inset 3px 0 0 var(--burgundy-700);}
+.mb-fx-foot{padding:5px 8px 3px; font-size:10.5px; color:var(--ink-500); border-top:1px solid var(--line-soft); margin-top:3px;}
+
+/* Excel 템플릿 미리보기 창 */
+.mb-tpl-backdrop{position:fixed; inset:0; z-index:4500; background:rgba(36,19,19,.38); display:grid; place-items:center; padding:24px;}
+.mb-tpl-modal{width:min(980px, 100%); max-height:calc(100vh - 48px); display:flex; flex-direction:column; background:#fff; border-radius:16px; box-shadow:var(--shadow-lg); overflow:hidden;}
+.mb-tpl-modal header{display:flex; justify-content:space-between; align-items:flex-start; gap:16px; padding:18px 22px 12px; border-bottom:1px solid var(--line);}
+.mb-tpl-eyebrow{font-size:10.5px; font-weight:800; letter-spacing:.08em; color:#0D7A5F; text-transform:uppercase;}
+.mb-tpl-modal h3{margin:2px 0 0; font-size:18px; color:var(--burgundy-900);}
+.mb-tpl-file{font-size:12px; color:var(--ink-500); font-family:'IBM Plex Mono',monospace; margin-top:2px;}
+.mb-tpl-kpis{display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; padding:12px 22px;}
+.mb-tpl-kpis .kpi{border:1px solid var(--line); border-radius:10px; padding:8px 12px; display:flex; align-items:baseline; gap:8px;}
+.mb-tpl-kpis .kpi b{font-size:20px; font-variant-numeric:tabular-nums;} .mb-tpl-kpis .kpi span{font-size:12px; color:var(--ink-500);}
+.mb-tpl-kpis .kpi.on{border-color:#9FD9C8; background:#F1FAF7;} .mb-tpl-kpis .kpi.on b{color:#0D6B52;} .mb-tpl-kpis .kpi.warn{border-color:#F2D29B; background:#FFF8EC;} .mb-tpl-kpis .kpi.warn b{color:#8A5200;}
+.mb-tpl-body{overflow:auto; padding:4px 22px 12px;}
+.mb-tpl-sec{margin:10px 0 14px;} .mb-tpl-sec h4{margin:0 0 6px; font-size:13px; color:var(--burgundy-900);} .mb-tpl-sec h4 span{display:inline-block; margin-left:4px; padding:0 7px; border-radius:99px; background:#F1EBEB; font-size:11px;}
+.mb-tpl-sec.muted h4{color:var(--ink-700);} .mb-tpl-sec.warn h4{color:#8A5200;}
+.mb-tpl-tblwrap{border:1px solid var(--line); border-radius:10px; overflow:auto; max-height:320px;}
+.mb-tpl-table{font-size:12px;} .mb-tpl-table th{position:sticky; top:0; background:#FAF7F7;}
+.mb-tpl-from{color:var(--ink-500); text-decoration:line-through; text-decoration-color:rgba(117,101,101,.5);} .mb-tpl-to{color:#0D6B52; font-weight:700;}
+.mb-tpl-list{margin:0; padding-left:18px; font-size:12.5px; line-height:1.7;}
+.mb-tpl-empty{padding:20px; text-align:center; color:var(--ink-500);}
+.mb-tpl-modal footer{display:flex; align-items:center; gap:8px; padding:12px 22px; border-top:1px solid var(--line); background:#FCFAFA;}
+.mb-tpl-note{margin-right:auto; font-size:11.5px; color:var(--ink-500);}
+/* v130 추가 투입·산출 카드 */
+.mbx-xlist{display:flex; flex-direction:column; gap:8px; overflow:visible !important;}
+.mbx-xcard{border:1px solid var(--mb-line, #E2D8D9); border-radius:10px; padding:8px 10px; background:#fff;}
+.mbx-xcard.mbx-dir-in{box-shadow:inset 3px 0 0 #2E7D4F;} .mbx-xcard.mbx-dir-out{box-shadow:inset 3px 0 0 #C98A1E;}
+.mbx-xtop{display:flex; gap:6px; align-items:center;}
+.mbx-xtop .mbx-select{width:auto; max-width:150px;} .mbx-xtop .mbx-xname{flex:1; min-width:80px;}
+.mbx-xsites{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px;}
+.mbx-xsite{display:flex; flex-direction:column; gap:4px; font-size:11px; font-weight:700; color:var(--ink-700);}
+.mbx-xsite label{display:flex; align-items:center; justify-content:space-between; gap:6px;} .mbx-xsite .mbx-input{width:96px; text-align:right; min-height:28px; padding:4px 8px;}
+.mbx-xsite .site-tag{align-self:flex-start;}
+.mbx-xempty{padding:12px; text-align:center; border:1px dashed var(--line); border-radius:10px;}
+.pcs-fig-legend{display:flex; flex-wrap:wrap; justify-content:center; gap:6px 16px; margin-top:8px; font-size:11px; color:var(--ink-700);}
+.pcs-fig-legend span{display:inline-flex; align-items:center; gap:5px;} .pcs-fig-legend i{width:10px; height:10px; border-radius:2px; display:inline-block;}
+/* v130: UO 패널의 Step 상세는 표가 넓어도 패널 폭 안에(가로 스크롤과 함께 움직이지 않게) */
+.mb-uo-scroll{container-type:inline-size;}
+.mb-uo-scroll .mb-detail{position:sticky; left:8px; width:calc(100cqw - 28px);}
 </style>
 </head>
 <body>
@@ -5044,14 +5284,23 @@ function render(){
 /* -------- DASHBOARD -------- */
 /* ============================================================================
    05b_release_notes.js — v111  앱 버전과 "이번 버전에서 바뀐 점"
-   · PCS_APP_VERSION은 build.sh가 빌드 번호로 바꿔 넣는다(v129 자리).
+   · PCS_APP_VERSION은 build.sh가 빌드 번호로 바꿔 넣는다(v130 자리).
    · PCS_RELEASE_NOTES 맨 앞 항목은 항상 이번 빌드 버전이어야 한다(tests/unit/release-notes.test.cjs가 검사).
      버전을 올릴 때 여기 맨 앞에 한 항목을 넣는다. 테스트하는 사람이 무엇을 눌러 보면 되는지(try)를 같이 쓴다.
    · 오른쪽 위 사용자 메뉴 → "버전 vN · 바뀐 점" 으로 열고, 새 버전으로 처음 열면 알림을 한 번 띄운다.
    ========================================================================== */
-var PCS_APP_VERSION = 'v129';
+var PCS_APP_VERSION = 'v130';
 
 const PCS_RELEASE_NOTES = [
+  { version: 'v130', date: '2026-11-21', title: 'Mass Balance 화면 새 구성 · Excel 템플릿 · 계산식 도우미 · Process Overview가 Process Map을 따름',
+    items: [
+      'Mass Balance 화면을 "Step 표 + 오른쪽 상세 패널"로 바꿨습니다. 표에서는 투입 → 회수·수율을 한눈에 보고 칸에서 바로 고칩니다. Step 이름을 누르면 패널이 열리고, 탭 [값 | 계산식 | 투입·산출 | 운전·용기 | 연동]에 전에 한 줄에 펼쳐 있던 기능이 모두 있습니다(농도·순도·단위·Excel 셀 연동·사이클·회수 용기·Step Scale·Receiving 채우기·PFD Arrow·삭제).',
+      '연한 배경 대신 흰 카드와 또렷한 선, Sending(파랑)·Receiving(보라) 꼬리표로 구분합니다. 위쪽 요약 카드에 누적 수율·Step 수·검증·계산식 상태가 있고, 검증 카드를 누르면 자세한 목록이 열립니다(오류가 있으면 처음부터 열림).',
+      'Excel 템플릿: 도구 줄 "템플릿 받기"로 지금 Step·값이 채워진 .xlsx(Step 한 줄, 추가 투입·산출 시트, 안내 시트)를 받고, 채워서 "템플릿 올리기"를 하면 바뀌는 값을 먼저 보여 줍니다. 빈 칸은 그대로, 계산식 칸·승인된 UO는 건너뜀, 잘못된 값은 "확인 필요"로 알려 주고, 확인해야 적용됩니다.',
+      '계산식 도우미: 칸에서 { 를 치면 파라미터(값·출처)·이 Step/앞 Step 값·함수 후보가 뜨고 ↑↓·Enter로 넣습니다. round( 처럼 함수 괄호 안에서는 Excel처럼 "round(값, 소수 자리)"와 지금 채우는 자리를 보여 줍니다. 치는 동안 결과가 바로 보이고, Esc로 되돌립니다. 위쪽 "넣기" 단추와 파라미터 칩을 누르면 커서 자리에 들어갑니다.',
+      'PCS Report Process Overview: 흐름 관계 선이 없으면 Process Map 계층 순서로 공정 단계(USP/DSP)마다 묶어 그립니다(전에는 저장 순서로 한 줄). 흐름 관계 선이 있으면 갈래·합류·되돌아가는 흐름을 그대로 그리고, 선에 없는 UO도 아래에 따로 보입니다.',
+    ],
+    try: ['Process Map → Mass Balance → Step 이름 누르기 → 탭', '계산식 탭에서 { 치기', '도구 줄 "템플릿 받기" → 고쳐서 "템플릿 올리기"', 'PCS Report 4장 Process Overview'] },
   { version: 'v129', date: '2026-11-21', title: 'Process Map 노드 이름이 박스 위로 밀리던 것 고침',
     items: [
       'Unit Operation 이름이 두 줄이면(예: 1st Chromatography (ProA)) 첫 줄이 박스 위로 삐져나왔습니다. 이제 이름은 박스 위쪽과 배지 줄(P·E·M…) 사이 가운데에 놓입니다. 한 줄 이름도 같은 자리 가운데로 옵니다.',
@@ -6534,39 +6783,106 @@ function openPcsReport(pmId){
    Export PCS Report — 승인된(Approved) Process Map의 정보를 모아
    Process Control Strategy를 대신할 보고서 형태로 화면에 보여주고, HTML 파일로도 다운로드할 수 있게 한다.
    ========================================================= */
-/* v103: 보고서 Figure 1(Process Overview) — renderPcsReport에서 떼어 냈다 */
-function pcsReportOverviewFigure(pm, nodes, flowChains, unchainedNodes){
-  const nodeName = id => { const n = nodes.find(x=>x.id===id); return n ? n.name : id; };
-  const boxW = 460, boxH = 38, gapY = 26, padX = 30, padTop = 18;
-  const chainsToShow = flowChains.length ? flowChains : (unchainedNodes.length ? [unchainedNodes.map(n=>n.id)] : []);
-  if(!chainsToShow.length) return `<p class="pcs-report-p" style="color:var(--ink-400);">등록된 Unit Operation이 없습니다.</p>`;
-  let svgRows = [];
-  let y = padTop;
-  chainsToShow.forEach((chain, ci)=>{
-    chain.forEach((id, i)=>{
-      const x = padX;
-      svgRows.push(`<rect x="${x}" y="${y}" width="${boxW}" height="${boxH}" rx="6" fill="#fff" stroke="#3D0C16" stroke-width="1.4"/>`);
-      svgRows.push(`<text x="${x+boxW/2}" y="${y+boxH/2+4.5}" text-anchor="middle" font-size="12.5" font-weight="700" fill="#2A0810">${escapeXml(nodeName(id))}</text>`);
-      if(i < chain.length-1){
-        const ay = y+boxH;
-        svgRows.push(`<line x1="${x+boxW/2}" y1="${ay}" x2="${x+boxW/2}" y2="${ay+gapY-4}" stroke="#3D0C16" stroke-width="1.4" marker-end="url(#pcsFigArrow)"/>`);
-        y += boxH+gapY;
-      } else {
-        y += boxH;
-        if(ci < chainsToShow.length-1) y += gapY+10;
-      }
+/* v130: 보고서 Figure 1(Process Overview) 모델(순수) — 전에는 "흐름 관계" 선만 따라 한 줄로 그려,
+   선이 없으면 저장 순서대로(계층과 다름) 늘어놓고, 갈래는 첫 갈래만, 선에 없는 UO는 빠졌다(사용자 질문 2026-11-21).
+   · 흐름 관계 선이 UO 사이에 없으면 → mode 'tree': Process Map 계층 순서, 공정 단계(Stage)마다 묶음
+   · 있으면 → mode 'flow': 선을 따라 층(layer)을 나눠 갈래·합류를 그대로, 되돌아가는 선은 back 표시, 선에 없는 UO는 loose로 따로
+   treeRows: pmTreeRows 결과, flowEdges: [{ from, to }] */
+function pcsOverviewModel(treeRows, flowEdges){
+  const rows = treeRows || [];
+  const byId = {}; rows.forEach(r => { byId[r.id] = r; });
+  const stageOf = r => { let p = r && r.parentId ? byId[r.parentId] : null, st = null; while(p){ if(p.kind === 'stage') st = p; p = p.parentId ? byId[p.parentId] : null; } return st; };   // 가장 바깥 공정 단계
+  const uos = rows.filter(r => r.kind === 'uo').map((r, i) => { const st = stageOf(r); return { id: r.id, name: r.node.name, number: r.number, idx: i, stageId: st ? st.id : null, stageName: st ? st.node.name : '', stageNumber: st ? st.number : '' }; });
+  const ids = new Set(uos.map(n => n.id)), at = {}; uos.forEach(n => { at[n.id] = n; });
+  const stages = []; uos.forEach(n => { if(n.stageId && !stages.some(s => s.id === n.stageId)) stages.push({ id: n.stageId, name: n.stageName, number: n.stageNumber }); });
+  const seen = new Set();
+  const edges = (flowEdges || []).filter(e => ids.has(e.from) && ids.has(e.to) && e.from !== e.to && !seen.has(e.from + '>' + e.to) && seen.add(e.from + '>' + e.to));
+  if(!edges.length){
+    const groups = [];
+    uos.forEach(n => { const g = groups[groups.length - 1]; if(g && g.stageId === n.stageId) g.nodes.push(n); else groups.push({ stageId: n.stageId, stageName: n.stageName, stageNumber: n.stageNumber, nodes: [n] }); });
+    return { mode: 'tree', groups, nodes: uos, stages, edges: [], layers: [], loose: [] };
+  }
+  const out = {}; edges.forEach(e => { (out[e.from] = out[e.from] || []).push(e); });
+  Object.values(out).forEach(a => a.sort((x, y) => at[x.to].idx - at[y.to].idx));
+  const connected = uos.filter(n => edges.some(e => e.from === n.id || e.to === n.id));
+  // 되돌아가는 선 찾기(DFS, 계층 순서로) → 나머지로 위상 순서
+  const state = {}, post = [];
+  const back = new Set();
+  const dfs = id => { state[id] = 1; (out[id] || []).forEach(e => { if(state[e.to] === 1) back.add(e); else if(!state[e.to]) dfs(e.to); }); state[id] = 2; post.push(id); };
+  const hasIn = new Set(edges.map(e => e.to));
+  connected.filter(n => !hasIn.has(n.id)).concat(connected).forEach(n => { if(!state[n.id]) dfs(n.id); });
+  const rank = {}; connected.forEach(n => { rank[n.id] = 0; });
+  post.slice().reverse().forEach(id => (out[id] || []).forEach(e => { if(!back.has(e)) rank[e.to] = Math.max(rank[e.to], rank[id] + 1); }));
+  const layers = [];
+  connected.forEach(n => { (layers[rank[n.id]] = layers[rank[n.id]] || []).push(n); });
+  layers.forEach(l => l.sort((a, b) => a.idx - b.idx));
+  return { mode: 'flow', groups: [], nodes: uos, stages, edges: edges.map(e => ({ from: e.from, to: e.to, back: back.has(e) })), layers: layers.filter(Boolean), loose: uos.filter(n => !connected.includes(n)) };
+}
+var PCS_FIG_STAGE_COLORS = ['#3D0C16', '#1F5FBF', '#0D7A5F', '#9A5B00', '#7A3EBF', '#B42318'];
+function pcsReportOverviewFigure(pm, model){
+  const M = model;
+  if(!M.nodes.length) return `<p class="pcs-report-p" style="color:var(--ink-400);">등록된 Unit Operation이 없습니다.</p>`;
+  const stColor = id => { const i = M.stages.findIndex(s => s.id === id); return i < 0 ? '#8C6F74' : PCS_FIG_STAGE_COLORS[i % PCS_FIG_STAGE_COLORS.length]; };
+  const box = (x, y, w, h, n) => `<g data-fig-node="${escapeXmlAttr(n.id)}"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" fill="#fff" stroke="#3D0C16" stroke-width="1.4"/>${n.stageId ? `<rect x="${x}" y="${y}" width="5" height="${h}" rx="2" fill="${stColor(n.stageId)}"/>` : ''}<text x="${x + w / 2}" y="${y + h / 2 + 4.5}" text-anchor="middle" font-size="12.5" font-weight="700" fill="#2A0810">${escapeXml(n.name)}</text></g>`;
+  const arrow = (x1, y1, x2, y2, dashed) => `<path d="M${x1},${y1} C${x1},${(y1 + y2) / 2} ${x2},${(y1 + y2) / 2} ${x2},${y2 - 4}" fill="none" stroke="#3D0C16" stroke-width="1.4" ${dashed ? 'stroke-dasharray="5 4"' : ''} marker-end="url(#pcsFigArrow)"/>`;
+  let svg = '', W = 0, H = 0;
+  if(M.mode === 'tree'){
+    const boxW = 420, boxH = 36, gapY = 24, padX = 40, bandPad = 14, labelH = 22;
+    W = boxW + padX * 2;
+    let y = 16; const nodesSvg = [], bands = [], arrows = []; let prev = null;
+    M.groups.forEach(g => {
+      const y0 = y;
+      if(g.stageId) y += labelH + 6;
+      g.nodes.forEach(n => {
+        if(prev) arrows.push(arrow(W / 2, prev, W / 2, y));
+        nodesSvg.push(box(padX, y, boxW, boxH, n));
+        prev = y + boxH; y += boxH + gapY;
+      });
+      if(g.stageId){ const h = y - gapY + bandPad - y0; bands.push(`<g data-fig-stage="${escapeXmlAttr(g.stageId)}"><rect x="${padX - 22}" y="${y0 - 6}" width="${boxW + 44}" height="${h}" rx="10" fill="${stColor(g.stageId)}" fill-opacity=".05" stroke="${stColor(g.stageId)}" stroke-opacity=".35" stroke-dasharray="4 3"/><text x="${padX - 10}" y="${y0 + 12}" font-size="11" font-weight="800" fill="${stColor(g.stageId)}">${escapeXml((g.stageNumber ? g.stageNumber + ' ' : '') + g.stageName)}</text></g>`); y += bandPad; }
     });
-  });
-  const totalH = y + padTop;
-  const totalW = boxW + padX*2;
+    H = y;
+    svg = bands.join('') + arrows.join('') + nodesSvg.join('');
+  } else {
+    const boxW = 210, boxH = 40, colGap = 28, rowGap = 46, pad = 30;
+    const maxN = Math.max(...M.layers.map(l => l.length));
+    const hasBack = M.edges.some(e => e.back);
+    W = Math.max(maxN * boxW + (maxN - 1) * colGap + pad * 2, 520) + (hasBack ? 40 : 0);
+    const pos = {};
+    M.layers.forEach((l, li) => { const tw = l.length * boxW + (l.length - 1) * colGap, x0 = (W - (hasBack ? 40 : 0) - tw) / 2; l.forEach((n, i) => { pos[n.id] = { x: x0 + i * (boxW + colGap), y: pad + li * (boxH + rowGap) }; }); });
+    let y = pad + M.layers.length * (boxH + rowGap) - rowGap;
+    const nodesSvg = M.layers.flat().map(n => box(pos[n.id].x, pos[n.id].y, boxW, boxH, n));
+    const rightEdge = Math.max(...Object.values(pos).map(p => p.x)) + boxW;
+    const arrows = M.edges.map((e, k) => { const a = pos[e.from], b = pos[e.to]; if(!a || !b) return '';
+      if(e.back){ const x = rightEdge + 14 + (k % 3) * 6; return `<path d="M${a.x + boxW},${a.y + boxH / 2} H${x} V${b.y + boxH / 2} H${b.x + boxW + 4}" fill="none" stroke="#3D0C16" stroke-width="1.3" stroke-dasharray="5 4" marker-end="url(#pcsFigArrow)"/>`; }
+      return arrow(a.x + boxW / 2, a.y + boxH, b.x + boxW / 2, b.y); });
+    let looseSvg = '';
+    if(M.loose.length){
+      y += 34;
+      looseSvg += `<text x="${pad}" y="${y}" font-size="11" font-weight="800" fill="#8C6F74">흐름 관계 선이 없는 Unit Operation</text>`;
+      y += 10;
+      const perRow = Math.max(1, Math.floor((W - pad * 2 + colGap) / (boxW + colGap)));
+      M.loose.forEach((n, i) => { const r = Math.floor(i / perRow), c = i % perRow; looseSvg += box(pad + c * (boxW + colGap), y + r * (boxH + 14), boxW, boxH, n).replace('stroke="#3D0C16"', 'stroke="#B9A4A8" stroke-dasharray="4 3"'); });
+      y += Math.ceil(M.loose.length / perRow) * (boxH + 14) - 14;
+    }
+    H = y + pad;
+    svg = nodesSvg.join('') + arrows.join('') + looseSvg;
+  }
+  const legend = M.stages.length ? `<div class="pcs-fig-legend">${M.stages.map(s => `<span><i style="background:${stColor(s.id)}"></i>${escapeXml((s.number ? s.number + ' ' : '') + s.name)}</span>`).join('')}</div>` : '';
   return `
-    <div class="pcs-figure-wrap">
-      <svg viewBox="0 0 ${totalW} ${totalH}" width="100%" style="max-width:${totalW}px; display:block; margin:0 auto;">
+    <div class="pcs-figure-wrap" data-fig-mode="${M.mode}">
+      <svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:${W}px; display:block; margin:0 auto;" role="img" aria-label="${escapeXmlAttr(pm.name)} Process Overview">
         <defs><marker id="pcsFigArrow" markerWidth="8" markerHeight="8" refX="3.5" refY="3.5" orient="auto"><path d="M0,0 L4,3.5 L0,7 Z" fill="#3D0C16"/></marker></defs>
-        ${svgRows.join('')}
+        ${svg}
       </svg>
+      ${legend}
     </div>
     <div class="pcs-figure-caption">Figure 1: ${escapeXml(pm.name)} Process Overview</div>`;
+}
+/* Figure 아래 한 줄 설명 */
+function pcsOverviewNote(M, flowEdgeCount){
+  return M.mode === 'tree'
+    ? `총 ${M.nodes.length}개 Unit Operation · Process Map 계층 순서${M.stages.length ? `, 공정 단계 ${M.stages.length}개로 묶음` : ''} · 흐름 관계 선 없음(Process Map에서 흐름 관계를 그리면 갈래·합류까지 이 그림에 반영됩니다)`
+    : `총 ${M.nodes.length}개 Unit Operation · 흐름 관계 선 ${flowEdgeCount}개 기준(갈래·합류 포함${M.edges.some(e => e.back) ? ', 점선은 되돌아가는 흐름' : ''})${M.loose.length ? ` · 흐름 관계 선이 없는 UO ${M.loose.length}개는 그림 아래(${M.loose.map(n => n.name).join(', ')})` : ''}`;
 }
 const PCS_REPORT_TOC = [
   { num:'', label:'LIST OF TABLES', page:'' },
@@ -6597,14 +6913,12 @@ function renderPcsReport(){
   const nodes = getProcessNodes(pm.id);
   const flowEdges = ensurePmFlowEdges(pm.id);
 
-  // [추가 11] domain 순수 함수로 흐름 체인 계산
-  const flowChains = domain.buildFlowChains(nodes, flowEdges);
+  // v130: Figure 1은 Process Map 계층 + 흐름 관계 선(갈래·합류) — pcsOverviewModel(순수)
   function nodeName(id){ const n = nodes.find(x=>x.id===id); return n?n.name:id; }
-  const chainedIds = new Set(flowChains.flat());
-  const unchainedNodes = nodes.filter(n=>!chainedIds.has(n.id));
 
   // v112: 5장은 계층 순서·번호(Process Map 캔버스와 같은 1, 1.1, 1.1.2)로, 공정 단계 이름을 함께 적는다
   const treeRows = pmTreeRows(getPmTreeNodes(pm.id));
+  const overview = pcsOverviewModel(treeRows, flowEdges);
   const rowOf = {}; treeRows.forEach((r, i)=>{ rowOf[r.id] = Object.assign({ idx:i }, r); });
   const stageOf = id => { let r = rowOf[id], out = []; while(r && r.parentId){ r = rowOf[r.parentId]; if(r && r.kind==='stage') out.unshift(r.node.name); } return out.join(' › '); };
   const orderedNodes = nodes.slice().sort((a,b)=>((rowOf[a.id]||{}).idx??1e9) - ((rowOf[b.id]||{}).idx??1e9));
@@ -6689,8 +7003,8 @@ function renderPcsReport(){
       ${srcEditable ? `<div class="report-editable-block" contenteditable="true" data-on-blur="syncReportEdit_335c5b" data-a-blur="${pcsArgs([String(pm.id)])}">${pcsSanitizeHtml(pm.scope||'<p>공정 범위를 입력하세요…</p>')}</div>` : `<p class="pcs-report-p">${pcsSanitizeHtml(pm.scope||'─')}</p>`}
 
       <h3 class="pcs-report-h3">4. PROCESS OVERVIEW</h3>
-      ${pcsReportOverviewFigure(pm, nodes, flowChains, unchainedNodes)}
-      <p class="pcs-report-p" style="font-size:11.5px; color:var(--ink-500); margin-top:10px;">총 ${nodes.length}개 Unit Operation · ${flowEdges.length}개 흐름 연결${unchainedNodes.length && flowChains.length ? ` · 흐름 미지정 ${unchainedNodes.length}개(${unchainedNodes.map(n=>n.name).join(', ')})` : ''}</p>
+      ${pcsReportOverviewFigure(pm, overview)}
+      <p class="pcs-report-p" style="font-size:11.5px; color:var(--ink-500); margin-top:10px;" data-fig-note>${escapeXml(pcsOverviewNote(overview, flowEdges.length))}</p>
 
       <h3 class="pcs-report-h3">5. UNIT OPERATION DETAIL</h3>
       ${nodeSections.map((ns,i)=>`
@@ -21893,100 +22207,7 @@ function mbBackToPm(pmId){
   if(i >= 0 && i < t.path.length - 1){ t.path = t.path.slice(0, i + 1); render(); }
 }
 
-/* v103: 244줄이던 화면 함수를 구역별로 나눴다(상단 연동·Scale Factor·Step 표) */
-function renderMassBalanceEdit(){
-  const pmId=getActiveTab().ctx.mbPmId;
-  const pm=DATA.processMaps.find(p=>p.id===pmId);
-  if(!pm) return '<p style="padding:24px">PCS를 찾을 수 없습니다.</p>';
-  const mb=ensureMb(pmId); const rt=MB_RUNTIME[pmId];
-  const edgeOpts=mbGetEdgeOptions(pmId);
-  const streams=mbOrderedStreams(pmId);   // v113: UO 계층(흐름) 순서 → UO 안 Step 순서
-  const topArea = mbEditTopArea(pmId, pm, mb, rt);
-  const scaleBar = mbEditScaleBar(pmId, pm, mb, rt);
-  const stepsTable = mbEditStepsTable(pmId, pm, mb, rt, streams, edgeOpts);
-  return `
-    <div class="view-head">
-      <div>
-        <span class="view-eyebrow">MASS BALANCE</span>
-        <h1 class="view-title">${escapeXml(pm.name)}</h1>
-        <p class="view-sub">기술이전 Mass Balance — Sending/Receiving 비교 · Step & Cumulative Yield 자동 계산 · Excel 셀 연동 · PFD Arrow 잠금</p>
-      </div>
-      <div class="view-actions">
-        ${mbCompareCandidates(pm.id).length ? `<button class="btn" id="mbCompareBtn" ${pcsOn('click','openMbCompare',[pm.id])} title="같은 공정의 다른 PCS(시나리오)와 수율·용기 여유 비교">⇄ 시나리오 비교</button>` : ''}
-        <button class="btn" id="mbOpenPmBtn" ${pcsOn('click','mbBackToPm',[pm.id])}>${icon('workflow')} Process Map 열기</button>
-      </div>
-    </div>
-    ${topArea}
-    ${scaleBar}
-    ${mbFormulaBannerHtml(pmId, true)}
-    ${renderMbValidationPanel(pmId)}
-    ${rt ? mbRenderInlineViewer(pmId) : ''}
-    ${stepsTable}
-    ${streams.length>=2 ? mbRenderComparisonTable(pmId) : ''}
-    ${streams.length>=1 ? mbRenderSankey(pmId,'sending')+mbRenderSankey(pmId,'receiving') : ''}`;
-}
-/* ── 상단 SharePoint + Upload ── */
-function mbEditTopArea(pmId, pm, mb, rt){
-  const topArea=`
-    <div class="mb-sp-banner">
-      <div class="mb-sp-icon">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M10 13h4M10 17h4"/></svg>
-      </div>
-      <div style="flex:1;min-width:0;">
-        <div style="font-size:11px;font-weight:700;color:#0D7A5F;margin-bottom:4px;">SharePoint Excel URL</div>
-        <input class="pfd-detail-input" style="font-size:12px;padding:6px 10px;"
-          placeholder="https://company.sharepoint.com/sites/.../MassBalance.xlsx"
-          value="${escapeXmlAttr(mb.sharepointUrl||'')}"
-          data-on-change="mbUiSetting_14c780" data-a-change="${pcsArgs([String(pmId)])}">
-      </div>
-      <div style="display:flex;flex-direction:column;gap:5px;flex-shrink:0;">
-        ${mb.sharepointUrl?`<a href="${escapeXmlAttr(mb.sharepointUrl)}" target="_blank" class="btn btn-sm" style="color:#0D7A5F;border-color:#9FD9C8;">🌐 SharePoint 열기</a>`:''}
-        <button class="btn btn-sm" data-on-click="getElementById_8c7fa1" data-a-click="${pcsArgs([String(pmId)])}">
-          📥 ${rt?'재업로드':'Excel 업로드'}
-        </button>
-        <input type="file" id="mbFileInput_${pmId}" accept=".xlsx,.xls,.xlsm" style="display:none" data-on-change="mbLoadExcel_583d98" data-a-change="${pcsArgs([String(pmId)])}">
-      </div>
-    </div>
-    ${!rt?`<div class="mb-no-excel" style="margin-bottom:20px;">
-      <div style="font-size:30px;margin-bottom:8px;">📋</div>
-      <div style="font-size:14px;font-weight:700;color:var(--ink-600);margin-bottom:6px;">Excel 파일을 업로드하면 셀을 직접 연동할 수 있습니다</div>
-      <div style="font-size:12px;margin-bottom:14px;">SharePoint URL 입력 후 .xlsx 파일을 업로드하세요</div>
-      <button class="btn btn-primary" data-on-click="getElementById_8c7fa1" data-a-click="${pcsArgs([String(pmId)])}">📥 Excel 업로드</button>
-    </div>`:''}`;
-  return topArea;
-}
-/* ── Scale Factor 설정 ── */
-function mbEditScaleBar(pmId, pm, mb, rt){
-  const scaleBar=`
-    <div class="card" style="padding:14px 20px;margin-bottom:18px;display:flex;align-items:center;gap:18px;flex-wrap:wrap;">
-      <div style="font-size:13px;font-weight:700;color:var(--burgundy-900);">⚖️ Scale Factor 설정</div>
-      <div style="display:flex;align-items:center;gap:8px;">
-        <span style="font-size:12px;color:var(--ink-500);">이전 규모:</span>
-        <select class="pfd-detail-select" style="font-size:12px;width:120px;"
-          data-on-change="mbUiSetting_b7073b" data-a-change="${pcsArgs([String(pmId)])}">
-          ${['Lab→Pilot','Lab→Commercial','Pilot→Commercial','Commercial→Commercial'].map(v=>
-            `<option value="${v}" ${(mb.scaleTarget||'Lab→Pilot')===v?'selected':''}>${v}</option>`).join('')}
-        </select>
-      </div>
-      <div style="display:flex;align-items:center;gap:8px;">
-        <span style="font-size:12px;color:var(--ink-500);">Scale Factor:</span>
-        <input class="pfd-detail-input" style="width:80px;font-size:12px;" type="number" min="0.01" step="0.1"
-          placeholder="1.0"
-          value="${escapeXmlAttr(String(mb.scaleFactor||1))}"
-          data-on-change="mbUiSetting_75538d" data-a-change="${pcsArgs([String(pmId)])}">
-        <span style="font-size:11px;color:var(--ink-400);">× (Receiving / Sending)</span>
-      </div>
-      <div style="display:flex;align-items:center;gap:8px;margin-left:auto;">
-        <span style="font-size:12px;font-weight:600;color:var(--ink-600);">보기 버전:</span>
-        ${['sending','receiving'].map(v=>`
-          <button class="btn btn-sm ${mb.activeVersion===v?'btn-primary':''}" style="font-size:11px;"
-            data-on-click="mbUiSetting" data-a-click="${pcsArgs([String(pmId), 'activeVersion', String(v)])}">
-            ${v==='sending'?'🔵 Sending':'🟣 Receiving'}
-          </button>`).join('')}
-      </div>
-    </div>`;
-  return scaleBar;
-}
+/* v130: Mass Balance 화면(renderMassBalanceEdit·도구 줄·Step 표·상세 패널)은 17h_mb_page.js로 옮겼다 */
 /* ── Step 입력 테이블: 셀 연동 버튼 ── */
 function mbCellMapBtn(pmId, rt, sid, field, curSh, curCell, curVal){
   const disabled=!rt?'disabled title="먼저 Excel 업로드"':'';
@@ -21996,167 +22217,6 @@ function mbCellMapBtn(pmId, rt, sid, field, curSh, curCell, curVal){
     :`<button class="btn btn-sm" style="font-size:10px;color:#0D7A5F;border-color:#9FD9C8;padding:2px 7px;${!rt?'opacity:.5;':''}" ${disabled}
         data-on-click="openMbCellPicker" data-a-click="${pcsArgs([String(pmId), String(sid), String(field)])}">🎯</button>`;
 }
-/* ── Step 입력 테이블 ── */
-/* Step 표 머리글(Sending·Receiving 두 줄) */
-function mbStepsTableHead(){
-  return `<thead>
-          <tr style="border-bottom:2px solid var(--line);">
-            <th rowspan="2" style="padding:8px 10px;text-align:left;font-size:11px;color:var(--ink-500);font-weight:700;min-width:130px;vertical-align:middle;">Step 이름</th>
-            <th rowspan="2" style="padding:8px 8px;text-align:center;font-size:10px;color:var(--ink-500);font-weight:700;width:50px;vertical-align:middle;">순서</th>
-            <th colspan="4" style="padding:6px 10px;text-align:center;font-size:11px;font-weight:700;color:#1565C0;background:#E3F2FD;border:1px solid #BBDEFB;">Sending Site</th>
-            <th colspan="4" style="padding:6px 10px;text-align:center;font-size:11px;font-weight:700;color:#6A1B9A;background:#F3E5F5;border:1px solid #E1BEE7;">Receiving Site</th>
-            <th rowspan="2" style="padding:8px 10px;text-align:center;font-size:10px;color:var(--ink-500);font-weight:700;min-width:160px;vertical-align:middle;">PFD Arrow</th>
-            <th rowspan="2" style="width:34px;vertical-align:middle;"></th>
-          </tr>
-          <tr style="border-bottom:1px solid var(--line);">
-            <th style="padding:5px 8px;text-align:center;font-size:10px;color:#1565C0;background:#E3F2FD;min-width:90px;">Input</th>
-            <th style="padding:5px 8px;text-align:center;font-size:10px;color:#1565C0;background:#E3F2FD;min-width:90px;">Output</th>
-            <th style="padding:5px 8px;text-align:center;font-size:10px;color:#1565C0;background:#E3F2FD;min-width:70px;">단위</th>
-            <th style="padding:5px 8px;text-align:center;font-size:10px;color:#1565C0;background:#E3F2FD;min-width:70px;">Step Yield</th>
-            <th style="padding:5px 8px;text-align:center;font-size:10px;color:#6A1B9A;background:#F3E5F5;min-width:90px;">Input</th>
-            <th style="padding:5px 8px;text-align:center;font-size:10px;color:#6A1B9A;background:#F3E5F5;min-width:90px;">Output</th>
-            <th style="padding:5px 8px;text-align:center;font-size:10px;color:#6A1B9A;background:#F3E5F5;min-width:70px;">단위</th>
-            <th style="padding:5px 8px;text-align:center;font-size:10px;color:#6A1B9A;background:#F3E5F5;min-width:70px;">Step Yield</th>
-          </tr>
-        </thead>`;
-}
-function mbEditStepsTable(pmId, pm, mb, rt, streams, edgeOpts){
-  const stepsTable=`
-    <div class="card" style="overflow:hidden;margin-bottom:20px;">
-      <div style="background:var(--pink-50);padding:10px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-        <strong style="font-size:13px;color:var(--burgundy-900);">🔢 Step별 Mass Balance — Input / Output / Loss</strong>
-        <span style="font-size:11px;color:var(--ink-500);">Step Yield & Cumulative Yield 자동 계산 · 각 셀에 🎯 버튼으로 Excel 셀 연동</span>
-        <button class="btn btn-sm btn-primary" style="margin-left:auto;" data-on-click="mbAddStream" data-a-click="${pcsArgs([String(pmId)])}">
-          ${icon('plus')} Step 추가
-        </button>
-      </div>
-      ${streams.length===0?`
-        <div style="padding:40px;text-align:center;color:var(--ink-400);font-size:13px;">
-          Step이 없습니다. 'Step 추가' 버튼으로 시작하세요.
-        </div>`:`
-      <div style="overflow-x:auto;">
-      <table style="width:100%;border-collapse:collapse;font-size:12px;">
-        ${mbStepsTableHead()}
-        <tbody>
-          ${mbLayoutRows(pmId, (s,i)=>{
-            const sy=mbCalcStepYield(s,'s_'), ry=mbCalcStepYield(s,'r_');
-            const sLoss=mbCalcLoss(s,'s_'), rLoss=mbCalcLoss(s,'r_');
-            const mappings=s.pfdMappings||[];
-            const linkedKeys=mappings.map(m=>`${m.nodeId}::${m.edgeId}`);
-            const chips=mappings.map(m=>{
-              const opt=edgeOpts.find(o=>o.nodeId===m.nodeId&&o.edgeId===m.edgeId);
-              return `<span class="mb-mapping-chip">${escapeXml((opt?opt.label:'?').slice(0,22))}
-                <span class="del" data-on-click="mbUnlinkEdge_8dae5e" data-a-click="${pcsArgs([String(pmId), String(s.id), String(m.nodeId), String(m.edgeId)])}">✕</span></span>`;
-            }).join('');
-            const avail=edgeOpts.filter(o=>!linkedKeys.includes(o.key));
-            const addSel=avail.length?`<select class="pfd-detail-select" style="font-size:10px;margin-top:4px;width:100%;"
-              data-on-change="if_a9ec9b" data-a-change="${pcsArgs([String(pmId), String(s.id)])}">
-              <option value="">+ Arrow…</option>
-              ${avail.map(o=>`<option value="${o.key}">${escapeXml(o.label)}</option>`).join('')}
-            </select>`:'';
-            return `
-            <tr style="border-bottom:1px solid var(--line-soft);vertical-align:top;${i%2===1?'background:#FDFCFC':''}">
-              <td style="padding:8px 10px;">
-                <input class="pfd-detail-input" style="width:100%;font-size:11.5px;" placeholder="Step 이름"
-                  value="${escapeXmlAttr(s.stepName||'')}"
-                  data-on-change="mbUiSet_69b4c7" data-a-change="${pcsArgs([String(pmId), String(s.id)])}">
-                ${mbOwnerSelect(pmId, s)}
-                ${mbDetailToggleHtml(s)}
-              </td>
-              <td style="padding:8px 8px;text-align:center;">
-                <input class="pfd-detail-input" style="width:46px;font-size:11px;text-align:center;" type="number" min="1"
-                  value="${escapeXmlAttr(String(s.stepOrder||i+1))}"
-                  data-on-change="mbUiSet_0d0ac3" data-a-change="${pcsArgs([String(pmId), String(s.id), i+1])}">
-              </td>
-              <!-- Sending Input -->
-              <td style="padding:7px 8px;background:#F8FBFF;">
-                <input class="pfd-detail-input" style="width:100%;font-size:11px;margin-bottom:3px;" placeholder="0.0"
-                  value="${escapeXmlAttr(String(s.s_input||''))}"
-                  data-on-change="mbUiSet_1bc05d" data-a-change="${pcsArgs([String(pmId), String(s.id)])}">
-                ${mbCellMapBtn(pmId, rt, s.id,'s_input',s.s_inputCellSheet||'',s.s_inputCell||'',s.s_input||'')}${mbFxMark(pmId,s,'s_input')}
-                <input class="pfd-detail-input mb-conc" data-mb-conc="s_concentrationIn" style="width:100%;font-size:10px;margin-top:3px;" placeholder="농도 g/L (선택)" value="${escapeXmlAttr(String(s.s_concentrationIn||''))}" data-on-change="mbUiSet_453f04" data-a-change="${pcsArgs([String(pmId), String(s.id)])}" title="농도를 넣으면 부피 대신 질량(부피×농도)으로 수율을 검증합니다">${mbFxMark(pmId,s,'s_concentrationIn')}
-              </td>
-              <!-- Sending Output -->
-              <td style="padding:7px 8px;background:#F8FBFF;">
-                <input class="pfd-detail-input" style="width:100%;font-size:11px;margin-bottom:3px;" placeholder="0.0"
-                  value="${escapeXmlAttr(String(s.s_output||''))}"
-                  data-on-change="mbUiSet_dd3229" data-a-change="${pcsArgs([String(pmId), String(s.id)])}">
-                ${mbCellMapBtn(pmId, rt, s.id,'s_output',s.s_outputCellSheet||'',s.s_outputCell||'',s.s_output||'')}${mbFxMark(pmId,s,'s_output')}
-                <input class="pfd-detail-input mb-conc" data-mb-conc="s_concentration" style="width:100%;font-size:10px;margin-top:3px;" placeholder="농도 g/L (선택)" value="${escapeXmlAttr(String(s.s_concentration||''))}" data-on-change="mbUiSet_8e4c3c" data-a-change="${pcsArgs([String(pmId), String(s.id)])}" title="농도를 넣으면 부피 대신 질량(부피×농도)으로 수율을 검증합니다">${mbFxMark(pmId,s,'s_concentration')}
-                <input class="pfd-detail-input mb-purity" data-mb-purity="s_purity" style="width:100%;font-size:10px;margin-top:3px;" placeholder="순도 % (선택)" aria-label="Sending 순도" value="${escapeXmlAttr(String(s.s_purity||''))}" ${pcsOn('change', 'mbSetField', [pmId, s.id, 's_purity'])}>
-              </td>
-              <!-- Sending 단위 -->
-              <td style="padding:7px 6px;background:#F8FBFF;">
-                <select class="pfd-detail-select" style="width:70px;font-size:11px;"
-                  data-on-change="mbUiSet_81e099" data-a-change="${pcsArgs([String(pmId), String(s.id)])}">
-                  ${['L','kg','g','mL','g/L','mg/mL','%','units'].map(u=>`<option value="${u}" ${(s.s_unit||'L')===u?'selected':''}>${u}</option>`).join('')}
-                </select>
-              </td>
-              <!-- Sending Step Yield (auto) -->
-              <td style="padding:7px 8px;text-align:center;background:#F8FBFF;">
-                <div style="font-size:13px;font-weight:800;font-family:'IBM Plex Mono',monospace;
-                  color:${sy===null?'var(--ink-400)':sy>=90?'#2E7D32':sy>=70?'#E65100':'#C62828'};">
-                  ${sy!==null?sy+'%':'–'}
-                </div>${mbYieldBasisTag(s,'s_')}
-                <div style="font-size:9px;color:var(--ink-400);margin-top:1px;">
-                  Loss: ${sLoss!==null?sLoss+' '+(s.s_unit||''):'–'}
-                </div>
-              </td>
-              <!-- Receiving Input -->
-              <td style="padding:7px 8px;background:#FCF8FF;">
-                <input class="pfd-detail-input" style="width:100%;font-size:11px;margin-bottom:3px;" placeholder="0.0"
-                  value="${escapeXmlAttr(String(s.r_input||''))}"
-                  data-on-change="mbUiSet_402799" data-a-change="${pcsArgs([String(pmId), String(s.id)])}">
-                ${mbCellMapBtn(pmId, rt, s.id,'r_input',s.r_inputCellSheet||'',s.r_inputCell||'',s.r_input||'')}${mbFxMark(pmId,s,'r_input')}
-                <input class="pfd-detail-input mb-conc" data-mb-conc="r_concentrationIn" style="width:100%;font-size:10px;margin-top:3px;" placeholder="농도 g/L (선택)" value="${escapeXmlAttr(String(s.r_concentrationIn||''))}" data-on-change="mbUiSet_b06fb9" data-a-change="${pcsArgs([String(pmId), String(s.id)])}" title="농도를 넣으면 부피 대신 질량(부피×농도)으로 수율을 검증합니다">${mbFxMark(pmId,s,'r_concentrationIn')}
-              </td>
-              <!-- Receiving Output -->
-              <td style="padding:7px 8px;background:#FCF8FF;">
-                <input class="pfd-detail-input" style="width:100%;font-size:11px;margin-bottom:3px;" placeholder="0.0"
-                  value="${escapeXmlAttr(String(s.r_output||''))}"
-                  data-on-change="mbUiSet_135ac9" data-a-change="${pcsArgs([String(pmId), String(s.id)])}">
-                ${mbCellMapBtn(pmId, rt, s.id,'r_output',s.r_outputCellSheet||'',s.r_outputCell||'',s.r_output||'')}${mbFxMark(pmId,s,'r_output')}
-                <input class="pfd-detail-input mb-conc" data-mb-conc="r_concentration" style="width:100%;font-size:10px;margin-top:3px;" placeholder="농도 g/L (선택)" value="${escapeXmlAttr(String(s.r_concentration||''))}" data-on-change="mbUiSet_c957ce" data-a-change="${pcsArgs([String(pmId), String(s.id)])}" title="농도를 넣으면 부피 대신 질량(부피×농도)으로 수율을 검증합니다">${mbFxMark(pmId,s,'r_concentration')}
-                <input class="pfd-detail-input mb-purity" data-mb-purity="r_purity" style="width:100%;font-size:10px;margin-top:3px;" placeholder="순도 % (선택)" aria-label="Receiving 순도" value="${escapeXmlAttr(String(s.r_purity||''))}" ${pcsOn('change', 'mbSetField', [pmId, s.id, 'r_purity'])}>
-              </td>
-              <!-- Receiving 단위 -->
-              <td style="padding:7px 6px;background:#FCF8FF;">
-                <select class="pfd-detail-select" style="width:70px;font-size:11px;"
-                  data-on-change="mbUiSet_ed0d67" data-a-change="${pcsArgs([String(pmId), String(s.id)])}">
-                  ${['L','kg','g','mL','g/L','mg/mL','%','units'].map(u=>`<option value="${u}" ${(s.r_unit||'L')===u?'selected':''}>${u}</option>`).join('')}
-                </select>
-              </td>
-              <!-- Receiving Step Yield (auto) -->
-              <td style="padding:7px 8px;text-align:center;background:#FCF8FF;">
-                <div style="font-size:13px;font-weight:800;font-family:'IBM Plex Mono',monospace;
-                  color:${ry===null?'var(--ink-400)':ry>=90?'#2E7D32':ry>=70?'#E65100':'#C62828'};">
-                  ${ry!==null?ry+'%':'–'}
-                </div>${mbYieldBasisTag(s,'r_')}
-                <div style="font-size:9px;color:var(--ink-400);margin-top:1px;">
-                  Loss: ${rLoss!==null?rLoss+' '+(s.r_unit||''):'–'}
-                </div>
-              </td>
-              <!-- PFD Arrow -->
-              <td style="padding:7px 10px;">
-                <div style="display:flex;flex-wrap:wrap;gap:3px;">${chips||'<span style="font-size:11px;color:var(--ink-400);">없음</span>'}</div>
-                ${addSel}
-              </td>
-              <!-- 삭제 -->
-              <td style="padding:7px 8px;text-align:center;">
-                <button class="btn btn-sm" style="color:var(--red-600);border-color:transparent;"
-                  data-on-click="mbConfirmRemoveStream" data-a-click="${pcsArgs([String(pmId), String(s.id)])}">
-                  ${icon('trash')}
-                </button>
-              </td>
-            </tr>${mbStepDetailRow(pmId, s, 12, !s.nodeId || uoEditable(s.nodeId))}`;
-          })}
-        </tbody>
-      </table>
-      </div>`}
-    </div>`;
-  return stepsTable;
-}
-
 function mbAddStream(pmId){
   mbCreateStream(pmId);   // v99: store 함수(감사 기록·검증)
   render();
@@ -22600,7 +22660,7 @@ function renderUoMassBalanceBody(node){
     </div>
     ${streams.some(s => s.formulas) ? mbFormulaBannerHtml(pmId, editable) : ''}
     ${editable ? '' : `<div class="note-banner" style="margin-bottom:8px;">${icon('shield')}<span>${escapeXml(uoStatusOf(node.id))} 상태라 Mass Balance·소요량 규칙이 잠겨 있습니다.</span></div>`}
-    <div class="card" style="padding:0; overflow:auto; margin-bottom:6px;">
+    <div class="card mb-uo-scroll" style="padding:0; overflow:auto; margin-bottom:6px;">
       <table class="data-table mb-uo-table" data-uo-mb>
         <thead><tr><th>Step</th><th class="mb-s" colspan="4">Sending 투입 · 회수 · 단위 · 수율</th><th class="mb-r" colspan="3">Receiving 투입 · 회수 · 수율</th><th></th></tr></thead>
         <tbody>${stepRows || `<tr><td colspan="9" style="text-align:center; color:var(--ink-400); padding:14px;">이 Unit Operation의 Mass Balance Step이 없습니다.</td></tr>`}</tbody>
@@ -22642,12 +22702,12 @@ function seedReferenceBomRules(){
 
 /* ---------- 화면: Process Map 전체 Mass Balance 표(UO 흐름 순서·공정 단계 소계·주인 UO) ---------- */
 /* rowFn(stream, i) → 기존 Step 줄 HTML. UO·단계 머리 줄과 단계 소계 줄을 사이에 넣는다 */
-function mbLayoutRows(pmId, rowFn){
+function mbLayoutRows(pmId, rowFn, cols){
   const mb = ensureMb(pmId);
   const pfx = mb.activeVersion === 'receiving' ? 'r_' : 's_';
   const lay = mbPmLayout(pmTreeRows(getPmTreeNodes(pmId)), mb.streams);
   let i = 0;
-  const COLS = 12;
+  const COLS = cols || 12;
   return lay.map(x => {
     if(x.type === 'step') return rowFn(x.stream, i++);
     if(x.type === 'stage') return `<tr class="mb-grp-stage" data-mb-stage="${escapeXmlAttr(x.row.id)}"><td colspan="${COLS}"><span class="mono">${escapeXml(x.row.number)}</span> ${escapeXml(x.row.node.name)} <span class="pm-kind-tag kind-stage">STAGE</span></td></tr>`;
@@ -22836,33 +22896,47 @@ function mbSiteSummaryHtml(s, pfx, label){
     : `<span class="mb-uo-sub">농도(g/L)를 넣으면 질량 수율을 계산합니다${b.volRatio != null ? ` — 지금은 부피 비율 ×${b.volRatio}` : ''}</span>`;
   return `<div class="mb-site-sum ${pfx === 's_' ? 'mb-s' : 'mb-r'}" data-mb-sum="${pfx}"><b class="mb-site-label">${label}</b><div>${vol}</div><div>${mass}${b.massYield != null && b.volRatio != null ? ` · 부피 변화 ×${b.volRatio}` : ''}</div></div>`;
 }
-/* Step 상세 줄(펼쳤을 때): 수지 요약, 사이클·Step Scale·Receiving 채우기, 추가 투입·곁가지 산출 표 */
-function mbStepDetailHtml(pmId, s, editable){
+/* v130: Step 상세를 구역 함수로 나눴다 — UO 패널(Process Map)은 한 번에 펼치고(mbStepDetailHtml), Mass Balance 화면은 패널 탭마다 하나씩 쓴다.
+   운전·용기: 사이클·사이클당·회수 용기(both면 Sending·Receiving 둘 다)·Step Scale·Receiving 예상·채우기 */
+function mbStepOpsHtml(pmId, s, editable, both){
   const mb = ensureMb(pmId);
   const dis = editable ? '' : 'disabled';
   const plan = mbReceivingPlan(s, mb);
-  const inp = (x, f, ph, w) => `<input class="pfd-detail-input" style="width:${w || 80}px;" value="${escapeXmlAttr(String(x[f] ?? ''))}" placeholder="${ph}" ${dis} aria-label="${escapeXmlAttr((x.name || '') + ' ' + ph)}" data-mbx-field="${f}" ${pcsOn('change', 'pcsCallWithValue', ['mbUiSetExtra', pmId, s.id, x.id, f])}>`;
-  const rows = (s.extras || []).map(x => `<tr data-mbx="${escapeXmlAttr(x.id)}">
-      <td><select class="pfd-detail-select" ${dis} aria-label="방향" ${pcsOn('change', 'pcsCallWithValue', ['mbUiSetExtra', pmId, s.id, x.id, 'dir'])}><option value="in" ${x.dir === 'in' ? 'selected' : ''}>투입 ＋</option><option value="out" ${x.dir !== 'in' ? 'selected' : ''}>산출 －</option></select></td>
-      <td><select class="pfd-detail-select" ${dis} aria-label="종류" ${pcsOn('change', 'pcsCallWithValue', ['mbUiSetExtra', pmId, s.id, x.id, 'kind'])}>${MB_EXTRA_KINDS.map(k => `<option value="${k[0]}" ${x.kind === k[0] ? 'selected' : ''}>${escapeXml(k[1])}</option>`).join('')}</select></td>
-      <td>${inp(x, 'name', '이름', 130)}</td>
-      <td class="mb-s">${inp(x, 's_vol', '부피')}</td><td class="mb-s">${inp(x, 's_conc', '농도 g/L', 70)}</td>
-      <td class="mb-r">${inp(x, 'r_vol', '부피')}</td><td class="mb-r">${inp(x, 'r_conc', '농도 g/L', 70)}</td>
-      <td>${editable ? `<button class="btn btn-sm" aria-label="줄 삭제" data-on-click="mbUiRemoveExtra" data-a-click="${pcsArgs([pmId, s.id, x.id])}">${icon('trash')}</button>` : ''}</td></tr>`).join('');
-  return `<div class="mb-detail" data-mb-detail="${escapeXmlAttr(s.id)}">
-    <div class="mb-detail-sums">${mbSiteSummaryHtml(s, 's_', 'Sending')}${mbSiteSummaryHtml(s, 'r_', 'Receiving')}</div>
-    <div class="mb-detail-ctrl">
+  const act = mb.activeVersion === 'receiving' ? 'r_' : 's_';
+  const vessel = p => `<label class="mb-vessel-l site-${p[0]}">${both ? `<span class="site-tag ${p[0]}">${p === 's_' ? 'Sending' : 'Receiving'}</span> ` : ''}회수 용기 <select class="pfd-detail-select" style="width:auto; max-width:220px;" ${dis} aria-label="${p === 's_' ? 'Sending' : 'Receiving'} 회수 용기" data-mb-vessel="${p}" ${pcsOn('change', 'pcsCallWithValue', ['mbUiSet', pmId, s.id, p + 'vessel'])}><option value="">— 없음 —</option>${mbVesselOptions().map(e => `<option value="${escapeXmlAttr(e.id)}" ${s[p + 'vessel'] === e.id ? 'selected' : ''}>${escapeXml(e.tag || '')} ${escapeXml(e.name)} · ${escapeXml(String(e.capacityL))} L</option>`).join('')}</select> ${mbFillCell(mbVesselFill(s, p))}</label>`;
+  return `<div class="mb-detail-ctrl" data-mb-ops="${escapeXmlAttr(s.id)}">
       <label>사이클 <input class="pfd-detail-input" type="number" min="1" style="width:56px;" value="${mbCycles(s)}" ${dis} aria-label="사이클 수" data-mb-cycles ${pcsOn('change', 'pcsCallWithValue', ['mbUiSet', pmId, s.id, 'cycles'])}></label>
       <label><input type="checkbox" ${s.perCycle ? 'checked' : ''} ${dis} data-mb-percycle ${pcsOn('change', 'pcsCallWithChecked', ['mbUiSet', pmId, s.id, 'perCycle'])}> 값은 사이클당(배치 = × 사이클)</label>
-      <label>회수 용기 <select class="pfd-detail-select" style="width:auto; max-width:200px;" ${dis} aria-label="회수 용기" data-mb-vessel ${pcsOn('change', 'pcsCallWithValue', ['mbUiSet', pmId, s.id, (mb.activeVersion === 'receiving' ? 'r_' : 's_') + 'vessel'])}><option value="">— 없음 —</option>${mbVesselOptions().map(e => `<option value="${escapeXmlAttr(e.id)}" ${s[(mb.activeVersion === 'receiving' ? 'r_' : 's_') + 'vessel'] === e.id ? 'selected' : ''}>${escapeXml(e.tag || '')} ${escapeXml(e.name)} · ${escapeXml(String(e.capacityL))} L</option>`).join('')}</select> ${mbFillCell(mbVesselFill(s, mb.activeVersion === 'receiving' ? 'r_' : 's_'))}</label>
+      ${both ? vessel('s_') + vessel('r_') : vessel(act)}
       <label>Step Scale <input class="pfd-detail-input" style="width:64px;" value="${escapeXmlAttr(String(s.scale || ''))}" placeholder="${escapeXmlAttr(String(mb.scaleFactor || 1))}" ${dis} aria-label="Step Scale Factor" data-mb-scale ${pcsOn('change', 'pcsCallWithValue', ['mbUiSet', pmId, s.id, 'scale'])}></label>
       <span class="mb-uo-sub">Receiving 예상: 투입 ${escapeXml(plan.fields.r_input || '–')} · 회수 ${escapeXml(plan.fields.r_output || '–')} ${escapeXml(plan.fields.r_unit)} (Sending × ${plan.scale})</span>
       ${editable ? `<button class="btn btn-sm" data-mb-fill-r data-on-click="mbUiFillReceiving" data-a-click="${pcsArgs([pmId, s.id])}">Receiving 채우기</button>` : ''}
-    </div>
+    </div>`;
+}
+/* 추가 투입·곁가지 산출 — v130: 좁은 패널에서도 다 보이게 줄마다 카드(방향·종류·이름 / Sending·Receiving 부피·농도) + 더하기 단추 */
+function mbStepExtrasHtml(pmId, s, editable){
+  const dis = editable ? '' : 'disabled';
+  const inp = (x, f, ph, cls, aria) => `<input class="mbx-input ${cls || ''}" value="${escapeXmlAttr(String(x[f] ?? ''))}" placeholder="${ph}" ${dis} aria-label="${escapeXmlAttr((x.name || '') + ' ' + (aria || ph))}" data-mbx-field="${f}" ${pcsOn('change', 'pcsCallWithValue', ['mbUiSetExtra', pmId, s.id, x.id, f])}>`;
+  const site = (x, p) => `<div class="mbx-xsite site-${p[0]}"><span class="site-tag ${p[0]}">${p === 's_' ? 'Sending' : 'Receiving'}</span>
+      <label>부피 ${inp(x, p + 'vol', '–', 'mono', p === 's_' ? 'Sending 부피' : 'Receiving 부피')}</label><label>농도 g/L ${inp(x, p + 'conc', '–', 'mono', p === 's_' ? 'Sending 농도 g/L' : 'Receiving 농도 g/L')}</label></div>`;
+  const rows = (s.extras || []).map(x => `<div class="mbx-xcard mbx-dir-${x.dir === 'in' ? 'in' : 'out'}" data-mbx="${escapeXmlAttr(x.id)}">
+      <div class="mbx-xtop">
+        <select class="mbx-select" ${dis} aria-label="방향" ${pcsOn('change', 'pcsCallWithValue', ['mbUiSetExtra', pmId, s.id, x.id, 'dir'])}><option value="in" ${x.dir === 'in' ? 'selected' : ''}>투입 ＋</option><option value="out" ${x.dir !== 'in' ? 'selected' : ''}>산출 －</option></select>
+        <select class="mbx-select" ${dis} aria-label="종류" ${pcsOn('change', 'pcsCallWithValue', ['mbUiSetExtra', pmId, s.id, x.id, 'kind'])}>${MB_EXTRA_KINDS.map(k => `<option value="${k[0]}" ${x.kind === k[0] ? 'selected' : ''}>${escapeXml(k[1])}</option>`).join('')}</select>
+        ${inp(x, 'name', '이름', 'mbx-xname')}
+        ${editable ? `<button class="mb-icon-btn danger" aria-label="줄 삭제" title="줄 삭제" data-on-click="mbUiRemoveExtra" data-a-click="${pcsArgs([pmId, s.id, x.id])}">${icon('trash')}</button>` : ''}
+      </div>
+      <div class="mbx-xsites">${site(x, 's_')}${site(x, 'r_')}</div></div>`).join('');
+  return `<div class="mb-extra-wrap mbx-xlist" data-mb-extras="${escapeXmlAttr(s.id)}">${rows || `<div class="mb-uo-sub mbx-xempty">추가 투입·곁가지 산출이 없습니다 — 버퍼·Feed, Flow-through·Strip·폐액·QC 샘플을 적으면 수지를 맞춰 봅니다.</div>`}</div>
+    ${editable ? `<div class="mb-detail-add">${MB_EXTRA_KINDS.filter(k => k[0] !== 'other').map(k => `<button class="btn btn-sm mb-add-${k[2]}" data-mb-add-extra="${k[0]}" data-on-click="mbUiAddExtra" data-a-click="${pcsArgs([pmId, s.id, k[0]])}">${k[2] === 'in' ? '＋' : '－'} ${escapeXml(k[1])}</button>`).join('')}</div>` : ''}`;
+}
+/* Step 상세(UO 패널에서 펼쳤을 때 한 번에): 수지 요약, 운전·용기, 계산식, 추가 투입·곁가지 산출 */
+function mbStepDetailHtml(pmId, s, editable){
+  return `<div class="mb-detail" data-mb-detail="${escapeXmlAttr(s.id)}">
+    <div class="mb-detail-sums">${mbSiteSummaryHtml(s, 's_', 'Sending')}${mbSiteSummaryHtml(s, 'r_', 'Receiving')}</div>
+    ${mbStepOpsHtml(pmId, s, editable, false)}
     ${mbFormulaBlockHtml(pmId, s, editable)}
-    <div class="mb-extra-wrap"><table class="data-table mb-extra-table"><thead><tr><th>방향</th><th>종류</th><th>이름</th><th class="mb-s">Sending 부피</th><th class="mb-s">농도</th><th class="mb-r">Receiving 부피</th><th class="mb-r">농도</th><th></th></tr></thead>
-      <tbody>${rows || `<tr><td colspan="8" class="mb-uo-sub" style="text-align:center; padding:8px;">추가 투입·곁가지 산출이 없습니다 — 버퍼·Feed, Flow-through·Strip·폐액·QC 샘플을 적으면 수지를 맞춰 봅니다.</td></tr>`}</tbody></table></div>
-    ${editable ? `<div class="mb-detail-add">${MB_EXTRA_KINDS.filter(k => k[0] !== 'other').map(k => `<button class="btn btn-sm" data-mb-add-extra="${k[0]}" data-on-click="mbUiAddExtra" data-a-click="${pcsArgs([pmId, s.id, k[0]])}">${k[2] === 'in' ? '＋' : '－'} ${escapeXml(k[1])}</button>`).join('')}</div>` : ''}
+    ${mbStepExtrasHtml(pmId, s, editable)}
   </div>`;
 }
 function mbStepDetailRow(pmId, s, cols, editable){
@@ -23148,32 +23222,45 @@ function mbFxMark(pmId, s, f){
   return `<span class="mb-fx ${cls}" data-mb-fx="${escapeXmlAttr(f)}" title="${escapeXmlAttr(tip)}">ƒx${r.stale ? ' ↻' : r.error ? ' !' : ''}</span>`;
 }
 /* 머리 배너: 계산식 수 · 어긋난 값 · 다시 계산 */
-function mbFormulaBannerHtml(pmId, editable){
+function mbFormulaBannerHtml(pmId, editable, hideOk){
   const rows = mbFormulaPlanFor(pmId);
   if(!rows.length) return '';
   const stale = rows.filter(r => r.stale), err = rows.filter(r => r.error);
   const lockedN = stale.filter(r => { const s = getMbStreamById(pmId, r.sid); return s && !mbFormulaStreamEditable(s); }).length;
-  if(!stale.length && !err.length) return `<div class="mb-fx-banner ok" data-mb-fx-banner="ok">ƒx 계산식 ${rows.length}개 — 모두 Parameter Master·앞 Step 값과 맞습니다.</div>`;
+  if(!stale.length && !err.length) return hideOk ? '' : `<div class="mb-fx-banner ok" data-mb-fx-banner="ok">ƒx 계산식 ${rows.length}개 — 모두 Parameter Master·앞 Step 값과 맞습니다.</div>`;
   const list = stale.slice(0, 5).map(r => `${escapeXml(r.stepName)} ${escapeXml(mbFormulaFieldLabel(r.field))} ${escapeXml(r.current || '–')} → <b>${escapeXml(String(r.value))}</b>`).join(' · ');
   return `<div class="mb-fx-banner warn" data-mb-fx-banner="warn">
     <span>ƒx 계산식 ${rows.length}개 중 <b>${stale.length}칸</b>이 지금 값과 다릅니다${err.length ? ` · 오류 ${err.length}개` : ''} — 파라미터나 앞 Step 값이 바뀌었습니다.${list ? `<div class="mb-uo-sub">${list}${stale.length > 5 ? ' …' : ''}</div>` : ''}${lockedN ? `<div class="mb-uo-sub">승인된 UO의 ${lockedN}칸은 재작업을 시작해야 바뀝니다.</div>` : ''}</span>
     ${editable && stale.length > lockedN ? `<button class="btn btn-sm btn-primary" data-mb-recalc data-on-click="mbUiRecalc" data-a-click="${pcsArgs([pmId])}">↻ 다시 계산</button>` : ''}</div>`;
 }
-/* Step 상세 줄 안의 계산식 표 */
+/* Step 계산식 편집 — v130: Excel처럼 후보·인수 안내·바로 계산(17g_mb_fx_editor.js), 넣기 단추·파라미터 칩 */
 function mbFormulaBlockHtml(pmId, s, editable){
   const rows = mbFormulaPlanFor(pmId).filter(r => r.sid === s.id);
+  const dis = editable ? '' : 'disabled';
   const cell = f => {
     const expr = (s.formulas || {})[f] || '', r = rows.find(x => x.field === f);
-    const out = !r ? '' : r.error ? `<span class="mb-fx-err">⚠ ${escapeXml(r.error)}</span>` : `= <b>${escapeXml(String(r.value))}</b>${r.stale ? ` <span class="mb-fx-stale">지금 ${escapeXml(r.current || '–')}</span>` : ''}`;
-    return `<td class="${f.slice(0, 2) === 's_' ? 'mb-s' : 'mb-r'}"><input class="pfd-detail-input mb-fx-in" value="${escapeXmlAttr(expr)}" placeholder="${f.startsWith('s_') ? '예: {P:HCCF Volume}' : '예: {P:HCCF Volume} * {scale}'}" ${editable ? '' : 'disabled'} aria-label="${escapeXmlAttr(mbFormulaFieldLabel(f))} 계산식" data-mb-formula="${f}" ${pcsOn('change', 'pcsCallWithValue', ['mbUiSetFormula', pmId, s.id, f])}><div class="mb-fx-out" data-mb-formula-out="${f}">${out}</div></td>`;
+    const out = !r ? (expr ? '' : '<span class="mb-fx-hint">값을 직접 적는 칸</span>') : r.error ? `<span class="mb-fx-err">⚠ ${escapeXml(r.error)}</span>` : `= <b>${escapeXml(Number(r.value).toLocaleString('ko-KR'))}</b>${r.stale ? ` <span class="mb-fx-stale">지금 ${escapeXml(r.current || '–')}</span>` : ''}`;
+    return `<div class="mb-fx-cell ${f.slice(0, 2) === 's_' ? 'site-s' : 'site-r'}" data-mb-fx-cell>
+      <input class="mb-fx-in" value="${escapeXmlAttr(expr)}" placeholder="${f.startsWith('s_') ? '{ 를 쳐서 값 고르기' : '예: {P:HCCF Volume} * {scale}'}" ${dis} autocomplete="off" spellcheck="false"
+        role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="mbFxPop" aria-label="${escapeXmlAttr(mbFormulaFieldLabel(f))} 계산식"
+        data-mb-formula="${f}" data-fx-sid="${escapeXmlAttr(s.id)}" data-fx-args="${pcsArgs([pmId, s.id, f])}" data-fx-saved="${escapeXmlAttr(expr)}"
+        ${pcsOn('change', 'pcsCallWithValue', ['mbUiSetFormula', pmId, s.id, f])} data-on-input="mbFxInput_h" data-on-keydown="mbFxKeydown_h" data-on-keyup="mbFxKeyup_h" data-on-focus="mbFxFocus_h" data-on-blur="mbFxBlur_h" data-on-mouseup="mbFxKeyup_h">
+      <div class="mb-fx-out" data-mb-formula-out="${f}">${out}</div></div>`;
   };
   const sps = mbSetPointsOf(pmId), all = getMasterArray('parameter') || [];
   const params = (s.nodeId ? (ensureNodeListBucket(s.nodeId).parameter || []) : []).map(id => { try { return mbParamResolve(all, sps, s.nodeId, id); } catch(e){ const p = getMasterItem('parameter', id); return p ? { param: p, error: e.message } : null; } }).filter(Boolean);
   const pv = r => r.error ? `<span class="mb-fx-err" title="${escapeXmlAttr(r.error)}">값 확인 필요</span>` : `${escapeXml(String(r.value))}${r.param.unit ? ' ' + escapeXml(r.param.unit) : ''} <span class="mb-fx-src ${r.source}">${r.source === 'pfd' ? 'PFD ' + escapeXml(r.nodeName) : '마스터 기본값'}</span>`;
+  const tok = (label, text, back, title) => `<button type="button" class="mb-fx-tok" ${dis} title="${escapeXmlAttr(title || text)}" data-on-mousedown="mbFxTokDown_h" ${pcsOn('click', 'mbFxInsertToken', back ? [text, back] : [text])}>${escapeXml(label)}</button>`;
   return `<div class="mb-fx-block" data-mb-fx-block="${escapeXmlAttr(s.id)}">
-    <table class="data-table mb-extra-table"><thead><tr><th>계산식</th><th class="mb-s">Sending</th><th class="mb-r">Receiving</th></tr></thead><tbody>
-      ${Object.entries(MB_FORMULA_KEYS).map(([k, key]) => `<tr><td>${escapeXml(MB_FORMULA_LABEL[key])} <code>{${k}}</code></td>${cell('s_' + key)}${cell('r_' + key)}</tr>`).join('')}</tbody></table>
-    <div class="mb-uo-sub mb-fx-help">쓸 수 있는 값: <code>{P:파라미터 이름}</code> · <code>{prev.output}</code> 앞 Step 회수 · <code>{input}</code> <code>{output}</code> <code>{concIn}</code> <code>{conc}</code> · <code>{scale}</code> <code>{cycles}</code> · 함수 <code>round(x, 2)</code> <code>min</code> <code>max</code> <code>abs</code>${params.length ? `<br>이 UO의 파라미터: ${params.map(r => `<code>{P:${escapeXml(r.param.name)}}</code> ${pv(r)}`).join(' · ')}<br>값 순서: 이 UO의 PFD Set Point → 이 PCS의 PFD Set Point(하나일 때) → Parameter Master 기본값. 여러 UO에 다른 값이 있으면 <code>{P:이름@UO 이름}</code>` : ''}</div>
+    ${editable ? `<div class="mb-fx-tools" data-mb-fx-tools><span class="mb-fx-tools-label">넣기</span>
+      ${tok('앞 Step 회수', '{prev.output}', 0, '흐름상 앞 Step의 회수량 {prev.output}')}${tok('이 Step 투입', '{input}')}${tok('이 Step 회수', '{output}')}${tok('Scale', '{scale}', 0, 'Step Scale Factor {scale}')}${tok('사이클', '{cycles}')}
+      <span class="mb-fx-tools-sep"></span>${Object.keys(MB_FX_FN_SIGS).map(f => tok(f + '()', f + '()', 1, `${f}(${MB_FX_FN_SIGS[f].sig.join(', ')}) — ${MB_FX_FN_SIGS[f].desc}`)).join('')}
+      <span class="mb-fx-tools-tip">칸에서 <kbd>{</kbd> 또는 <kbd>Ctrl</kbd>+<kbd>Space</kbd>로 후보</span></div>` : ''}
+    ${['s_', 'r_'].map(p => `<div class="mb-fx-site site-${p[0]}" data-mb-fx-site="${p}"><div class="mb-fx-site-head"><span class="site-tag ${p[0]}">${p === 's_' ? 'Sending' : 'Receiving'}</span></div>
+      <div class="mb-fx-grid">${Object.entries(MB_FORMULA_KEYS).map(([k, key]) => `<div class="mb-fx-rowlabel">${escapeXml(MB_FORMULA_LABEL[key])}<code>{${k}}</code></div>${cell(p + key)}`).join('')}</div></div>`).join('')}
+    <div class="mb-uo-sub mb-fx-help">${params.length ? `<div class="mb-fx-params-title">이 UO의 파라미터 — 누르면 넣습니다</div><div class="mb-fx-params">${params.map(r => `<button type="button" class="mb-fx-param" ${dis} data-on-mousedown="mbFxTokDown_h" ${pcsOn('click', 'mbFxInsertToken', [`{P:${r.param.name}}`])}><code>{P:${escapeXml(r.param.name)}}</code> ${pv(r)}</button>`).join('')}</div>
+      <div class="mb-fx-note">값 순서: 이 UO의 PFD Set Point → 이 PCS의 PFD Set Point(하나일 때) → Parameter Master 기본값. 여러 UO에 다른 값이 있으면 <code>{P:이름@UO 이름}</code></div>` : `<div class="mb-fx-note">이 UO 리스트에 파라미터가 없습니다 — 칸에서 <code>{P:</code>를 치면 Parameter Master 전체에서 고를 수 있습니다.</div>`}
+      <div class="mb-fx-note">쓸 수 있는 값: <code>{P:파라미터 이름}</code> · <code>{prev.output}</code> 앞 Step 회수 · <code>{input}</code> <code>{output}</code> <code>{concIn}</code> <code>{conc}</code> · <code>{scale}</code> <code>{cycles}</code> · 함수 <code>round(x, 2)</code> <code>min</code> <code>max</code> <code>abs</code></div></div>
   </div>`;
 }
 
@@ -23341,6 +23428,715 @@ function seedMbVessels(pmId){
   [['Protein A Capture', 'eq_pp3101'], ['Low pH VI', 'eq_pp3101'], ['Depth Filtration', 'eq_15kl_vessel'], ['MMC Polishing', 'eq_pp3241'], ['CEX Polishing', 'eq_pp3341'], ['Viral Filtration', 'eq_pp3561'], ['UF/DF', 'eq_pp3761']]
     .forEach(([n, eq]) => { const s = streams.find(x => x.stepName === n); if(s && !s.s_vessel && mbSeedEditable(s) && getMasterItem('equipment', eq)) mbSetStreamField(pmId, s.id, 's_vessel', eq); });
   DATA.auditTrail.length = auditLen;
+}
+/* ============================================================================
+   17f_mb_excel.js — v130  Mass Balance Excel 템플릿 (내려받기 → 채우기 → 올리기 → 미리보기 → 적용)
+   · 템플릿: 시트 "Mass Balance"(Step 한 줄 = Sending·Receiving 값), "추가 투입·산출"(곁가지 줄), "안내".
+     머리글 칸 끝의 [키]로 열을 찾으므로 열 순서를 바꾸거나 열을 지워도 읽는다.
+   · 올리면 바뀌는 값만 모아 먼저 보여 준다(mbTplDiff, 순수). 빈 칸은 "그대로"(지우지 않음).
+     계산식(ƒx)이 있는 칸·승인(잠긴) UO의 Step은 건너뛰고 이유를 적는다. 적용은 store 함수로 한 칸씩(감사 기록) + 요약 한 건.
+   · 기존 "셀 연동(🎯)"(Excel 파일의 특정 셀을 Step 값에 잇기)은 그대로 둔다 — 템플릿은 값을 한 번에 넣는 길이다.
+   · SheetJS(17_mass_balance.js가 CDN에서 불러옴)는 파일 읽기·쓰기에만 쓴다. 템플릿 만들기·읽기·비교는 배열(AOA)로 하는 순수 함수다.
+   ========================================================================== */
+var MB_UNITS = ['L', 'kg', 'g', 'mL', 'g/L', 'mg/mL', '%', 'units'];
+/* [키, 머리글, 종류] — 종류: id·info(읽기만)·text·int·bool·num·unit */
+var MB_TPL_COLS = [
+  ['id', 'Step ID (수정 금지 · 새 Step은 비움)', 'id'], ['uo', 'Unit Operation', 'uo'], ['stepName', 'Step 이름', 'text'],
+  ['stepOrder', 'UO 안 순서', 'int'], ['cycles', '사이클', 'int'], ['perCycle', '값이 사이클당 (Y/N)', 'bool'], ['scale', 'Step Scale', 'num'],
+  ['s_input', 'Sending 투입', 'num'], ['s_output', 'Sending 회수', 'num'], ['s_unit', 'Sending 단위', 'unit'],
+  ['s_concentrationIn', 'Sending 투입 농도 g/L', 'num'], ['s_concentration', 'Sending 회수 농도 g/L', 'num'], ['s_purity', 'Sending 순도 %', 'num'],
+  ['r_input', 'Receiving 투입', 'num'], ['r_output', 'Receiving 회수', 'num'], ['r_unit', 'Receiving 단위', 'unit'],
+  ['r_concentrationIn', 'Receiving 투입 농도 g/L', 'num'], ['r_concentration', 'Receiving 회수 농도 g/L', 'num'], ['r_purity', 'Receiving 순도 %', 'num'],
+  ['fx', 'ƒx 계산식 칸 (올려도 안 바뀜)', 'info'], ['lock', '잠김 (승인된 UO)', 'info'],
+];
+var MB_TPL_XCOLS = [
+  ['sid', 'Step ID (수정 금지)', 'id'], ['xid', '줄 ID (수정 금지 · 새 줄은 비움)', 'id'], ['step', 'Step 이름 (참고)', 'info'],
+  ['dir', '방향 (투입/산출)', 'dir'], ['kind', '종류', 'kind'], ['name', '이름', 'text'],
+  ['s_vol', 'Sending 부피', 'num'], ['s_conc', 'Sending 농도 g/L', 'num'], ['r_vol', 'Receiving 부피', 'num'], ['r_conc', 'Receiving 농도 g/L', 'num'],
+];
+var MB_TPL_SHEET = 'Mass Balance', MB_TPL_XSHEET = '추가 투입·산출', MB_TPL_GUIDE = '안내';
+
+/* ---------- 순수: 만들기 ---------- */
+function mbTplHeader(cols){ return cols.map(([k, label]) => `${label} [${k}]`); }
+/* rows: [{ stream, uoName, locked }] (흐름 순서) → { main, extras, guide } (각각 2차원 배열) */
+function mbTplBuild(meta, rows){
+  const head = [`Mass Balance 템플릿 — ${meta.code || ''} ${meta.name || ''}`.trim(), '', `내려받은 시각 ${meta.at || ''}`];
+  const v = (s, k) => {
+    if(k === 'cycles') return mbCycles(s);
+    if(k === 'perCycle') return s.perCycle ? 'Y' : 'N';
+    if(k === 's_unit' || k === 'r_unit') return s[k] || 'L';
+    const raw = s[k];
+    if(raw == null || raw === '') return '';
+    const n = Number(raw);
+    return (MB_TPL_COLS.find(c => c[0] === k) || [])[2] === 'num' && String(raw).trim() !== '' && isFinite(n) ? n : String(raw);
+  };
+  const main = [head, ['Step', '', '', '', '', '', '', 'Sending Site', '', '', '', '', '', 'Receiving Site', '', '', '', '', '', '', ''], mbTplHeader(MB_TPL_COLS)];
+  rows.forEach(({ stream: s, uoName, locked }) => {
+    main.push(MB_TPL_COLS.map(([k]) => k === 'id' ? s.id : k === 'uo' ? (uoName || '') : k === 'fx' ? Object.keys(s.formulas || {}).join(', ') : k === 'lock' ? (locked ? 'Y' : '') : v(s, k)));
+  });
+  const extras = [[`추가 투입·산출 — ${meta.code || ''}`.trim()], [], mbTplHeader(MB_TPL_XCOLS)];
+  rows.forEach(({ stream: s }) => (s.extras || []).forEach(x => {
+    const kindLabel = (MB_EXTRA_KINDS.find(k => k[0] === x.kind) || [x.kind, x.kind])[1];
+    extras.push(MB_TPL_XCOLS.map(([k]) => k === 'sid' ? s.id : k === 'xid' ? x.id : k === 'step' ? (s.stepName || '') : k === 'dir' ? (x.dir === 'in' ? '투입' : '산출') : k === 'kind' ? kindLabel : /_(vol|conc)$/.test(k) ? (x[k] === '' || x[k] == null ? '' : (isFinite(Number(x[k])) ? Number(x[k]) : x[k])) : (x[k] || '')));
+  }));
+  const guide = [
+    ['Mass Balance Excel 템플릿 사용법'], [],
+    ['1', '"Mass Balance" 시트에서 Step마다 Sending·Receiving 값을 채웁니다. 한 줄이 한 Step입니다.'],
+    ['2', '빈 칸은 "그대로"입니다(지우지 않습니다). 값을 지우려면 화면에서 지우세요.'],
+    ['3', 'Step ID·줄 ID는 고치지 마세요. 새 Step은 Step ID를 비우고 Step 이름과 Unit Operation(이름 그대로)을 적습니다.'],
+    ['4', '"ƒx 계산식 칸"에 적힌 칸은 화면의 계산식이 값을 정하므로 올려도 바뀌지 않습니다.'],
+    ['5', '"잠김"이 Y인 Step은 승인된 Unit Operation이라 바뀌지 않습니다(재작업 후 다시 올리세요).'],
+    ['6', `단위: ${MB_UNITS.join(', ')} · 사이클당: Y/N · 숫자 칸에는 숫자만.`],
+    ['7', `"추가 투입·산출" 시트: 방향은 투입/산출, 종류는 ${MB_EXTRA_KINDS.map(k => k[1]).join(', ')}. 새 줄은 줄 ID를 비웁니다.`],
+    ['8', '올리면 바뀌는 값을 먼저 보여 주고, 확인해야 적용됩니다. 적용한 값은 Audit Trail에 남습니다.'],
+  ];
+  return { main, extras, guide };
+}
+
+/* ---------- 순수: 읽기 ---------- */
+/* 2차원 배열에서 [키]가 든 머리글 줄을 찾아 { cols:{키:열}, rows:[{ row(엑셀 줄 번호), cells:{키:값} }] } */
+function mbTplReadTable(aoa, mustKey){
+  const A = Array.isArray(aoa) ? aoa : [];
+  const hi = A.findIndex(r => (r || []).some(c => new RegExp(`\\[${mustKey}\\]\\s*$`).test(String(c == null ? '' : c))));
+  if(hi < 0) return null;
+  const cols = {};
+  (A[hi] || []).forEach((c, i) => { const m = /\[([A-Za-z_]+)\]\s*$/.exec(String(c == null ? '' : c)); if(m) cols[m[1]] = i; });
+  const rows = [];
+  for(let r = hi + 1; r < A.length; r++){
+    const line = A[r] || [];
+    const cells = {};
+    Object.entries(cols).forEach(([k, i]) => { const v = line[i]; cells[k] = v == null ? '' : (typeof v === 'string' ? v.trim() : v); });
+    if(Object.values(cells).every(v => v === '')) continue;
+    rows.push({ row: r + 1, cells });
+  }
+  return { cols, rows };
+}
+/* 칸 값 정리 → { ok, value } (value는 저장하는 모양: 문자열·정수·불) */
+function mbTplNorm(kind, raw){
+  if(raw === '' || raw == null) return { ok: true, empty: true };
+  const s = typeof raw === 'number' ? String(Math.round(raw * 1e6) / 1e6) : String(raw).trim().replace(/,/g, '');
+  if(kind === 'num'){ const n = Number(s); return isFinite(n) && s !== '' ? { ok: true, value: String(n) } : { ok: false, msg: '숫자가 아닙니다' }; }
+  if(kind === 'int'){ const n = Number(s); return Number.isInteger(n) && n >= 1 ? { ok: true, value: n } : { ok: false, msg: '1 이상의 정수가 아닙니다' }; }
+  if(kind === 'bool'){ if(/^(y|yes|true|1|예|o)$/i.test(s)) return { ok: true, value: true }; if(/^(n|no|false|0|아니오|아니요|x)$/i.test(s)) return { ok: true, value: false }; return { ok: false, msg: 'Y/N이 아닙니다' }; }
+  if(kind === 'unit'){ const u = MB_UNITS.find(x => x.toLowerCase() === s.toLowerCase()); return u ? { ok: true, value: u } : { ok: false, msg: `단위(${MB_UNITS.join(', ')})가 아닙니다` }; }
+  if(kind === 'dir'){ if(/^(투입|in|\+|＋)$/i.test(s)) return { ok: true, value: 'in' }; if(/^(산출|out|-|－)$/i.test(s)) return { ok: true, value: 'out' }; return { ok: false, msg: '방향은 투입/산출' }; }
+  if(kind === 'kind'){ const k = MB_EXTRA_KINDS.find(x => x[0] === s || x[1] === s); return k ? { ok: true, value: k[0] } : { ok: false, msg: '종류를 알 수 없습니다' }; }
+  return { ok: true, value: String(raw).trim() };
+}
+/* 지금 값(비교용, 저장 모양) */
+function mbTplCur(s, k){
+  if(k === 'cycles') return mbCycles(s);
+  if(k === 'perCycle') return !!s.perCycle;
+  if(k === 's_unit' || k === 'r_unit') return s[k] || 'L';
+  if(k === 'stepOrder') return parseInt(s.stepOrder, 10) || 1;
+  const v = s[k];
+  if(v == null || v === '') return '';
+  const n = Number(v);
+  return (MB_TPL_COLS.find(c => c[0] === k) || [])[2] === 'num' && isFinite(n) ? String(n) : String(v);
+}
+function mbTplLabel(k){ const c = MB_TPL_COLS.find(x => x[0] === k) || MB_TPL_XCOLS.find(x => x[0] === k); return c ? c[1].replace(/ \(.*\)$/, '') : k; }
+/* 올린 표 ↔ 지금 Step → 미리보기 계획(순수).
+   ctx: { streams, uos:[{id, name}], editable(nodeId) } · 반환 { changes, skipped, newSteps, extraChanges, newExtras, issues } */
+function mbTplDiff(ctx, mainAoa, extrasAoa){
+  const out = { changes: [], skipped: [], newSteps: [], extraChanges: [], newExtras: [], issues: [] };
+  const T = mbTplReadTable(mainAoa, 'id');
+  if(!T){ out.issues.push({ row: 0, msg: `"${MB_TPL_SHEET}" 시트에서 머리글([id])을 찾지 못했습니다 — 이 화면에서 내려받은 템플릿인지 확인하세요.` }); return out; }
+  const byId = new Map((ctx.streams || []).map(s => [s.id, s]));
+  const canEdit = s => !s.nodeId || !ctx.editable || ctx.editable(s.nodeId);
+  const seen = new Set();
+  const FIELDS = MB_TPL_COLS.filter(c => !['id', 'uo', 'fx', 'lock'].includes(c[0]));
+  T.rows.forEach(({ row, cells }) => {
+    const id = String(cells.id || '').trim();
+    if(id){
+      const s = byId.get(id);
+      if(!s){ out.issues.push({ row, msg: `Step ID ${id}를 이 PCS에서 찾지 못했습니다(다른 PCS의 템플릿이거나 지운 Step).` }); return; }
+      if(seen.has(id)){ out.issues.push({ row, msg: `Step ID ${id}가 두 번 나옵니다 — 첫 줄만 씁니다.` }); return; }
+      seen.add(id);
+      FIELDS.forEach(([k, , kind]) => {
+        if(!(k in T.cols)) return;
+        const n = mbTplNorm(kind, cells[k]);
+        if(n.empty) return;
+        const name = s.stepName || id;
+        if(!n.ok){ out.issues.push({ row, msg: `${name} · ${mbTplLabel(k)}: "${cells[k]}" — ${n.msg}` }); return; }
+        if(n.value === mbTplCur(s, k)) return;
+        const item = { sid: id, stepName: name, field: k, label: mbTplLabel(k), from: mbTplCur(s, k), to: n.value, row };
+        if((s.formulas || {})[k]) out.skipped.push(Object.assign(item, { reason: 'ƒx 계산식 칸' }));
+        else if(!canEdit(s)) out.skipped.push(Object.assign(item, { reason: '승인된 UO(잠김)' }));
+        else out.changes.push(item);
+      });
+    } else {
+      const name = String(cells.stepName || '').trim();
+      if(!name) return;
+      const uoTxt = String(cells.uo || '').trim().replace(/^[\d.]+\s+/, '');
+      const uo = uoTxt ? (ctx.uos || []).find(u => u.name === uoTxt) : null;
+      if(uoTxt && !uo){ out.issues.push({ row, msg: `새 Step "${name}": Unit Operation "${uoTxt}"를 찾지 못했습니다 — 주인 없이 만듭니다.` }); }
+      if(uo && ctx.editable && !ctx.editable(uo.id)){ out.skipped.push({ sid: '', stepName: name, field: '', label: '새 Step', from: '', to: uo.name, row, reason: '승인된 UO(잠김)' }); return; }
+      const fields = {};
+      FIELDS.forEach(([k, , kind]) => { if(k === 'stepName' || !(k in T.cols)) return; const n = mbTplNorm(kind, cells[k]); if(n.ok && !n.empty) fields[k] = n.value; else if(!n.ok) out.issues.push({ row, msg: `새 Step "${name}" · ${mbTplLabel(k)}: "${cells[k]}" — ${n.msg}` }); });
+      out.newSteps.push({ row, stepName: name, nodeId: uo ? uo.id : '', uoName: uo ? uo.name : '', fields });
+    }
+  });
+  const X = extrasAoa ? mbTplReadTable(extrasAoa, 'sid') : null;
+  if(X) X.rows.forEach(({ row, cells }) => {
+    const sid = String(cells.sid || '').trim(), xid = String(cells.xid || '').trim();
+    const s = byId.get(sid);
+    if(!s){ if(sid) out.issues.push({ row, msg: `추가 투입·산출: Step ID ${sid}를 찾지 못했습니다.` }); return; }
+    const vals = {};
+    let bad = false;
+    MB_TPL_XCOLS.filter(c => !['sid', 'xid', 'step'].includes(c[0])).forEach(([k, , kind]) => {
+      if(!(k in X.cols)) return;
+      const n = mbTplNorm(kind, cells[k]);
+      if(!n.ok){ out.issues.push({ row, msg: `추가 투입·산출 ${s.stepName || sid} · ${mbTplLabel(k)}: "${cells[k]}" — ${n.msg}` }); bad = true; return; }
+      if(!n.empty) vals[k] = n.value;
+    });
+    if(bad) return;
+    if(xid){
+      const x = (s.extras || []).find(e => e.id === xid);
+      if(!x){ out.issues.push({ row, msg: `추가 투입·산출: 줄 ID ${xid}를 ${s.stepName || sid}에서 찾지 못했습니다.` }); return; }
+      Object.entries(vals).forEach(([k, v]) => {
+        const cur = /_(vol|conc)$/.test(k) && x[k] !== '' && x[k] != null && isFinite(Number(x[k])) ? String(Number(x[k])) : String(x[k] == null ? '' : x[k]);
+        if(cur === v) return;
+        const item = { sid, xid, stepName: s.stepName || sid, field: k, label: `${x.name || '줄'} ${mbTplLabel(k)}`, from: cur, to: v, row };
+        if(!canEdit(s)) out.skipped.push(Object.assign(item, { reason: '승인된 UO(잠김)' })); else out.extraChanges.push(item);
+      });
+    } else if(Object.keys(vals).length){
+      const item = { sid, stepName: s.stepName || sid, kind: vals.kind || 'other', vals, row };
+      if(!canEdit(s)) out.skipped.push({ sid, stepName: item.stepName, field: '', label: `새 줄 ${vals.name || ''}`, from: '', to: '', row, reason: '승인된 UO(잠김)' });
+      else out.newExtras.push(item);
+    }
+  });
+  return out;
+}
+function mbTplCount(plan){ return plan.changes.length + plan.newSteps.length + plan.extraChanges.length + plan.newExtras.length; }
+
+/* ---------- 데이터 ---------- */
+function mbTplRowsFor(pmId){
+  const rowOf = {};
+  pmTreeRows(getPmTreeNodes(pmId)).forEach(r => { rowOf[r.id] = r; });
+  return mbOrderedStreams(pmId).map(s => { const r = s.nodeId && rowOf[s.nodeId]; return { stream: s, uoName: r ? r.node.name : '', locked: !!(s.nodeId && !uoEditable(s.nodeId)) }; });
+}
+function mbTplCtx(pmId){
+  return { streams: ensureMb(pmId).streams, uos: pmTreeRows(getPmTreeNodes(pmId)).filter(r => r.kind === 'uo').map(r => ({ id: r.id, name: r.node.name })), editable: id => uoEditable(id) };
+}
+
+/* ---------- store ---------- */
+/* [store] 미리보기 계획을 적용한다 — 칸마다 기존 store 함수(감사 기록·잠금 가드)를 쓰고, 요약 감사 한 건. 반환 적용한 수 */
+function mbApplyTemplate(pmId, plan, fileName){
+  let n = 0;
+  plan.changes.forEach(c => { if(mbSetStreamField(pmId, c.sid, c.field, c.to)) n++; });
+  plan.newSteps.forEach(ns => {
+    const id = mbCreateStream(pmId, { stepName: ns.stepName, nodeId: ns.nodeId || undefined, stepOrder: ns.fields.stepOrder || (ensureMb(pmId).streams.filter(s => s.nodeId && s.nodeId === ns.nodeId).length + 1) });
+    if(!id) return;
+    if(!ns.nodeId) delete getMbStreamById(pmId, id).nodeId;
+    Object.entries(ns.fields).forEach(([k, v]) => { if(k !== 'stepOrder') mbSetStreamField(pmId, id, k, v); });
+    n++;
+  });
+  plan.extraChanges.forEach(c => { if(mbSetExtraField(pmId, c.sid, c.xid, c.field, c.to)) n++; });
+  plan.newExtras.forEach(ne => {
+    const xid = mbAddExtra(pmId, ne.sid, ne.kind);
+    if(!xid) return;
+    Object.entries(ne.vals).forEach(([k, v]) => { if(k !== 'kind') mbSetExtraField(pmId, ne.sid, xid, k, v); });
+    n++;
+  });
+  if(n){
+    mbApplyFormulas(pmId);
+    logAudit('Mass Balance', 'Excel 템플릿 적용', `${pmId} · ${fileName || '템플릿'} · 값 ${plan.changes.length}칸, 새 Step ${plan.newSteps.length}개, 추가 투입·산출 ${plan.extraChanges.length}칸·새 줄 ${plan.newExtras.length}개${plan.skipped.length ? ` · 건너뜀 ${plan.skipped.length}` : ''}`, null, String(n), { pmId });
+    validateData(DATA);
+  }
+  return n;
+}
+
+/* ---------- 화면 ---------- */
+let _mbTpl = null;   // { pmId, plan, fileName }
+/* SheetJS가 아직 안 왔으면 잠깐 기다린다(최대 8초) */
+function mbEnsureXlsx(){
+  if(window.XLSX) return Promise.resolve(window.XLSX);
+  return new Promise(res => { let t = 0; const iv = setInterval(() => { if(window.XLSX || (t += 200) > 8000){ clearInterval(iv); res(window.XLSX || null); } }, 200); });
+}
+function mbTplFileName(pm){ return `MassBalance_${String(pm.code || pm.id).replace(/[^\w.-]+/g, '_')}_template.xlsx`; }
+async function mbDownloadTemplate(pmId){
+  const pm = DATA.processMaps.find(p => p.id === pmId);
+  if(!pm) return;
+  const XLSX = await mbEnsureXlsx();
+  if(!XLSX){ uiAlert('Excel 라이브러리(SheetJS)를 불러오지 못했습니다. 인터넷 연결을 확인한 뒤 다시 시도하세요.', { title: 'Excel 템플릿' }); return; }
+  const t = mbTplBuild({ code: pm.code, name: pm.name, at: new Date().toLocaleString('ko-KR') }, mbTplRowsFor(pmId));
+  const wb = XLSX.utils.book_new();
+  const sheet = (aoa, widths) => { const ws = XLSX.utils.aoa_to_sheet(aoa); ws['!cols'] = widths.map(w => ({ wch: w })); return ws; };
+  XLSX.utils.book_append_sheet(wb, sheet(t.main, MB_TPL_COLS.map(([k]) => k === 'id' ? 16 : k === 'uo' || k === 'stepName' ? 24 : k === 'fx' ? 22 : 12)), MB_TPL_SHEET);
+  XLSX.utils.book_append_sheet(wb, sheet(t.extras, MB_TPL_XCOLS.map(([k]) => k === 'name' || k === 'step' ? 22 : k.endsWith('id') ? 16 : 12)), MB_TPL_XSHEET);
+  XLSX.utils.book_append_sheet(wb, sheet(t.guide, [4, 110]), MB_TPL_GUIDE);
+  XLSX.writeFile(wb, mbTplFileName(pm));
+  uiToast('Mass Balance 템플릿을 내려받았습니다 — 채운 뒤 "템플릿 올리기"로 올리세요.', { kind: 'success' });
+}
+function mbPickTemplate(pmId){ const el = document.getElementById('mbTplInput_' + pmId); if(el){ el.value = ''; el.click(); } }
+function mbTemplateFileChosen(pmId, file){
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = async ev => {
+    const XLSX = await mbEnsureXlsx();
+    if(!XLSX){ uiAlert('Excel 라이브러리(SheetJS)를 불러오지 못했습니다.', { title: 'Excel 템플릿' }); return; }
+    try {
+      const wb = XLSX.read(new Uint8Array(ev.target.result), { type: 'array' });
+      const aoa = name => wb.Sheets[name] ? XLSX.utils.sheet_to_json(wb.Sheets[name], { header: 1, raw: true, defval: '' }) : null;
+      const main = aoa(MB_TPL_SHEET) || aoa(wb.SheetNames[0]);
+      const plan = mbTplDiff(mbTplCtx(pmId), main, aoa(MB_TPL_XSHEET));
+      mbTemplateShowPreview(pmId, plan, file.name);
+    } catch(e){ uiAlert('Excel 파일을 읽지 못했습니다.\n' + e.message, { title: 'Excel 템플릿' }); }
+  };
+  reader.readAsArrayBuffer(file);
+}
+function mbTemplateShowPreview(pmId, plan, fileName){
+  _mbTpl = { pmId, plan, fileName };
+  let host = document.getElementById('mbTplModal');
+  if(!host){ host = document.createElement('div'); host.id = 'mbTplModal'; document.body.appendChild(host); }
+  host.innerHTML = mbTemplatePreviewHtml(plan, fileName, pmId);   // 43_events가 넣는 즉시 data-on-*을 잇는다
+  const ok = host.querySelector('[data-tpl-apply]') || host.querySelector('[data-tpl-close]');
+  if(ok) ok.focus();
+}
+function mbTemplatePreviewHtml(plan, fileName, pmId){
+  const n = mbTplCount(plan);
+  const fmt = v => v === true ? 'Y' : v === false ? 'N' : v === '' || v == null ? '(빈 칸)' : String(v);
+  const rows = (list, extra) => list.map(c => `<tr><td class="mono">${c.row}</td><td>${escapeXml(c.stepName)}</td><td>${escapeXml(c.label)}</td><td class="mono mb-tpl-from">${escapeXml(fmt(c.from))}</td><td class="mono mb-tpl-to">${escapeXml(fmt(c.to))}</td>${extra ? `<td>${escapeXml(c.reason)}</td>` : ''}</tr>`).join('');
+  const sec = (title, cnt, body, cls) => cnt ? `<section class="mb-tpl-sec ${cls || ''}"><h4>${title} <span>${cnt}</span></h4>${body}</section>` : '';
+  const table = (list, extra) => `<div class="mb-tpl-tblwrap"><table class="data-table mb-tpl-table"><thead><tr><th>줄</th><th>Step</th><th>칸</th><th>지금</th><th>올린 값</th>${extra ? '<th>이유</th>' : ''}</tr></thead><tbody>${rows(list, extra)}</tbody></table></div>`;
+  return `<div class="mb-tpl-backdrop" data-on-mousedown="mbTplBackdrop_h"><div class="mb-tpl-modal" role="dialog" aria-modal="true" aria-labelledby="mbTplTitle" data-tpl-preview data-on-keydown="mbTplKeydown_h">
+    <header><div><div class="mb-tpl-eyebrow">Excel 템플릿 올리기</div><h3 id="mbTplTitle">바뀌는 값 미리보기</h3><div class="mb-tpl-file">${escapeXml(fileName || '')}</div></div>
+      <button class="mb-icon-btn" aria-label="닫기" data-tpl-close data-on-click="mbTemplateClose">✕</button></header>
+    <div class="mb-tpl-kpis"><div class="kpi ${n ? 'on' : ''}"><b data-tpl-count>${n}</b><span>적용할 변경</span></div><div class="kpi"><b>${plan.skipped.length}</b><span>건너뜀</span></div><div class="kpi ${plan.issues.length ? 'warn' : ''}"><b>${plan.issues.length}</b><span>확인 필요</span></div></div>
+    <div class="mb-tpl-body">
+      ${!n && !plan.skipped.length && !plan.issues.length ? '<p class="mb-tpl-empty">지금 값과 다른 칸이 없습니다.</p>' : ''}
+      ${sec('Step 값', plan.changes.length, table(plan.changes))}
+      ${sec('새 Step', plan.newSteps.length, `<ul class="mb-tpl-list">${plan.newSteps.map(s => `<li><span class="mono">${s.row}줄</span> <b>${escapeXml(s.stepName)}</b> · ${escapeXml(s.uoName || 'UO 미지정')} · 값 ${Object.keys(s.fields).length}칸</li>`).join('')}</ul>`)}
+      ${sec('추가 투입·산출', plan.extraChanges.length + plan.newExtras.length, (plan.extraChanges.length ? table(plan.extraChanges) : '') + (plan.newExtras.length ? `<ul class="mb-tpl-list">${plan.newExtras.map(x => `<li><span class="mono">${x.row}줄</span> 새 줄 <b>${escapeXml(x.vals.name || (MB_EXTRA_KINDS.find(k => k[0] === x.kind) || [, x.kind])[1])}</b> → ${escapeXml(x.stepName)}</li>`).join('')}</ul>` : ''))}
+      ${sec('건너뜀', plan.skipped.length, table(plan.skipped, true), 'muted')}
+      ${sec('확인 필요', plan.issues.length, `<ul class="mb-tpl-list">${plan.issues.map(i => `<li data-tpl-issue><span class="mono">${i.row ? i.row + '줄' : ''}</span> ${escapeXml(i.msg)}</li>`).join('')}</ul>`, 'warn')}
+    </div>
+    <footer><span class="mb-tpl-note">빈 칸은 그대로 둡니다 · 적용한 값은 Audit Trail에 남습니다</span>
+      <button class="btn" data-on-click="mbTemplateClose">취소</button>
+      <button class="btn btn-primary" data-tpl-apply ${n ? '' : 'disabled'} data-on-click="mbTemplateApplyUi" data-a-click="${pcsArgs([pmId])}">${n}개 적용</button></footer>
+  </div></div>`;
+}
+function mbTemplateClose(){ _mbTpl = null; const h = document.getElementById('mbTplModal'); if(h) h.remove(); }
+function mbTemplateApplyUi(pmId){
+  if(!_mbTpl || _mbTpl.pmId !== pmId) return;
+  const { plan, fileName } = _mbTpl;
+  const n = mbApplyTemplate(pmId, plan, fileName);
+  mbTemplateClose();
+  render();
+  uiToast(n ? `Excel 템플릿 값 ${n}개를 적용했습니다.` : '적용된 값이 없습니다.', { kind: n ? 'success' : 'info' });
+}
+/* ============================================================================
+   17g_mb_fx_editor.js — v130  Mass Balance 계산식 편집기 (Excel처럼 도와주기)
+   · 칸에 "{"를 치거나 글자를 치면 아래에 후보가 뜬다: 이 UO의 파라미터(값·출처), 이 Step·앞 Step 값(지금 값), 함수(쓰는 법).
+     ↑↓로 고르고 Enter·Tab으로 넣는다. Esc로 닫는다. Ctrl+Space로 언제든 연다.
+   · 함수 괄호 안에 있으면 Excel처럼 "round(값, 소수 자리)" 안내와 지금 채우는 자리를 굵게 보여 준다.
+   · 치는 동안 결과(= 3,583)·오류를 바로 보여 준다(저장은 칸을 벗어날 때 — 기존 mbUiSetFormula, 감사 기록).
+   · 위쪽 "넣기" 단추(앞 Step 회수·이 Step 투입·Scale·사이클·함수)와 파라미터 칩을 누르면 마지막으로 고른 칸의 커서 자리에 들어간다.
+   순수 함수(mbFxSuggest·mbFxSignatureAt·mbFxInsert·mbFormulaTry)와 화면(DOM만 고침, render 안 함)으로 나뉜다.
+   ========================================================================== */
+var MB_FX_FN_SIGS = {
+  round: { sig: ['값', '소수 자리'], desc: '반올림 — round({output}, 1)' },
+  min: { sig: ['값1', '값2', '…'], desc: '가장 작은 값 — min({input}, 5000)' },
+  max: { sig: ['값1', '값2', '…'], desc: '가장 큰 값 — max({output}, 0)' },
+  abs: { sig: ['값'], desc: '절댓값' },
+};
+var MB_FX_REFS = [
+  ['input', '이 Step 투입'], ['output', '이 Step 회수'], ['concIn', '이 Step 투입 농도'], ['conc', '이 Step 회수 농도'],
+  ['prev.input', '앞 Step 투입'], ['prev.output', '앞 Step 회수'], ['prev.concIn', '앞 Step 투입 농도'], ['prev.conc', '앞 Step 회수 농도'],
+  ['scale', 'Step Scale Factor'], ['cycles', '사이클 수'],
+];
+
+/* ---------- 순수 ---------- */
+/* 커서 자리의 후보. ctx: { params:[{name, value, unit, source, own}], refs:{키:값} } · force: Ctrl+Space(빈 자리에서도 모두)
+   반환 { items:[{ kind:'param'|'ref'|'fn', label, insert, detail, caretBack }], from, to } 또는 null */
+function mbFxSuggest(expr, caret, ctx, force){
+  const s = String(expr || ''), c = Math.max(0, Math.min(caret == null ? s.length : caret, s.length));
+  const before = s.slice(0, c);
+  const open = before.lastIndexOf('{'), close = before.lastIndexOf('}');
+  const C = ctx || {};
+  const fmt = v => { if(v == null || v === '') return ''; const n = Number(v); return isFinite(n) && String(v).trim() !== '' ? n.toLocaleString('ko-KR') : String(v); };
+  const paramItems = q => (C.params || []).filter(p => !q || String(p.name).toLowerCase().includes(q))
+    .sort((a, b) => (b.own ? 1 : 0) - (a.own ? 1 : 0) || String(a.name).localeCompare(String(b.name)))
+    .map(p => ({ kind: 'param', label: p.name, insert: `{P:${p.name}}`, detail: p.error ? '값 확인 필요' : `${fmt(p.value)}${p.unit && p.unit !== '-' ? ' ' + p.unit : ''} · ${p.source === 'pfd' ? 'PFD' : p.source === 'master' ? '마스터 기본값' : ''}${p.own ? ' · 이 UO' : ''}` }));
+  const refItems = q => MB_FX_REFS.filter(([k, l]) => !q || k.toLowerCase().includes(q) || l.includes(q))
+    .map(([k, l]) => ({ kind: 'ref', label: `{${k}}`, insert: `{${k}}`, detail: `${l}${C.refs && C.refs[k] != null && C.refs[k] !== '' ? ' · 지금 ' + fmt(C.refs[k]) : ''}` }));
+  // ① 닫히지 않은 { 안
+  if(open > close){
+    const q = before.slice(open + 1).trim().toLowerCase();
+    const to = s[c] === '}' ? c + 1 : c;
+    const items = q.startsWith('p:') ? paramItems(q.slice(2).trim()) : refItems(q).concat(paramItems(q).slice(0, 30));
+    return { items: items.slice(0, 40), from: open, to };
+  }
+  // ② 글자를 치는 중 — 함수·값 이름
+  const m = /[A-Za-z가-힣_.]+$/.exec(before);
+  if(m){
+    const q = m[0].toLowerCase();
+    const fns = Object.keys(MB_FX_FN_SIGS).filter(f => f.startsWith(q)).map(f => ({ kind: 'fn', label: `${f}(${MB_FX_FN_SIGS[f].sig.join(', ')})`, insert: `${f}()`, caretBack: 1, detail: MB_FX_FN_SIGS[f].desc }));
+    const items = fns.concat(refItems(q), paramItems(q));
+    return items.length ? { items: items.slice(0, 40), from: m.index, to: c } : null;
+  }
+  // ③ Ctrl+Space — 모두
+  if(force) return { items: refItems('').concat(paramItems(''), Object.keys(MB_FX_FN_SIGS).map(f => ({ kind: 'fn', label: `${f}(${MB_FX_FN_SIGS[f].sig.join(', ')})`, insert: `${f}()`, caretBack: 1, detail: MB_FX_FN_SIGS[f].desc }))).slice(0, 60), from: c, to: c };
+  return null;
+}
+/* 커서가 함수 괄호 안이면 { fn, arg(0부터), sig } — Excel의 인수 안내 */
+function mbFxSignatureAt(expr, caret){
+  const s = String(expr || '').slice(0, caret == null ? undefined : caret);
+  let depth = 0, arg = 0, inBrace = false;
+  for(let i = s.length - 1; i >= 0; i--){
+    const ch = s[i];
+    if(ch === '}'){ inBrace = true; continue; }
+    if(ch === '{'){ inBrace = false; continue; }
+    if(inBrace) continue;
+    if(ch === ')') depth++;
+    else if(ch === ','){ if(depth === 0) arg++; }
+    else if(ch === '('){
+      if(depth === 0){
+        const m = /([A-Za-z]+)\s*$/.exec(s.slice(0, i));
+        const fn = m && m[1].toLowerCase();
+        return fn && MB_FX_FN_SIGS[fn] ? { fn, arg, sig: MB_FX_FN_SIGS[fn].sig, desc: MB_FX_FN_SIGS[fn].desc } : null;
+      }
+      depth--;
+    }
+  }
+  return null;
+}
+/* from~to를 text로 바꾸기 → { expr, caret } */
+function mbFxInsert(expr, from, to, text, caretBack){
+  const s = String(expr || ''), a = Math.max(0, Math.min(from, s.length)), b = Math.max(a, Math.min(to, s.length));
+  const out = s.slice(0, a) + text + s.slice(b);
+  return { expr: out, caret: a + text.length - (caretBack || 0) };
+}
+/* 저장하기 전에 계산해 보기 — field에 expr을 넣었다고 치고 계획을 돌린다(순수). 반환 { value, error } */
+function mbFormulaTry(ordered, sid, field, expr, params, scaleOf, sps){
+  const e = String(expr || '').trim();
+  if(!e) return { value: null, error: null, empty: true };
+  const list = (ordered || []).map(s => s.id === sid ? Object.assign({}, s, { formulas: Object.assign({}, s.formulas, { [field]: e }) }) : s);
+  const row = mbFormulaPlan(list, params, scaleOf, sps).find(r => r.sid === sid && r.field === field);
+  return row ? { value: row.value, error: row.error } : { value: null, error: '계산할 수 없습니다' };
+}
+
+/* ---------- 데이터 ---------- */
+/* 후보에 쓸 값: 파라미터(이 UO 리스트 먼저, 값·출처) + 이 Step·앞 Step의 지금 값 */
+function mbFxContextFor(pmId, sid, field){
+  const ordered = mbOrderedStreams(pmId);
+  const i = ordered.findIndex(s => s.id === sid), s = ordered[i];
+  if(!s) return { params: [], refs: {} };
+  const pfx = String(field || 's_').slice(0, 2), prev = i > 0 ? ordered[i - 1] : null;
+  const all = getMasterArray('parameter') || [], sps = mbSetPointsOf(pmId);
+  const own = new Set(s.nodeId ? (ensureNodeListBucket(s.nodeId).parameter || []) : []);
+  const params = all.map(p => { try { const r = mbParamResolve(all, sps, s.nodeId, p.id); return { name: p.name, value: r.value, unit: p.unit || '', source: r.source, own: own.has(p.id) }; } catch(e){ return { name: p.name, value: null, unit: p.unit || '', error: e.message, own: own.has(p.id) }; } });
+  const refs = {};
+  Object.entries(MB_FORMULA_KEYS).forEach(([k, key]) => { refs[k] = s[pfx + key]; if(prev) refs['prev.' + k] = prev[pfx + key]; });
+  refs.scale = mbStepScale(s, ensureMb(pmId)); refs.cycles = mbCycles(s);
+  return { params, refs };
+}
+function mbFxTryFor(pmId, sid, field, expr){
+  const mb = ensureMb(pmId);
+  return mbFormulaTry(mbOrderedStreams(pmId), sid, field, expr, getMasterArray('parameter') || [], s => mbStepScale(s, mb), mbSetPointsOf(pmId));
+}
+
+/* ---------- 화면(DOM만) ---------- */
+let _mbFx = { el: null, items: [], sel: 0, from: 0, to: 0, last: null };
+function mbFxPop(){
+  let p = document.getElementById('mbFxPop');
+  if(!p){ p = document.createElement('div'); p.id = 'mbFxPop'; p.className = 'mb-fx-pop'; p.setAttribute('role', 'listbox'); p.setAttribute('aria-label', '계산식 후보'); document.body.appendChild(p); }
+  return p;
+}
+function mbFxHide(){ const p = document.getElementById('mbFxPop'); if(p){ p.style.display = 'none'; p.innerHTML = ''; } _mbFx.items = []; if(_mbFx.el) _mbFx.el.setAttribute('aria-expanded', 'false'); }
+function mbFxArgsOf(el){ try { return JSON.parse(el.getAttribute('data-fx-args') || '[]'); } catch(e){ return []; } }
+/* 결과 줄 다시 쓰기(치는 동안) */
+function mbFxPreview(el){
+  const [pmId, sid, field] = mbFxArgsOf(el);
+  const out = el.closest('[data-mb-fx-cell]') && el.closest('[data-mb-fx-cell]').querySelector('[data-mb-formula-out]');
+  if(!out || !pmId) return;
+  const r = mbFxTryFor(pmId, sid, field, el.value);
+  out.innerHTML = r.empty ? '<span class="mb-fx-hint">비우면 계산식 없음 — 값을 직접 적습니다</span>'
+    : r.error ? `<span class="mb-fx-err">⚠ ${escapeXml(r.error)}</span>` : `= <b>${escapeXml(Number(r.value).toLocaleString('ko-KR'))}</b>`;
+  const dirty = el.value.trim() !== (el.getAttribute('data-fx-saved') || '');
+  el.classList.toggle('dirty', dirty);
+}
+/* 후보 창 그리기 */
+function mbFxRender(el, force){
+  const [pmId, sid, field] = mbFxArgsOf(el);
+  const caret = el.selectionStart == null ? el.value.length : el.selectionStart;
+  const sg = mbFxSuggest(el.value, caret, mbFxContextFor(pmId, sid, field), force);
+  const sig = mbFxSignatureAt(el.value, caret);
+  const p = mbFxPop();
+  _mbFx.el = el;
+  if(!(sg && sg.items.length) && !sig){ mbFxHide(); return; }
+  _mbFx.items = sg ? sg.items : []; _mbFx.from = sg ? sg.from : caret; _mbFx.to = sg ? sg.to : caret;
+  if(_mbFx.sel >= _mbFx.items.length) _mbFx.sel = 0;
+  const sigHtml = sig ? `<div class="mb-fx-sig" data-fx-sig><b>${sig.fn}</b>(${sig.sig.map((a, i) => i === Math.min(sig.arg, sig.sig.length - 1) ? `<u>${escapeXml(a)}</u>` : escapeXml(a)).join(', ')}) <span>${escapeXml(sig.desc)}</span></div>` : '';
+  const kindTag = { param: 'P', ref: '{ }', fn: 'ƒ' };
+  p.innerHTML = sigHtml + _mbFx.items.map((it, i) => `<div class="mb-fx-opt ${i === _mbFx.sel ? 'on' : ''}" role="option" id="mbFxOpt${i}" aria-selected="${i === _mbFx.sel}" data-fx-opt="${i}" data-on-mousedown="mbFxPick_h" data-a-mousedown="${pcsArgs([i])}"><span class="k k-${it.kind}">${kindTag[it.kind]}</span><span class="l">${escapeXml(it.label)}</span><span class="d">${escapeXml(it.detail || '')}</span></div>`).join('')
+    + (_mbFx.items.length ? '<div class="mb-fx-foot">↑↓ 고르기 · Enter/Tab 넣기 · Esc 닫기</div>' : '');
+  const r = el.getBoundingClientRect();
+  p.style.display = 'block';
+  p.style.left = Math.max(8, Math.min(r.left, window.innerWidth - 380)) + 'px';
+  const below = r.bottom + 4, h = Math.min(p.scrollHeight, 300);
+  p.style.top = (below + h > window.innerHeight - 8 ? Math.max(8, r.top - h - 4) : below) + 'px';
+  el.setAttribute('aria-expanded', _mbFx.items.length ? 'true' : 'false');
+  if(_mbFx.items.length) el.setAttribute('aria-activedescendant', 'mbFxOpt' + _mbFx.sel); else el.removeAttribute('aria-activedescendant');
+}
+function mbFxApply(i){
+  const el = _mbFx.el, it = _mbFx.items[i];
+  if(!el || !it) return;
+  const r = mbFxInsert(el.value, _mbFx.from, _mbFx.to, it.insert, it.caretBack);
+  el.value = r.expr; el.focus(); el.setSelectionRange(r.caret, r.caret);
+  _mbFx.sel = 0;
+  mbFxPreview(el);
+  if(it.kind === 'fn') mbFxRender(el); else mbFxHide();
+}
+/* 위쪽 "넣기" 단추·파라미터 칩 — 마지막으로 고른 칸의 커서 자리에 */
+function mbFxInsertToken(text, caretBack){
+  const L = _mbFx.last;
+  const el = L && document.querySelector(`[data-mb-fx-block] input[data-mb-formula="${L.field}"][data-fx-sid="${L.sid}"]`);
+  if(!el){ uiToast('먼저 넣을 계산식 칸을 누르세요.', { kind: 'info' }); return; }
+  const r = mbFxInsert(el.value, L.start, L.end, text, caretBack);
+  el.value = r.expr; el.focus(); el.setSelectionRange(r.caret, r.caret);
+  _mbFx.last = Object.assign({}, L, { start: r.caret, end: r.caret });
+  mbFxPreview(el);
+  if(caretBack) mbFxRender(el);
+}
+function mbFxRemember(el){ const [, sid, field] = mbFxArgsOf(el); _mbFx.last = { sid, field, start: el.selectionStart || 0, end: el.selectionEnd || 0 }; }
+/* ============================================================================
+   17h_mb_page.js — v130  Mass Balance 화면 다시 짜기 (표 + 오른쪽 상세 패널)
+   사용자 의견(2026-11-21): "스텝에 추가하는 부분이 연한 파스텔 배경·흐린 선이라 구분이 잘 안 간다,
+   시각적이고 직관적으로, 기능은 빠짐없이". 결정: 표 + 오른쪽 상세 패널(사용자 선택).
+     · 위: 보기(Sending/Receiving)·Scale·Excel(템플릿 받기·올리기·셀 연동) 도구 줄, 요약 카드(누적 수율·Step·검증·계산식)
+     · 가운데: Step 표 — UO 계층 순서·공정 단계 소계(기존 mbLayoutRows). 칸에서 바로 투입·회수를 고치고, Step 이름을 누르면 패널이 열린다.
+     · 오른쪽: 상세 패널 — 탭 [값 | 계산식 | 투입·산출 | 운전·용기 | 연동]. 전에 한 줄에 펼쳐 있던 칸(농도·순도·단위·셀 연동·사이클·
+       회수 용기·Step Scale·Receiving 채우기·계산식 8칸·추가 투입/곁가지·PFD Arrow·삭제)이 모두 여기에 있다.
+     · 아래: Sending vs Receiving 비교표, 수율 흐름 막대(기존 함수).
+   값 바꾸기는 모두 기존 store 함수(mbSetStreamField 등 — 감사 기록·잠금 가드)를 그대로 부른다. 고른 Step·탭은 탭 ctx(mbSel·mbTab)에 둔다.
+   ========================================================================== */
+var MB_PANEL_TABS = [['values', '값'], ['formula', '계산식'], ['extras', '투입·산출'], ['ops', '운전·용기'], ['links', '연동']];
+
+/* ---------- 순수 ---------- */
+/* 수율 색 단계 */
+function mbYieldLevel(y){ return y == null ? 'none' : y > 100 ? 'over' : y >= 90 ? 'good' : y >= 70 ? 'mid' : 'low'; }
+/* 요약 카드 숫자 — streams(흐름 순서) */
+function mbPageSummary(ordered){
+  const last = arr => { const v = arr.filter(x => x != null); return v.length ? v[v.length - 1] : null; };
+  const cs = mbCalcCumYield(ordered, 's_'), cr = mbCalcCumYield(ordered, 'r_');
+  return { steps: ordered.length, uos: new Set(ordered.map(s => s.nodeId).filter(Boolean)).size, cumS: last(cs), cumR: last(cr), unassigned: ordered.filter(s => !s.nodeId).length };
+}
+
+/* ---------- 상태(탭 ctx) ---------- */
+function mbSelOf(pmId){ const c = getActiveTab().ctx; const sid = c.mbSel; return sid && getMbStreamById(pmId, sid) ? sid : null; }
+function mbSelectStep(pmId, sid){ const c = getActiveTab().ctx; c.mbSel = c.mbSel === sid ? null : sid; if(!c.mbTab) c.mbTab = 'values'; mbFxHide(); render(); }
+function mbOpenStep(pmId, sid, tab){ const c = getActiveTab().ctx; c.mbSel = sid; if(tab) c.mbTab = tab; mbFxHide(); render(); }
+function mbClosePanel(){ getActiveTab().ctx.mbSel = null; mbFxHide(); render(); }
+function mbSetPanelTab(tab){ if(!MB_PANEL_TABS.some(t => t[0] === tab)) return; getActiveTab().ctx.mbTab = tab; mbFxHide(); render(); }
+function mbToggleExcel(){ const c = getActiveTab().ctx; c.mbExcelOpen = !c.mbExcelOpen; render(); }
+function mbToggleChecks(){ const c = getActiveTab().ctx; c.mbChecksOpen = !c.mbChecksOpen; render(); }
+/* 새 Step을 만들고 바로 패널로 */
+function mbAddStreamUi(pmId){ const id = mbCreateStream(pmId); if(id){ const c = getActiveTab().ctx; c.mbSel = id; c.mbTab = 'values'; } render(); }
+
+/* ---------- 화면 ---------- */
+function renderMassBalanceEdit(){
+  const pmId = getActiveTab().ctx.mbPmId;
+  const pm = DATA.processMaps.find(p => p.id === pmId);
+  if(!pm) return '<p style="padding:24px">PCS를 찾을 수 없습니다.</p>';
+  const mb = ensureMb(pmId), rt = MB_RUNTIME[pmId];
+  const streams = mbOrderedStreams(pmId);
+  const sel = mbSelOf(pmId);
+  const ctx = getActiveTab().ctx;
+  return `<div class="mbx" data-mbx>
+    <div class="view-head mbx-head">
+      <div>
+        <span class="view-eyebrow">MASS BALANCE · ${escapeXml(pm.code || '')}</span>
+        <h1 class="view-title">${escapeXml(pm.name)}</h1>
+        <p class="view-sub">Step별 투입 → 회수 · 수율 · Sending/Receiving 비교</p>
+      </div>
+      <div class="view-actions">
+        ${mbCompareCandidates(pm.id).length ? `<button class="btn" id="mbCompareBtn" ${pcsOn('click', 'openMbCompare', [pm.id])} title="같은 공정의 다른 PCS(시나리오)와 수율·용기 여유 비교">⇄ 시나리오 비교</button>` : ''}
+        <button class="btn" id="mbOpenPmBtn" ${pcsOn('click', 'mbBackToPm', [pm.id])}>${icon('workflow')} Process Map 열기</button>
+      </div>
+    </div>
+    ${mbPageToolbar(pmId, pm, mb, rt, ctx)}
+    ${ctx.mbExcelOpen || rt ? mbPageExcelCard(pmId, mb, rt) : ''}
+    ${mbPageKpis(pmId, mb, streams, ctx)}
+    ${mbFormulaBannerHtml(pmId, true, true)}
+    <div class="mbx-checks ${ctx.mbChecksOpen || mbIssueCounts(mbValidate(pmId)).error ? 'open' : ''}" data-mb-checks>${renderMbValidationPanel(pmId)}</div>
+    <div class="mbx-main ${sel ? 'has-sel' : ''}">
+      ${mbPageTable(pmId, pm, mb, rt, streams, sel)}
+      ${mbPagePanel(pmId, mb, rt, sel, ctx.mbTab || 'values')}
+    </div>
+    <div class="mbx-results">
+      ${streams.length >= 2 ? mbRenderComparisonTable(pmId) : ''}
+      ${streams.length >= 1 ? `<div class="mbx-charts">${mbRenderSankey(pmId, 'sending')}${mbRenderSankey(pmId, 'receiving')}</div>` : ''}
+    </div>
+  </div>`;
+}
+/* 도구 줄: 보기 버전 · 규모·Scale · Excel */
+function mbPageToolbar(pmId, pm, mb, rt, ctx){
+  const ver = mb.activeVersion === 'receiving' ? 'receiving' : 'sending';
+  return `<div class="mbx-toolbar" role="toolbar" aria-label="Mass Balance 설정">
+    <div class="mbx-seg" role="group" aria-label="보기 버전">
+      ${['sending', 'receiving'].map(v => `<button class="mbx-seg-btn ${v === ver ? 'on' : ''} site-${v === 'sending' ? 's' : 'r'}" aria-pressed="${v === ver}" data-mb-ver="${v}" ${pcsOn('click', 'mbUiSetting', [pmId, 'activeVersion', v])}><span class="dot"></span>${v === 'sending' ? 'Sending' : 'Receiving'}</button>`).join('')}
+    </div>
+    <div class="mbx-tool-group">
+      <label class="mbx-field"><span>이전 규모</span>
+        <select class="mbx-select" aria-label="이전 규모" data-on-change="mbUiSetting_b7073b" data-a-change="${pcsArgs([String(pmId)])}">
+          ${['Lab→Pilot', 'Lab→Commercial', 'Pilot→Commercial', 'Commercial→Commercial'].map(v => `<option value="${v}" ${(mb.scaleTarget || 'Lab→Pilot') === v ? 'selected' : ''}>${v}</option>`).join('')}
+        </select></label>
+      <label class="mbx-field"><span>Scale Factor</span>
+        <input class="mbx-input mono" style="width:72px;" type="number" min="0.01" step="0.1" aria-label="Scale Factor" value="${escapeXmlAttr(String(mb.scaleFactor || 1))}" data-mb-scalefactor data-on-change="mbUiSetting_75538d" data-a-change="${pcsArgs([String(pmId)])}">
+        <span class="mbx-unit">× Receiving / Sending</span></label>
+    </div>
+    <div class="mbx-tool-group mbx-excel-tools">
+      <span class="mbx-tool-label">Excel</span>
+      <button class="btn btn-sm" data-mb-tpl-download ${pcsOn('click', 'mbDownloadTemplate', [pmId])} title="지금 Step·값이 채워진 템플릿(.xlsx)을 내려받습니다">${icon('download')} 템플릿 받기</button>
+      <button class="btn btn-sm" data-mb-tpl-upload ${pcsOn('click', 'mbPickTemplate', [pmId])} title="채운 템플릿을 올리면 바뀌는 값을 먼저 보여 줍니다">⬆ 템플릿 올리기</button>
+      <input type="file" id="mbTplInput_${escapeXmlAttr(pmId)}" accept=".xlsx,.xls,.xlsm" hidden data-on-change="mbTplFile_h" data-a-change="${pcsArgs([pmId])}">
+      <button class="btn btn-sm ${ctx.mbExcelOpen || rt ? 'on' : ''}" data-mb-excel-toggle aria-expanded="${!!(ctx.mbExcelOpen || rt)}" ${pcsOn('click', 'mbToggleExcel', [])} title="SharePoint Excel 파일의 셀을 Step 값에 잇기(🎯)">🔗 셀 연동${rt ? ' · ' + escapeXml(rt.fileName) : ''}</button>
+    </div>
+  </div>`;
+}
+/* 셀 연동(기존 기능): SharePoint URL · 셀 연동용 Excel 올리기 · 인라인 뷰어 */
+function mbPageExcelCard(pmId, mb, rt){
+  return `<div class="mbx-card mbx-excel" data-mb-excel-card>
+    <div class="mbx-excel-row">
+      <div class="mbx-excel-icon" aria-hidden="true">📗</div>
+      <div class="mbx-excel-main">
+        <div class="mbx-card-title">Excel 셀 연동 <span class="mbx-muted">— 파일의 특정 셀을 Step 값에 잇습니다(값 칸 옆 🎯). 다시 올리면 값이 새로 읽힙니다.</span></div>
+        <label class="mbx-field mbx-field-wide"><span>SharePoint Excel URL</span>
+          <input class="mbx-input" placeholder="https://company.sharepoint.com/sites/.../MassBalance.xlsx" value="${escapeXmlAttr(mb.sharepointUrl || '')}" aria-label="SharePoint Excel URL" data-on-change="mbUiSetting_14c780" data-a-change="${pcsArgs([String(pmId)])}"></label>
+      </div>
+      <div class="mbx-excel-actions">
+        ${mb.sharepointUrl ? `<a href="${escapeXmlAttr(mb.sharepointUrl)}" target="_blank" rel="noopener" class="btn btn-sm">🌐 SharePoint 열기</a>` : ''}
+        <button class="btn btn-sm btn-primary" data-on-click="getElementById_8c7fa1" data-a-click="${pcsArgs([String(pmId)])}">📥 ${rt ? '다시 올리기' : '셀 연동용 Excel 올리기'}</button>
+        <input type="file" id="mbFileInput_${pmId}" accept=".xlsx,.xls,.xlsm" style="display:none" data-on-change="mbLoadExcel_583d98" data-a-change="${pcsArgs([String(pmId)])}">
+      </div>
+    </div>
+    ${rt ? mbRenderInlineViewer(pmId) : ''}
+  </div>`;
+}
+/* 요약 카드 */
+function mbPageKpis(pmId, mb, streams, ctx){
+  const sm = mbPageSummary(streams);
+  const c = mbIssueCounts(mbValidate(pmId));
+  const fx = mbFormulaPlanFor(pmId), stale = fx.filter(r => r.stale).length, err = fx.filter(r => r.error).length;
+  const yld = (v, site) => `<div class="mbx-kpi site-${site}" data-mb-kpi-cum="${site}"><div class="mbx-kpi-label">${site === 's' ? 'Sending' : 'Receiving'} 누적 수율</div><div class="mbx-kpi-val ${mbYieldLevel(v)}">${v == null ? '–' : v + '%'}</div><div class="mbx-kpi-bar"><i style="width:${v == null ? 0 : Math.max(0, Math.min(100, v))}%"></i></div></div>`;
+  return `<div class="mbx-kpis">
+    ${yld(sm.cumS, 's')}${yld(sm.cumR, 'r')}
+    <div class="mbx-kpi"><div class="mbx-kpi-label">Step</div><div class="mbx-kpi-val">${sm.steps}</div><div class="mbx-kpi-sub">UO ${sm.uos}개${sm.unassigned ? ` · 주인 없음 ${sm.unassigned}` : ''}</div></div>
+    <button class="mbx-kpi mbx-kpi-btn ${c.error ? 'bad' : c.warn ? 'warn' : 'ok'}" data-mb-kpi-checks aria-expanded="${!!ctx.mbChecksOpen}" ${pcsOn('click', 'mbToggleChecks', [])}>
+      <div class="mbx-kpi-label">흐름·분기 검증 ${ctx.mbChecksOpen ? '▴' : '▾'}</div><div class="mbx-kpi-val">${c.error ? `오류 ${c.error}` : c.warn ? `주의 ${c.warn}` : '문제 없음'}</div><div class="mbx-kpi-sub">${c.info ? `참고 ${c.info}` : '누르면 자세히'}</div></button>
+    <div class="mbx-kpi ${err ? 'bad' : stale ? 'warn' : ''}" data-mb-kpi-fx><div class="mbx-kpi-label">ƒx 계산식</div><div class="mbx-kpi-val">${fx.length}</div><div class="mbx-kpi-sub">${err ? `오류 ${err}` : stale ? `어긋남 ${stale}칸` : fx.length ? '모두 맞음' : 'Step 패널 → 계산식'}</div></div>
+  </div>`;
+}
+/* Step 표 */
+function mbPageTable(pmId, pm, mb, rt, streams, sel){
+  const COLS = 5;
+  const ver = mb.activeVersion === 'receiving' ? 'r_' : 's_';
+  const yieldCell = (s, p) => { const y = mbCalcStepYield(s, p), loss = mbCalcLoss(s, p); return `<td class="mbx-yield site-${p[0]}"><span class="mbx-pill ${mbYieldLevel(y)}">${y == null ? '–' : y + '%'}</span>${mbYieldBasisTag(s, p)}<div class="mbx-loss">손실 ${loss == null ? '–' : mbFmt(loss, 2) + ' ' + escapeXml(s[p + 'unit'] || '')}</div></td>`; };
+  const num = (s, f, ed) => `<input class="mbx-num mono" inputmode="decimal" value="${escapeXmlAttr(String(s[f] ?? ''))}" placeholder="–" ${ed ? '' : 'disabled'} aria-label="${escapeXmlAttr((s.stepName || 'Step') + ' ' + mbTplLabel(f))}" data-mb-cell="${f}" ${pcsOn('change', 'mbSetField', [pmId, s.id, f])}>${mbFxMark(pmId, s, f)}`;
+  const body = mbLayoutRows(pmId, (s, i) => {
+    const ed = !s.nodeId || uoEditable(s.nodeId);
+    const fx = Object.keys(s.formulas || {}).length, xn = (s.extras || []).length, c = mbCycles(s), links = (s.pfdMappings || []).length;
+    const cells = MB_NUM_FIELDS.filter(f => s[f + 'Cell'] && s[f + 'CellSheet']).length;
+    const marks = [
+      fx ? `<span class="mbx-mark fx" title="계산식 ${fx}칸">ƒx ${fx}</span>` : '',
+      c > 1 ? `<span class="mbx-mark" title="사이클${s.perCycle ? ' (값은 사이클당)' : ''}">사이클 ${c}${s.perCycle ? '/c' : ''}</span>` : '',
+      xn ? `<span class="mbx-mark" title="추가 투입·곁가지 산출 ${xn}줄">곁가지 ${xn}</span>` : '',
+      s[ver + 'vessel'] ? `<span class="mbx-mark mbx-mark-v" title="회수 용기(${ver === 'r_' ? 'Receiving' : 'Sending'}) 충진율">용기 ${mbFillCell(mbVesselFill(s, ver))}</span>` : '',
+      links ? `<span class="mbx-mark" title="PFD Arrow 연동 ${links}개">PFD ${links}</span>` : '',
+      cells ? `<span class="mbx-mark xl" title="Excel 셀 연동 ${cells}칸">🎯 ${cells}</span>` : '',
+      ed ? '' : '<span class="mbx-mark lock" title="승인된 UO — 잠김">🔒</span>',
+    ].join('');
+    return `<tr class="mbx-row ${sel === s.id ? 'sel' : ''} ${ed ? '' : 'locked'}" data-mb-row="${escapeXmlAttr(s.id)}" data-on-mousedown="mbRowDown_h" data-a-mousedown="${pcsArgs([pmId, s.id])}">
+      <td class="mbx-step"><button class="mbx-step-btn" data-mb-detail-btn="${escapeXmlAttr(s.id)}" aria-pressed="${sel === s.id}" aria-label="${escapeXmlAttr((s.stepName || '이름 없는 Step') + ' 상세 열기')}" ${pcsOn('click', 'mbSelectStep', [pmId, s.id])}>
+        <span class="mbx-step-no mono">${escapeXml(String(s.stepOrder || i + 1))}</span><span class="mbx-step-name">${escapeXml(s.stepName || '이름 없는 Step')}</span><span class="mbx-step-chev" aria-hidden="true">›</span></button>${marks ? `<div class="mbx-marks" data-mb-marks>${marks}</div>` : ''}</td>
+      <td class="mbx-io site-s">${num(s, 's_input', ed)}<span class="mbx-arrow" aria-hidden="true">→</span>${num(s, 's_output', ed)}<span class="mbx-u">${escapeXml(s.s_unit || 'L')}</span></td>
+      ${yieldCell(s, 's_')}
+      <td class="mbx-io site-r">${num(s, 'r_input', ed)}<span class="mbx-arrow" aria-hidden="true">→</span>${num(s, 'r_output', ed)}<span class="mbx-u">${escapeXml(s.r_unit || 'L')}</span></td>
+      ${yieldCell(s, 'r_')}</tr>`;
+  }, COLS);
+  return `<section class="mbx-card mbx-table-card" aria-label="Step별 Mass Balance">
+    <header class="mbx-card-head"><div><div class="mbx-card-title">Step별 Mass Balance</div><div class="mbx-muted">Step 이름을 누르면 오른쪽에서 농도·순도·단위·계산식·추가 투입/산출·회수 용기·연동을 고칩니다. 칸에서 투입·회수를 바로 고칠 수 있습니다.</div></div>
+      <button class="btn btn-sm btn-primary" data-mb-add-step ${pcsOn('click', 'mbAddStreamUi', [pmId])}>${icon('plus')} Step 추가</button></header>
+    ${streams.length ? `<div class="mbx-table-wrap"><table class="mbx-table">
+      <colgroup><col class="c-step"><col class="c-io"><col class="c-y"><col class="c-io"><col class="c-y"></colgroup>
+      <thead><tr><th scope="col">Step</th><th scope="col" class="site-s"><span class="site-tag s">Sending</span> Input → Output</th><th scope="col" class="site-s">Step Yield</th><th scope="col" class="site-r"><span class="site-tag r">Receiving</span> Input → Output</th><th scope="col" class="site-r">Step Yield</th></tr></thead>
+      <tbody>${body}</tbody></table></div>`
+    : `<div class="mbx-empty"><div class="mbx-empty-icon" aria-hidden="true">⚖</div><b>Step이 없습니다</b><div class="mbx-muted">"Step 추가"로 시작하거나, Excel 템플릿을 받아 채운 뒤 올리세요.</div></div>`}
+  </section>`;
+}
+/* 오른쪽 상세 패널 */
+function mbPagePanel(pmId, mb, rt, sid, tab){
+  if(!sid) return `<aside class="mbx-panel mbx-panel-empty" aria-label="Step 상세"><div class="mbx-panel-hint"><div class="mbx-empty-icon" aria-hidden="true">☜</div><b>Step을 고르세요</b><p>표에서 Step 이름을 누르면 여기에서 값·계산식·추가 투입/산출·운전 조건·연동을 고칩니다.</p>
+    <ul><li><b>값</b> — Sending/Receiving 투입·회수·단위·농도·순도, Excel 셀 연동</li><li><b>계산식</b> — 파라미터·앞 Step 값으로 계산(후보·함수 안내)</li><li><b>투입·산출</b> — 버퍼·Feed, Flow-through·Strip·폐액·QC 샘플</li><li><b>운전·용기</b> — 사이클, 회수 용기 여유, Step Scale</li><li><b>연동</b> — PFD Arrow, 셀 연동 현황</li></ul></div></aside>`;
+  const s = getMbStreamById(pmId, sid);
+  const ed = !s.nodeId || uoEditable(s.nodeId);
+  const dis = ed ? '' : 'disabled';
+  const ordered = mbOrderedStreams(pmId), idx = ordered.findIndex(x => x.id === sid);
+  const cum = { s: mbCalcCumYield(ordered, 's_')[idx], r: mbCalcCumYield(ordered, 'r_')[idx] };
+  const counts = { formula: Object.keys(s.formulas || {}).length, extras: (s.extras || []).length, links: (s.pfdMappings || []).length };
+  const t = MB_PANEL_TABS.some(x => x[0] === tab) ? tab : 'values';
+  const stat = (p, label) => { const y = mbCalcStepYield(s, p); return `<div class="mbx-pstat site-${p[0]}"><span>${label}</span><b class="${mbYieldLevel(y)}">${y == null ? '–' : y + '%'}</b><small>누적 ${cum[p[0]] == null ? '–' : cum[p[0]] + '%'}</small></div>`; };
+  const nav = (d) => { const o = ordered[idx + d]; return o ? `<button class="mb-icon-btn" aria-label="${d < 0 ? '앞' : '다음'} Step: ${escapeXmlAttr(o.stepName || '')}" title="${d < 0 ? '앞' : '다음'} Step" ${pcsOn('click', 'mbOpenStep', [pmId, o.id])}>${d < 0 ? '‹' : '›'}</button>` : `<button class="mb-icon-btn" disabled aria-label="${d < 0 ? '앞' : '다음'} Step 없음">${d < 0 ? '‹' : '›'}</button>`; };
+  const body = t === 'values' ? mbPanelValues(pmId, s, rt, ed)
+    : t === 'formula' ? mbFormulaBlockHtml(pmId, s, ed)
+    : t === 'extras' ? mbStepExtrasHtml(pmId, s, ed)
+    : t === 'ops' ? mbStepOpsHtml(pmId, s, ed, true)
+    : mbPanelLinks(pmId, s, ed);
+  return `<aside class="mbx-panel" aria-label="Step 상세" data-mb-panel="${escapeXmlAttr(sid)}" data-mb-detail-row="${escapeXmlAttr(sid)}">
+    <header class="mbx-panel-head">
+      <div class="mbx-panel-nav">${nav(-1)}${nav(1)}</div>
+      <input class="mbx-title-input" value="${escapeXmlAttr(s.stepName || '')}" placeholder="Step 이름" ${dis} aria-label="Step 이름" data-mb-stepname ${pcsOn('change', 'mbSetField', [pmId, s.id, 'stepName'])}>
+      ${ed ? `<button class="mb-icon-btn danger" aria-label="Step 삭제" title="Step 삭제" data-mb-delete ${pcsOn('click', 'mbConfirmRemoveStream', [pmId, s.id])}>${icon('trash')}</button>` : ''}
+      <button class="mb-icon-btn" aria-label="패널 닫기" title="닫기" data-mb-panel-close ${pcsOn('click', 'mbClosePanel', [])}>✕</button>
+    </header>
+    <div class="mbx-panel-meta">
+      <label class="mbx-field"><span>주인 UO</span>${mbOwnerSelect(pmId, s)}</label>
+      <label class="mbx-field mbx-field-sm"><span>UO 안 순서</span><input class="mbx-input mono" type="number" min="1" value="${escapeXmlAttr(String(s.stepOrder || 1))}" ${dis} aria-label="UO 안 순서" data-mb-order ${pcsOn('change', 'mbSetField', [pmId, s.id, 'stepOrder'])}></label>
+      ${ed ? '' : `<span class="badge badge-gray" data-mb-locked>${escapeXml(uoStatusOf(s.nodeId))} · 잠김</span>`}
+    </div>
+    <div class="mbx-pstats">${stat('s_', 'Sending')}${stat('r_', 'Receiving')}</div>
+    <div class="mbx-tabs" role="tablist" aria-label="Step 상세">
+      ${MB_PANEL_TABS.map(([k, label]) => `<button role="tab" id="mbTab_${k}" aria-selected="${k === t}" aria-controls="mbTabPanel" class="mbx-tab ${k === t ? 'on' : ''}" data-mb-tab="${k}" ${pcsOn('click', 'mbSetPanelTab', [k])}>${label}${counts[k] ? ` <span class="mbx-tab-n">${counts[k]}</span>` : ''}</button>`).join('')}
+    </div>
+    <div class="mbx-tabpanel" id="mbTabPanel" role="tabpanel" aria-labelledby="mbTab_${t}" data-mb-tabpanel="${t}">${body}</div>
+  </aside>`;
+}
+/* 패널 탭: 값 — Sending·Receiving 두 칸 */
+function mbPanelValues(pmId, s, rt, ed){
+  const dis = ed ? '' : 'disabled';
+  const site = p => {
+    const field = (f, label, extra) => `<div class="mbx-vrow"><label for="mbv_${f}">${label}</label><div class="mbx-vin">
+      <input id="mbv_${f}" class="mbx-input mono" inputmode="decimal" value="${escapeXmlAttr(String(s[f] ?? ''))}" placeholder="–" ${dis} ${extra || ''} ${pcsOn('change', 'mbSetField', [pmId, s.id, f])}>
+      ${mbFxMark(pmId, s, f) ? `<button class="mbx-fxjump" title="계산식 보기" aria-label="${escapeXmlAttr(mbFormulaFieldLabel(f))} 계산식 보기" ${pcsOn('click', 'mbSetPanelTab', ['formula'])}>${mbFxMark(pmId, s, f)}</button>` : ''}
+      ${['input', 'output'].some(k => f === p + k) ? mbCellMapBtn(pmId, rt, s.id, f, s[f + 'CellSheet'] || '', s[f + 'Cell'] || '', s[f] || '') : ''}</div></div>`;
+    return `<div class="mbx-site site-${p[0]}" data-mb-site="${p}">
+      <div class="mbx-site-head"><span class="site-tag ${p[0]}">${p === 's_' ? 'Sending' : 'Receiving'}</span> Site</div>
+      ${field(p + 'input', '투입 Input')}
+      ${field(p + 'output', '회수 Output')}
+      <div class="mbx-vrow"><label for="mbv_${p}unit">단위</label><div class="mbx-vin"><select id="mbv_${p}unit" class="mbx-select" ${dis} data-mb-unit="${p}" ${pcsOn('change', 'mbSetField', [pmId, s.id, p + 'unit'])}>${MB_UNITS.map(u => `<option value="${u}" ${(s[p + 'unit'] || 'L') === u ? 'selected' : ''}>${u}</option>`).join('')}</select></div></div>
+      ${field(p + 'concentrationIn', '투입 농도 g/L', `data-mb-conc="${p}concentrationIn" title="농도를 넣으면 부피 대신 질량(부피×농도)으로 수율을 검증합니다"`)}
+      ${field(p + 'concentration', '회수 농도 g/L', `data-mb-conc="${p}concentration" title="농도를 넣으면 부피 대신 질량(부피×농도)으로 수율을 검증합니다"`)}
+      ${field(p + 'purity', '순도 %', `data-mb-purity="${p}purity"`)}
+      ${mbSiteSummaryHtml(s, p, '수지')}
+    </div>`;
+  };
+  return `<div class="mbx-values">${site('s_')}${site('r_')}</div>
+    <p class="mbx-muted mbx-note">농도(선택)를 넣으면 수율을 제품 질량(부피 × 농도) 기준으로 봅니다. ƒx가 붙은 칸은 계산식이 값을 정합니다(누르면 계산식 탭). 🎯는 Excel 셀 연동입니다.</p>`;
+}
+/* 패널 탭: 연동 — PFD Arrow, Excel 셀 연동 현황 */
+function mbPanelLinks(pmId, s, ed){
+  const edgeOpts = mbGetEdgeOptions(pmId);
+  const maps = s.pfdMappings || [];
+  const keys = maps.map(m => `${m.nodeId}::${m.edgeId}`);
+  const chips = maps.map(m => { const o = edgeOpts.find(x => x.nodeId === m.nodeId && x.edgeId === m.edgeId); return `<span class="mb-mapping-chip">${escapeXml(o ? o.label : '?')}${ed ? `<button class="mbx-chip-x" aria-label="연동 해제" data-on-click="mbUnlinkEdge_8dae5e" data-a-click="${pcsArgs([String(pmId), String(s.id), String(m.nodeId), String(m.edgeId)])}">✕</button>` : ''}</span>`; }).join('');
+  const avail = edgeOpts.filter(o => !keys.includes(o.key));
+  const cells = MB_NUM_FIELDS.filter(f => s[f + 'Cell'] && s[f + 'CellSheet']);
+  return `<div class="mbx-sec"><div class="mbx-sec-title">PFD Arrow <span class="mbx-muted">— 연결선 위에 이 Step의 물량이 표시되고, 연동된 선은 PFD에서 고칠 수 없게 잠깁니다</span></div>
+      <div class="mbx-chips" data-mb-arrows>${chips || '<span class="mbx-muted">연동된 Arrow가 없습니다</span>'}</div>
+      ${ed && avail.length ? `<select class="mbx-select" style="margin-top:8px; width:100%;" aria-label="PFD Arrow 연동 추가" data-mb-arrow-add data-on-change="if_a9ec9b" data-a-change="${pcsArgs([String(pmId), String(s.id)])}"><option value="">+ PFD Arrow 연동…</option>${avail.map(o => `<option value="${o.key}">${escapeXml(o.label)}</option>`).join('')}</select>` : ''}</div>
+    <div class="mbx-sec"><div class="mbx-sec-title">Excel 셀 연동 <span class="mbx-muted">— 값 탭의 🎯로 잇습니다</span></div>
+      ${cells.length ? `<table class="data-table mbx-mini"><thead><tr><th>칸</th><th>셀</th><th>값</th></tr></thead><tbody>${cells.map(f => `<tr><td>${escapeXml(mbTplLabel(f))}</td><td class="mono">${escapeXml(s[f + 'CellSheet'])}!${escapeXml(s[f + 'Cell'])}</td><td class="mono">${escapeXml(String(s[f] ?? ''))}</td></tr>`).join('')}</tbody></table>` : '<span class="mbx-muted">연동된 셀이 없습니다</span>'}</div>`;
 }
 /* =========================================================
    PCS Platform — v74 Knowledge Graph Query Layer
@@ -32953,6 +33749,9 @@ const PCS_CALLABLE = new Set([
   'mbCompareSetOther',
   'mbCompareSetSite',
   'pmDuplicateUi',
+  'mbFxInsertToken',
+  'mbSelectStep', 'mbOpenStep', 'mbClosePanel', 'mbSetPanelTab', 'mbToggleExcel', 'mbToggleChecks', 'mbAddStreamUi',   // v130 Mass Balance 화면   // v130 계산식 편집기 넣기 단추
+  'mbDownloadTemplate', 'mbPickTemplate', 'mbTemplateClose', 'mbTemplateApplyUi',   // v130 Mass Balance Excel 템플릿
   'seedImportExamplesUi', 'seedExamplesHide',   // v128 새 버전 예시 가져오기
   'navSidebar',
   'openAiWizard',
@@ -33187,6 +33986,29 @@ const PCS_HANDLERS = {
   pcsCallWithValue(event, a){ return pcsCall(a[0], a.slice(1).concat([this.value])); },
   /* 공용: [함수, 인자…] + 체크 상자 → 함수(인자…, this.checked) */
   pcsCallWithChecked(event, a){ return pcsCall(a[0], a.slice(1).concat([this.checked])); },
+  /* v130 Mass Balance: Excel 템플릿 미리보기 창(바깥 누르기·Esc로 닫기), 템플릿 파일 고르기 */
+  mbTplBackdrop_h(event){ if(event.target === this) mbTemplateClose(); },
+  mbTplKeydown_h(event){ if(event.key === 'Escape'){ event.preventDefault(); mbTemplateClose(); } },
+  mbTplFile_h(event, a){ mbTemplateFileChosen(a[0], this.files && this.files[0]); },
+  /* v130 계산식 편집기(17g): 치는 동안 후보·결과, 키보드로 고르기, 넣기 단추는 칸의 포커스를 지킨다 */
+  mbFxInput_h(){ _mbFx.sel = 0; mbFxRemember(this); mbFxPreview(this); mbFxRender(this); },
+  mbFxKeydown_h(event){
+    const open = _mbFx.el === this && _mbFx.items.length > 0 && (document.getElementById('mbFxPop') || {}).style && document.getElementById('mbFxPop').style.display !== 'none';
+    if(event.ctrlKey && (event.code === 'Space' || event.key === ' ')){ event.preventDefault(); _mbFx.sel = 0; mbFxRender(this, true); return; }
+    if(open){
+      if(event.key === 'ArrowDown' || event.key === 'ArrowUp'){ event.preventDefault(); const n = _mbFx.items.length; _mbFx.sel = (_mbFx.sel + (event.key === 'ArrowDown' ? 1 : n - 1)) % n; mbFxRender(this); const o = document.getElementById('mbFxOpt' + _mbFx.sel); if(o && o.scrollIntoView) o.scrollIntoView({ block: 'nearest' }); return; }
+      if(event.key === 'Enter' || event.key === 'Tab'){ event.preventDefault(); mbFxApply(_mbFx.sel); return; }
+      if(event.key === 'Escape'){ event.preventDefault(); event.stopPropagation(); mbFxHide(); return; }
+    }
+    if(event.key === 'Escape'){ const saved = this.getAttribute('data-fx-saved') || ''; if(this.value !== saved){ event.preventDefault(); this.value = saved; mbFxPreview(this); } }
+  },
+  mbFxKeyup_h(event){ if(event && /^(Arrow(Left|Right)|Home|End)$/.test(event.key || '') || (event && event.type === 'mouseup')){ mbFxRemember(this); mbFxRender(this); } },
+  mbFxFocus_h(){ mbFxRemember(this); },
+  mbFxBlur_h(){ mbFxRemember(this); mbFxHide(); },
+  mbFxPick_h(event, a){ event.preventDefault(); mbFxApply(a[0]); },
+  mbFxTokDown_h(event){ event.preventDefault(); },
+  /* v130 Step 줄의 빈 곳을 누르면 그 Step을 고른다(칸·단추를 누를 때는 그대로) */
+  mbRowDown_h(event, a){ if(event.button !== 0 || event.target.closest('input, select, button, a, textarea, label')) return; const c = getActiveTab().ctx; if(c.mbSel === a[1]) return; mbOpenStep(a[0], a[1]); },
   /* v120 패널 경계: 끌기(이벤트가 필요) · 두 번 누르기 */
   pfdPanelResize_h(event, a){ pfdStartPanelResize(event, a[0]); },
   pfdPanelToggle_h(event, a){ pfdTogglePanelKeepView(a[0]); },
