@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="pcs-api-base" content="">
 <meta name="pcs-firebase" content="{&quot;apiKey&quot;:&quot;AIzaSyASB4CKv15IwJUp8pIVKXFtOYwKlY7y1es&quot;,&quot;databaseURL&quot;:&quot;https://pcs-demo-18101-default-rtdb.asia-southeast1.firebasedatabase.app&quot;}">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-vGWkXtsLkSkgqSXd08LdplBu9hcwSgCqs8u+u3qxskw=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-b9O/fsTYjAmVv/v+nquQZGS7onQBC9Y8Rb02Ma803JE=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'none'">
 <title>PCS Platform · Process Control System</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -2458,6 +2458,13 @@ textarea.ui-dialog-input{resize:vertical; min-height:72px;}
 #pmCanvasWrap.pm-panning, #pmCanvasWrap.pm-panning *{cursor:grabbing !important;}
 .pfd-editor.left-collapsed .pfd-panel-resize.left{right:-10px;}
 .pfd-editor.right-collapsed .pfd-panel-resize.right{left:-10px;}
+
+/* v121 */
+.mb-btn-yield{margin-left:6px; font-size:10.5px; font-weight:800; padding:1px 6px; border-radius:999px; background:#E6F7F2; color:#0D7A5F; font-family:ui-monospace, Menlo, monospace;}
+.uo-owner-row{display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap;}
+.uo-owner-field{display:flex; flex-direction:column; gap:3px; flex:1 1 140px; font-size:11px; color:var(--ink-500);}
+.pm-kb-owner{font-size:11.5px; color:#2F6FB5; margin-bottom:2px; font-weight:600;}
+.pm-kb-noowner{color:var(--ink-400); font-weight:400;}
 </style>
 </head>
 <body>
@@ -3268,6 +3275,7 @@ function validateData(data){
     // v118: 노드 정보(링크·태그·표시)
     (n.links || []).forEach(l=>{ if(!['sop','url','pm','uo'].includes(l.kind) || !l.id || !String(l.value||'').trim()) errors.push(`[노드 정보] Node ${n.id} 링크 ${l.id || '?'} 형식 오류`); });
     if(n.tags && (!Array.isArray(n.tags) || n.tags.some(t=>typeof t !== 'string' || !t.trim()))) errors.push(`[노드 정보] Node ${n.id} 태그 형식 오류`);
+    if(n.owners && (typeof n.owners !== 'object' || Object.entries(n.owners).some(([k, v])=>!['author','reviewer'].includes(k) || typeof v !== 'string' || !v.trim()))) errors.push(`[담당] Node ${n.id} 담당자 형식 오류`);
     if(n.symbols && (!Array.isArray(n.symbols) || n.symbols.some(s=>!['flag','warn','done'].includes(s)))) errors.push(`[노드 정보] Node ${n.id} 표시 ${n.symbols} 모름`);
     if(!KP[kind]) errors.push(`[계층 규칙] Node ${n.id} 종류 ${n.kind} 모름`);
     else {
@@ -3402,7 +3410,8 @@ function pmListRows(data, opts){
     const p = (data.products || []).find(x => x.id === m.productId) || {};
     const c = (data.clients || []).find(x => x.id === p.clientId) || {};
     const uoCount = (data.nodes || []).filter(n => n.pmId === m.id && (n.kind || 'uo') === 'uo').length;   // v112: UO만
-    return { id:m.id, code:m.code || '', name:m.name || '', kind:m.kind || '', status:m.status || 'Draft', version:m.version || '', client:c.name || '', product:p.code || p.name || '', uoCount, favorite:fav.has(m.id) };
+    const cy = mbCumYieldOf(data, m.id);   // v121: Mass Balance 누적 수율(Sending·Receiving)
+    return { id:m.id, code:m.code || '', name:m.name || '', kind:m.kind || '', status:m.status || 'Draft', version:m.version || '', client:c.name || '', product:p.code || p.name || '', uoCount, favorite:fav.has(m.id), yieldS: cy.s, yieldR: cy.r, mbSteps: cy.steps };
   }).filter(r => {
     if(o.status === 'pending' ? !PCS_PENDING_STATES.ProcessMap.includes(r.status) : (o.status && r.status !== o.status)) return false;
     const t = `${r.code} ${r.name} ${r.kind} ${r.client} ${r.product}`.toLowerCase();
@@ -4782,7 +4791,6 @@ const NAV_ITEMS = [
   { key:'trainingMaster', label:'Training Master', icon:'monitor' },
   { key:'samplingMaster', label:'Sampling Plan Master', icon:'target' },
   { key:'suppSampleReq', label:'Supplemental Sample', icon:'flask' },
-  { key:'massBalance', label:'Mass Balance', icon:'layers' },
   { key:'mbrMaster', label:'MBR Master', icon:'droplet' },
   { key:'brMaster', label:'BR Master', icon:'bottle' },
   { key:'auditTrail', label:'Audit Trail', icon:'fileText' },
@@ -4852,8 +4860,6 @@ function navSidebar(key){
     newTab = { id:tabId, title:m.label, path:[{view:'masterListFull',label:m.label,tag:m.tag}], ctx:{navKey:key,masterListKey:m.listKey,masterListLabel:m.label}, isEditingList:false, isEditingProcessMap:false };
   } else if(key==='pfdMaster'){
     newTab = { id:tabId, title:'PFD Master', path:[{view:'pfdMasterList',label:'PFD Master',tag:'PFD'}], ctx:{navKey:key}, isEditingList:false, isEditingProcessMap:false };
-  } else if(key==='massBalance'){
-    newTab = { id:tabId, title:'Mass Balance', path:[{view:'massBalanceList',label:'Mass Balance',tag:'MB'}], ctx:{navKey:key}, isEditingList:false, isEditingProcessMap:false };
   } else if(key==='mbrMaster'){
     newTab = { id:tabId, title:'MBR Master', path:[{view:'mbrMasterList',label:'MBR Master',tag:'MBR'}], ctx:{navKey:key}, isEditingList:false, isEditingProcessMap:false };
   } else if(key==='brMaster'){
@@ -4908,7 +4914,7 @@ function render(){
     case 'samplingPlanMaster': html = renderSamplingPlanMaster(); break;
     case 'suppSampleRequest': html = renderSuppSampleRequest(); break;
     case 'masterListFull': html = renderMasterListFull(); break;
-    case 'massBalanceList': html = renderMassBalanceList(); break;
+    case 'massBalanceList': html = renderPmExplorer(); break;   // v121: Mass Balance 목록은 Process Map 목록의 "누적 수율" 열로 옮겼다(예전 탭)
     case 'massBalanceEdit': html = renderMassBalanceEdit(); break;
     case 'mbrMasterList': html = renderMbrMasterList(); break;
     case 'brMasterList': html = renderBrMasterList(); break;
@@ -4942,14 +4948,23 @@ function render(){
 /* -------- DASHBOARD -------- */
 /* ============================================================================
    05b_release_notes.js — v111  앱 버전과 "이번 버전에서 바뀐 점"
-   · PCS_APP_VERSION은 build.sh가 빌드 번호로 바꿔 넣는다(v120 자리).
+   · PCS_APP_VERSION은 build.sh가 빌드 번호로 바꿔 넣는다(v121 자리).
    · PCS_RELEASE_NOTES 맨 앞 항목은 항상 이번 빌드 버전이어야 한다(tests/unit/release-notes.test.cjs가 검사).
      버전을 올릴 때 여기 맨 앞에 한 항목을 넣는다. 테스트하는 사람이 무엇을 눌러 보면 되는지(try)를 같이 쓴다.
    · 오른쪽 위 사용자 메뉴 → "버전 vN · 바뀐 점" 으로 열고, 새 버전으로 처음 열면 알림을 한 번 띄운다.
    ========================================================================== */
-var PCS_APP_VERSION = 'v120';
+var PCS_APP_VERSION = 'v121';
 
 const PCS_RELEASE_NOTES = [
+  { version: 'v121', date: '2026-11-21', title: 'Mass Balance를 Process Map 안으로, UO 담당자, 지운 UO 내용 복원, 벡터 PDF',
+    items: [
+      'Mass Balance는 이제 왼쪽 메뉴가 아니라 Process Map 머리의 "⚖ Mass Balance" 단추(누적 수율 표시)에서 엽니다. PFD 편집기·UO 패널에서도 열리고, "Process Map 열기"로 돌아옵니다.',
+      'Process Map 목록에 "누적 수율 (S / R)" 열이 생겨 여러 Process Map을 한눈에 비교합니다.',
+      'UO 패널 개요에 담당(작성자·검토자) — 칸반 카드, PCS Report, Markdown 내보내기에 나옵니다. 승인된 UO도 바꿀 수 있고 기록이 남습니다.',
+      'UO를 지우면 그 내용(PFD 도면·리스트·WI·Mass Balance·소요량 규칙)을 보관해 두고, 구조 이력에서 되돌리면 함께 돌아옵니다(다시 승인 필요).',
+      '맵 내보내기에 "PDF 벡터"가 생겼습니다: 인쇄 창에서 "PDF로 저장"을 고르면 확대해도 선명하고 글자를 검색할 수 있습니다.',
+    ],
+    try: ['참고 PCS 머리의 ⚖ Mass Balance', 'Process Map 목록의 누적 수율 열', 'UO 패널 개요 → 담당 → 칸반에서 확인'] },
   { version: 'v120', date: '2026-11-21', title: '패널 폭 조절·접기, Process Map 무한 캔버스',
     items: [
       'PFD 편집기 왼쪽(섹션·도형·에셋·레이어)·오른쪽(속성) 패널과 Process Map의 UO 패널 경계를 끌어 폭을 바꿉니다. 끝까지 줄이면 접히고, 접힌 경계를 다시 끌어 내면 펼쳐집니다. 경계를 두 번 누르면 접기·펼치기.',
@@ -5245,18 +5260,18 @@ function renderPmListSection(ctx){
     </div>
     <div class="card" style="padding:0; overflow:auto;">
       <table class="data-table" style="width:100%;">
-        <thead><tr><th style="width:34px;"></th><th>코드</th><th>Process Map</th><th>Client</th><th>Product</th><th>공정 유형</th><th>UO</th><th>버전</th><th>상태</th></tr></thead>
+        <thead><tr><th style="width:34px;"></th><th>코드</th><th>Process Map</th><th>Client</th><th>Product</th><th>공정 유형</th><th>UO</th><th title="Mass Balance 누적 수율 — Sending / Receiving">누적 수율 (S / R)</th><th>버전</th><th>상태</th></tr></thead>
         <tbody id="pmListBody">${renderPmListRows(ctx)}</tbody>
       </table>
     </div>`;
 }
 function renderPmListRows(ctx){
   const rows = pmListRows(DATA, { query: ctx.pmListQuery, status: ctx.pmListStatus });
-  if(!rows.length) return `<tr><td colspan="9" style="text-align:center; padding:18px; color:var(--ink-400);" data-pm-list-empty>조건에 맞는 Process Map이 없습니다.</td></tr>`;
+  if(!rows.length) return `<tr><td colspan="10" style="text-align:center; padding:18px; color:var(--ink-400);" data-pm-list-empty>조건에 맞는 Process Map이 없습니다.</td></tr>`;
   return rows.map(r => `<tr data-pm-row="${escapeXmlAttr(r.id)}" style="cursor:pointer;" data-on-click="openProcessMapInNewTab" data-a-click="${pcsArgs([String(r.id)])}">
       <td><span class="dash-row-info" title="${r.favorite?'즐겨찾기 해제':'즐겨찾기'}" aria-label="${r.favorite?'즐겨찾기 해제':'즐겨찾기'}" data-pm-fav="${escapeXmlAttr(r.id)}" data-on-click="stopPropagation_557922" data-a-click="${pcsArgs([String(r.id)])}">${icon(r.favorite?'starFilled':'star')}</span></td>
       <td class="cell-mono">${escapeXml(r.code)}</td><td style="font-weight:600;">${escapeXml(r.name)}</td><td>${escapeXml(r.client||'-')}</td><td>${escapeXml(r.product||'-')}</td>
-      <td>${escapeXml(r.kind||'-')}</td><td class="cell-mono">${r.uoCount}</td><td class="cell-mono">${escapeXml(r.version||'-')}</td>
+      <td>${escapeXml(r.kind||'-')}</td><td class="cell-mono">${r.uoCount}</td><td class="cell-mono" data-pm-yield="${escapeXmlAttr(r.id)}" title="${r.mbSteps ? `Mass Balance Step ${r.mbSteps}개` : 'Mass Balance Step 없음'}">${r.yieldS != null ? r.yieldS + '%' : '–'} / ${r.yieldR != null ? r.yieldR + '%' : '–'}</td><td class="cell-mono">${escapeXml(r.version||'-')}</td>
       <td><span class="badge ${PM_APPROVAL_BADGE[r.status]||'badge-gray'}"><span class="badge-dot"></span>${escapeXml(r.status)}</span></td>
     </tr>`).join('');
 }
@@ -6226,6 +6241,7 @@ function renderProcessMap(){
         <button class="btn" data-on-click="openPmApprovalHistory" data-a-click="${pcsArgs([String(pm.id)])}"><span>${icon('history')}</span>버전 기록 (${pm.version})</button>
         <button class="btn ${pm.status==='Approved'?'btn-primary':''}" id="pmPcsReportBtn" ${pcsOn('click','openPcsReport',[pm.id])} title="${pm.status==='Approved'?'승인본 PCS Report':'승인 전 작업본(Draft / In Approval)으로 열립니다'}"><span>${icon('fileText')}</span>${pm.status==='Approved'?'Export PCS Report':'PCS Report (작업본)'}</button>
         <button class="btn ${pm.status==='Approved'?'btn-primary':''}" id="pmBomReportBtn" ${pcsOn('click','openBomReport',[pm.id])} title="${pm.status==='Approved'?'승인본 BOM Report':'승인 전 작업본(Draft / In Approval)으로 열립니다'}"><span>${icon('flask')}</span>${pm.status==='Approved'?'Export BOM Report':'BOM Report (작업본)'}</button>
+        <button class="btn" id="pmMbBtn" ${pcsOn('click','openMassBalance',[pm.id])} title="이 Process Map의 Mass Balance — Step별 투입·회수·수율, Sending/Receiving 비교"><span>⚖</span>Mass Balance${pmCumYieldBadge(pm.id)}</button>
         ${renderPmApprovalActions(pm)}
       </div></div>
     <div class="pm-meta-grid"><div class="pm-meta-cell"><div class="pm-meta-label">Product Code</div><div class="pm-meta-val">${escapeXml(product.code)}</div></div><div class="pm-meta-cell"><div class="pm-meta-label">Reviewed by</div><div class="pm-meta-val">${escapeXml(pm.reviewedBy)}</div></div><div class="pm-meta-cell"><div class="pm-meta-label">Approved by</div><div class="pm-meta-val">${escapeXml(pm.approvedBy)}</div></div><div class="pm-meta-cell"><div class="pm-meta-label">버전</div><div class="pm-meta-val">${pm.version}</div></div></div>
@@ -7934,7 +7950,7 @@ function pmNodeExportInfo(r){
   const nm = (t, id) => { const m = getMasterItem(t, id); return m ? m.name : id; };
   return {
     ...note,
-    status: `${uoStatusOf(r.id)} v${uoVersionOf(r.id)}`,
+    status: `${uoStatusOf(r.id)} v${uoVersionOf(r.id)}${uoOwnerText(r.node) ? ' · ' + uoOwnerText(r.node) : ''}`,
     equipment: (b.equipment || []).map(id => { const e = getMasterItem('equipment', id); return e ? `${e.name}${e.tag ? ' (' + e.tag + ')' : ''}` : id; }),
     material: (b.material || []).map(id => nm('material', id)),
     parameter: (b.parameter || []).map(id => { const p = getMasterItem('parameter', id); return p ? pmParamExportText(p) : id; }),
@@ -8482,6 +8498,7 @@ function pmKanbanCardHtml(r, editable, cols){
   return `<div class="pm-kb-card status-${st.replace(/\s+/g, '-').toLowerCase()}" data-kb-card="${escapeXmlAttr(id)}" ${editable ? 'draggable="true"' : ''}>
     <div class="pm-kb-card-top"><span class="pm-kb-num">${escapeXml(r.number)}</span>${uoBadge(st)}<span class="pm-kb-ver">v${ver}</span></div>
     <button class="pm-kb-name" data-kb-open="${escapeXmlAttr(id)}" aria-label="${escapeXmlAttr((r.number || '') + ' ' + n.name + ' — ' + st + ', 패널 열기')}">${escapeXml(n.name)}</button>
+    <div class="pm-kb-owner" data-kb-owner>${uoOwnerText(n) ? `담당 ${escapeXml(uoOwnerText(n))}` : '<span class="pm-kb-noowner">담당 미지정</span>'}</div>
     <div class="pm-kb-meta">${last ? `최근: ${escapeXml(last.status)} · ${escapeXml(last.by || '')}` : '승인 이력 없음'}${steps ? ` · 하위 단계 ${steps}` : ''}</div>
     ${pkg ? `<div class="pm-kb-pkg" title="진행 중 결재 묶음">${icon('layers')} ${escapeXml(pkg.no)} ${escapeXml(pkg.title || '')}</div>` : ''}
     ${move}
@@ -8606,7 +8623,8 @@ function pmImageMenuHtml(pm){
     <div class="pm-layout-head">맵 내보내기 (보이는 그대로 — 접힌 가지 제외)</div>
     <button class="pm-image-opt" id="pmExportPng" data-on-click="pmExportImage" data-a-click="${pcsArgs([pm.id, 'png'])}">${icon('image')} PNG 이미지</button>
     <button class="pm-image-opt" id="pmExportSvg" data-on-click="pmExportImage" data-a-click="${pcsArgs([pm.id, 'svg'])}">${icon('penTool')} SVG (벡터)</button>
-    <button class="pm-image-opt" id="pmExportPdf" data-on-click="pmExportImage" data-a-click="${pcsArgs([pm.id, 'pdf'])}">${icon('fileText')} PDF (A3 가로 한 쪽)</button>
+    <button class="pm-image-opt" id="pmExportPdfVector" data-on-click="pmExportImage" data-a-click="${pcsArgs([pm.id, 'pdfv'])}">${icon('fileText')} PDF 벡터 (인쇄 창 → PDF로 저장 · 글자 선택·검색)</button>
+    <button class="pm-image-opt" id="pmExportPdf" data-on-click="pmExportImage" data-a-click="${pcsArgs([pm.id, 'pdf'])}">${icon('fileText')} PDF 이미지 (A3 가로 한 쪽, 바로 내려받기)</button>
   </div>`;
 }
 /* 지금 그린 캔버스(배율 1)를 독립 SVG 문자열로 — 선택·+ 단추·미리보기 선은 빼고, Process Map 화면 스타일만 담는다 */
@@ -8644,7 +8662,8 @@ async function pmExportImage(pmId, format){
   if(!out) return;
   const base = pmExportFileName(pm, 'x').replace(/_structure\.x$/, '_map');
   try {
-    if(format === 'svg') pfdDownloadBlob(new Blob([out.svg], { type: 'image/svg+xml' }), `${base}.svg`);
+    if(format === 'pdfv'){ if(!pmOpenVectorPrint(pm, out)) throw new Error('새 창이 막혔습니다 — 팝업을 허용해 주세요'); }
+    else if(format === 'svg') pfdDownloadBlob(new Blob([out.svg], { type: 'image/svg+xml' }), `${base}.svg`);
     else if(format === 'png'){ const r = await pfdSvgToRaster(out.svg, out.w, out.h, 2, 'image/png'); pfdDownloadBlob(r.blob, `${base}.png`); }
     else {
       const r = await pfdSvgToRaster(out.svg, out.w, out.h, 2, 'image/jpeg');
@@ -8653,6 +8672,23 @@ async function pmExportImage(pmId, format){
     }
     logAudit('Process Map', 'Export Map Image', `${pm.code} 맵 .${format}`, null, null, { pmId });
   } catch(e){ uiToast(`내보내기 실패: ${e.message}`, { kind: 'error' }); }
+}
+
+/* v121 벡터 PDF: 맵 SVG만 담은 인쇄용 창을 열어 브라우저 인쇄(대상: PDF로 저장)를 부른다 — 선·글자가 벡터로 남는다(라이브러리 없이 한글 글꼴을 PDF에 넣을 수 없어서) */
+function pmVectorPrintHtml(pm, out){
+  const landscape = out.w >= out.h;
+  return `<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>${escapeXml(pm.code + ' ' + pm.name)} — Process Map</title>
+<style>@page{size:A3 ${landscape ? 'landscape' : 'portrait'}; margin:10mm;} html,body{margin:0;background:#fff;font-family:Pretendard,'Malgun Gothic',Arial,sans-serif;}
+.h{font-size:12px;color:#555;margin:0 0 6px;} svg{width:100%;height:auto;max-height:${landscape ? '255mm' : '380mm'};display:block;}</style></head>
+<body><p class="h">${escapeXml(pm.code)} ${escapeXml(pm.name)} · ${escapeXml(pm.status)} ${escapeXml(pm.version || '')} · ${escapeXml(new Date().toISOString().slice(0, 10))}</p>${out.svg}</body></html>`;
+}
+function pmOpenVectorPrint(pm, out){
+  const w = window.open('', '_blank');
+  if(!w) return false;
+  w.document.open(); w.document.write(pmVectorPrintHtml(pm, out)); w.document.close();
+  STATE.pmLastVectorPrint = { pmId: pm.id, at: Date.now() };
+  setTimeout(() => { try { w.focus(); w.print(); } catch(_){} }, 300);
+  return true;
 }
 
 /* 배치 장식: 표 줄 띠(단계 이름은 노드가 맡는다)·공정 흐름 순서 화살표 */
@@ -8961,7 +8997,8 @@ function pmReportNodeInfoHtml(node, editable){
   const tags = (node.tags || []).map(t => `<span class="pm-ol-tag">#${escapeXml(t)}</span>`).join(' ');
   return `${!editable && String(node.description || '').trim() ? `<div class="pcs-rich" data-report-desc>${pmRichTextHtml(node.description)}</div>` : ''}
     ${links ? `<div class="pcs-uo-row" data-report-links><span class="pcs-uo-label">관련 문서·링크</span><span style="font-size:11.5px;">${links}</span></div>` : ''}
-    ${tags ? `<div class="pcs-uo-row" data-report-tags><span class="pcs-uo-label">태그</span><span>${tags}</span></div>` : ''}`;
+    ${tags ? `<div class="pcs-uo-row" data-report-tags><span class="pcs-uo-label">태그</span><span>${tags}</span></div>` : ''}
+    ${uoOwnerText(node) ? `<div class="pcs-uo-row" data-report-owner><span class="pcs-uo-label">담당</span><span style="font-size:11.5px;">${escapeXml(uoOwnerText(node))}</span></div>` : ''}`;
 }
 
 /* ---------- 관계선 팝업(모양·굵기·화살표·색·글) ---------- */
@@ -9089,13 +9126,14 @@ function pmRevertStructure(pmId, pointId){
   // 1) 그 사이 지운 노드를 같은 ID의 빈 Draft로(부모 먼저)
   const want = new Map(p.tree.map(n => [n.id, n]));
   const pending = plan.create.slice();
-  let guard = 0;
+  let guard = 0, restored = 0;
   while(pending.length && guard++ < 1000){
     const i = pending.findIndex(n => !n.parentId || DATA.nodes.some(x => x.id === n.parentId));
     if(i < 0) break;
     const n = pending.splice(i, 1)[0];
     store.addNode({ id: n.id, pmId, parentId: n.parentId || null, name: n.name, order: n.order, hasContent: false, x: 80, y: 150, ...(n.kind !== 'uo' ? { kind: n.kind } : {}) });
     ensureNodeMeta(n.id);
+    if(pmTrashRestore(pmId, n.id)) restored++;   // v121: 지울 때 보관한 내용(PFD·리스트·WI·Mass Balance·소요량 규칙)
   }
   // 2) 이름·종류·부모·순서
   DATA.nodes.filter(n => n.pmId === pmId && want.has(n.id)).forEach(n => {
@@ -9109,7 +9147,8 @@ function pmRevertStructure(pmId, pointId){
   logAudit('Process Map', 'Revert Structure', `${p.at} "${p.action}" 시점으로 — 추가 ${plan.create.length}·삭제 ${plan.remove.length}·이동 ${plan.move.length}·이름 ${plan.rename.length}·종류 ${plan.kind.length}·순서 ${plan.reorder.length}`, null, pointId, { pmId });
   pmStructRecord(pmId, `되돌림 → ${p.at} (${p.action})`);
   validateData(DATA);
-  return { ok: true, msg: plan.create.length ? `다시 만든 ${plan.create.length}개 노드는 빈 Draft입니다(도면·리스트는 돌아오지 않습니다).` : '' };
+  const empty = plan.create.length - restored;
+  return { ok: true, restored, msg: plan.create.length ? `다시 만든 ${plan.create.length}개 노드 중 ${restored}개는 지울 때 보관한 내용(PFD·리스트·WI·Mass Balance)까지 돌려놓았습니다${empty ? `, ${empty}개는 보관된 내용이 없어 빈 Draft입니다` : ''}. 모두 Draft로 다시 승인받아야 합니다.` : '' };
 }
 
 /* ---------- 화면: 구조 이력 창 ---------- */
@@ -9197,6 +9236,88 @@ function pcsToggleCursorShare(){
   if(typeof pcsPresence !== 'undefined' && pcsPresence){ pcsPresence.cursor = null; pcsPresence.lastSel = ''; if(pcsPresence.on) pcsPresenceSend(true); }
   uiToast(on ? '내 커서 공유를 켰습니다' : '내 커서 공유를 껐습니다 — 다른 사람에게 내 마우스 위치와 선택한 도형이 보이지 않습니다');
   render();
+}
+
+/* ======================= v121 지운 UO 내용 보관(휴지통) =======================
+   UO를 지우면(pmDeleteNodes) 그 UO의 PFD 도면·리스트·WI·Mass Balance Step·소요량 규칙·전달을 DATA.pmTrash[pmId][nodeId]에 보관한다.
+   구조 되돌리기로 같은 ID가 다시 생기면 보관한 내용을 그대로 돌려놓고 보관함에서 뺀다(Draft로 — 승인 기록이 있는 UO는 애초에 지울 수 없다).
+   Process Map마다 최근 PM_TRASH_MAX개. 감사 기록은 따로 그대로 남는다. */
+var PM_TRASH_MAX = 100;
+/* [store 내부 — pmDeleteNodes가 지우기 전에 부른다] */
+function pmTrashCapture(pmId, ids){
+  const set = new Set(ids);
+  const nodes = DATA.nodes.filter(n => set.has(n.id));
+  if(!nodes.length) return 0;
+  if(!DATA.pmTrash) DATA.pmTrash = {};
+  const box = DATA.pmTrash[pmId] = DATA.pmTrash[pmId] || {};
+  const at = new Date().toISOString().slice(0, 19).replace('T', ' '), by = uoActor();
+  const clone = v => v === undefined ? undefined : JSON.parse(JSON.stringify(v));
+  nodes.forEach(n => {
+    const scoped = {};
+    PFD_NODE_SCOPED.concat(['nodeMeta']).forEach(k => { if(DATA[k] && DATA[k][n.id] !== undefined) scoped[k] = clone(DATA[k][n.id]); });
+    const mb = (DATA.massBalance && DATA.massBalance[pmId]) || null;
+    box[n.id] = {
+      at, by, node: clone(n), scoped,
+      streams: mb ? clone(mb.streams.filter(s => s.nodeId === n.id)) : [],
+      bomRules: clone((DATA.bomRules || {})[n.id]) || null,
+      transfers: clone((DATA.pfdTransfers || []).filter(t => t.fromNodeId === n.id || t.toNodeId === n.id)),
+    };
+  });
+  const keys = Object.keys(box).sort((a, b) => box[a].at < box[b].at ? -1 : 1);
+  while(keys.length > PM_TRASH_MAX) delete box[keys.shift()];
+  return nodes.length;
+}
+/* [store 내부 — pmRevertStructure가 노드를 다시 만든 뒤] 보관한 내용 돌려놓기. 반환 true면 돌려놓음 */
+function pmTrashRestore(pmId, nodeId){
+  const box = DATA.pmTrash && DATA.pmTrash[pmId];
+  const t = box && box[nodeId];
+  const n = DATA.nodes.find(x => x.id === nodeId);
+  if(!t || !n) return false;
+  const keep = { id: n.id, pmId: n.pmId, parentId: n.parentId, order: n.order, name: n.name, kind: n.kind };
+  Object.keys(t.node).forEach(k => { if(!(k in keep)) n[k] = t.node[k]; });
+  Object.assign(n, uoResetFields());   // 다시 살린 UO는 Draft v0(승인 기록 없이)
+  if(keep.kind === undefined) delete n.kind;
+  Object.entries(t.scoped || {}).forEach(([k, v]) => { if(!DATA[k]) DATA[k] = {}; DATA[k][nodeId] = v; });
+  if(t.streams && t.streams.length){ const mb = ensureMb(pmId); t.streams.forEach(s => { if(!mb.streams.some(x => x.id === s.id)) mb.streams.push(s); }); }
+  if(t.bomRules){ if(!DATA.bomRules) DATA.bomRules = {}; DATA.bomRules[nodeId] = t.bomRules; }
+  (t.transfers || []).forEach(tr => { const other = tr.fromNodeId === nodeId ? tr.toNodeId : tr.fromNodeId; if(DATA.nodes.some(x => x.id === other) && !(DATA.pfdTransfers || []).some(x => x.id === tr.id)) (DATA.pfdTransfers = DATA.pfdTransfers || []).push(tr); });
+  delete box[nodeId];
+  return true;
+}
+
+/* ======================= v121 UO 담당자(작성자·검토자) =======================
+   승인 내용이 아니라 업무 배정 정보 — 상태와 상관없이 바꾸고 감사 기록이 남는다. 칸반 카드·UO 패널·PCS Report·Markdown에 나온다. */
+var UO_OWNER_ROLES = [['author', '작성자'], ['reviewer', '검토자']];
+function uoOwnersOf(n){ return (n && n.owners) || {}; }
+function uoOwnerText(n){ const o = uoOwnersOf(n); return UO_OWNER_ROLES.filter(([k]) => o[k]).map(([k, l]) => `${l} ${o[k]}`).join(' · '); }
+/* [store] */
+function pmSetUoOwner(nodeId, role, name){
+  const n = DATA.nodes.find(x => x.id === nodeId);
+  if(!n || !UO_OWNER_ROLES.some(([k]) => k === role) || pmNodeKind(n) !== 'uo') return false;
+  const v = String(name || '').trim().slice(0, 40);
+  const old = uoOwnersOf(n)[role] || '';
+  if(old === v) return false;
+  const o = Object.assign({}, n.owners || {});
+  if(v) o[role] = v; else delete o[role];
+  if(Object.keys(o).length) n.owners = o; else delete n.owners;
+  logAudit('Unit Operation', 'Set Owner', `${n.name}: ${UO_OWNER_ROLES.find(([k]) => k === role)[1]} ${v || '(비움)'}`, old || null, v || null, { nodeId, pmId: n.pmId });
+  validateData(DATA);
+  return true;
+}
+function pmSetUoOwnerUi(nodeId, role, v){ if(pmSetUoOwner(nodeId, role, v)){ pmKeepCanvasScroll(); render(); } }
+/* 고를 사람 목록: 로그인 ID·승인 이력·감사 기록에 나온 이름 */
+function uoOwnerCandidates(){
+  const s = new Set();
+  if(STATE.auth && STATE.auth.id) s.add(STATE.auth.id);
+  DATA.nodes.forEach(n => { (n.uoHistory || []).forEach(h => h.by && s.add(h.by)); Object.values(n.owners || {}).forEach(v => s.add(v)); });
+  (DATA.auditTrail || []).slice(-300).forEach(a => a.userId && a.userId !== 'system' && s.add(a.userId));
+  return [...s].sort();
+}
+function uoOwnerFieldsHtml(node){
+  const o = uoOwnersOf(node);
+  return `<div class="pm-note-label">담당 <span style="font-weight:400; color:var(--ink-400);">(업무 배정 — 승인 후에도 바꿀 수 있음)</span></div>
+    <div class="uo-owner-row" data-uo-owners>${UO_OWNER_ROLES.map(([k, l]) => `<label class="uo-owner-field"><span>${l}</span><input class="inline-input" list="uoOwnerList" data-owner-role="${k}" value="${escapeXmlAttr(o[k] || '')}" placeholder="이름" aria-label="${l}" ${pcsOn('change', 'pcsCallWithValue', ['pmSetUoOwnerUi', node.id, k])}></label>`).join('')}
+      <datalist id="uoOwnerList">${uoOwnerCandidates().map(x => `<option value="${escapeXmlAttr(x)}">`).join('')}</datalist></div>`;
 }
 /* ============================================================================
    07i_pm_canvas.js — v120  Process Map 무한 캔버스(PFD 보드처럼)
@@ -9683,6 +9804,7 @@ function renderPmPanelMenu(node){
       <h3 style="margin:0 0 4px;">${escapeXml(node.name)}</h3>
     </div>
     ${renderUoApprovalCard(node)}
+    ${uoOwnerFieldsHtml(node)}
     <div class="pm-note-label">이름</div>
     <div style="display:flex; gap:6px; margin-bottom:14px;">
       <input class="inline-input" aria-label="Unit Operation 이름" value="${escapeXmlAttr(node.name)}" ${uoEditable(node.id)?'':'disabled'} data-on-change="updateProcessNode_c97ef1" data-a-change="${pcsArgs([String(node.id)])}">
@@ -21270,64 +21392,16 @@ function mbRenderComparisonTable(pmId){
 /* ════════════════════════════════════════
    MAIN VIEWS
    ════════════════════════════════════════ */
-function renderMassBalanceList(){
-  const pmList=DATA.processMaps.filter(m=>!m._virtual);
-  return `
-    <div class="view-head">
-      <div>
-        <span class="view-eyebrow">MASS BALANCE</span>
-        <h1 class="view-title">Mass Balance</h1>
-        <p class="view-sub">기술이전 Mass Balance — Sending/Receiving Site 비교, Step/Cumulative Yield 자동 계산, SharePoint Excel 실시간 연동</p>
-      </div>
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;max-width:1100px;">
-      ${pmList.map(pm=>{
-        const mb=DATA.massBalance[pm.id]; const rt=MB_RUNTIME[pm.id];
-        const cnt=mb?mb.streams.length:0;
-        const mapped=mb?mb.streams.filter(s=>s.pfdMappings&&s.pfdMappings.length).length:0;
-        const cumS=mb&&mb.streams.length?mbCalcCumYield(mbOrderedStreams(pm.id),'s_').filter(v=>v!==null).pop():null;
-        const cumR=mb&&mb.streams.length?mbCalcCumYield(mbOrderedStreams(pm.id),'r_').filter(v=>v!==null).pop():null;
-        return `
-        <div class="card" style="padding:20px;cursor:pointer;transition:box-shadow .15s;"
-          data-on-mouseover="rgba_390f21"
-          data-on-mouseout="mouseout_350455" data-on-click="mbOpenEdit" data-a-click="${pcsArgs([String(pm.id)])}">
-          <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
-            <div style="width:42px;height:42px;border-radius:10px;background:#E6F7F2;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">📊</div>
-            <div style="min-width:0;">
-              <div style="font-size:14px;font-weight:700;color:var(--burgundy-900);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeXml(pm.name)}</div>
-              <div style="font-size:11px;color:var(--ink-500);">${escapeXml(pm.code)} · ${pm.kind||''}</div>
-            </div>
-          </div>
-          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
-            <span class="badge ${mb&&mb.sharepointUrl?'badge-green':'badge-gray'}"><span class="badge-dot"></span>${mb&&mb.sharepointUrl?'SharePoint 연동':'URL 미설정'}</span>
-            <span class="badge ${rt?'badge-blue':'badge-gray'}"><span class="badge-dot"></span>${rt?'Excel 로드됨':'파일 없음'}</span>
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;">
-            <div style="background:#E3F2FD;border-radius:7px;padding:8px 10px;">
-              <div style="font-size:9px;color:#1565C0;font-weight:700;margin-bottom:2px;">SENDING</div>
-              <div style="font-size:15px;font-weight:800;color:#1565C0;font-family:'IBM Plex Mono',monospace;">${cumS!==null?cumS+'%':'–'}</div>
-              <div style="font-size:9px;color:var(--ink-400);">Cumulative Yield</div>
-            </div>
-            <div style="background:#F3E5F5;border-radius:7px;padding:8px 10px;">
-              <div style="font-size:9px;color:#6A1B9A;font-weight:700;margin-bottom:2px;">RECEIVING</div>
-              <div style="font-size:15px;font-weight:800;color:#6A1B9A;font-family:'IBM Plex Mono',monospace;">${cumR!==null?cumR+'%':'–'}</div>
-              <div style="font-size:9px;color:var(--ink-400);">Cumulative Yield</div>
-            </div>
-          </div>
-          <div style="font-size:11px;color:var(--ink-500);margin-top:8px;">
-            Step ${cnt}개 · PFD 연동 ${mapped}개
-            ${mb&&mb.lastSynced?`<span style="color:var(--ink-400);"> · ${mb.lastSynced}</span>`:''}
-          </div>
-        </div>`;
-      }).join('')}
-    </div>`;
+/* v121: Mass Balance는 Process Map 하나에 하나 — PCS Report·BOM Report처럼 Process Map(또는 PFD 편집기·UO 패널)에서 연다 */
+function openMassBalance(pmId){
+  goTo('massBalanceEdit', { mbPmId: pmId }, { label:'Mass Balance', tag:'MB' });
 }
-
-function mbOpenEdit(pmId){
-  const tab=getActiveTab();
-  tab.path=[{view:'massBalanceList',label:'Mass Balance',tag:'MB'},{view:'massBalanceEdit',label:'편집',tag:'MB'}];
-  tab.ctx={...tab.ctx,navKey:'massBalance',mbPmId:pmId};
-  render();
+function mbOpenEdit(pmId){ openMassBalance(pmId); }
+/* Process Map으로 — 그 Process Map 탭 안에서 연 Mass Balance면 탭의 경로를 Process Map까지 되돌린다 */
+function mbBackToPm(pmId){
+  openProcessMapInNewTab(pmId);
+  const t = getActiveTab(), i = t.path.findIndex(p => p.view === 'processMap');
+  if(i >= 0 && i < t.path.length - 1){ t.path = t.path.slice(0, i + 1); render(); }
 }
 
 /* v103: 244줄이던 화면 함수를 구역별로 나눴다(상단 연동·Scale Factor·Step 표) */
@@ -21349,7 +21423,7 @@ function renderMassBalanceEdit(){
         <p class="view-sub">기술이전 Mass Balance — Sending/Receiving 비교 · Step & Cumulative Yield 자동 계산 · Excel 셀 연동 · PFD Arrow 잠금</p>
       </div>
       <div class="view-actions">
-        <button class="btn" data-on-click="mbGoList">${icon('close')} 목록으로</button>
+        <button class="btn" id="mbOpenPmBtn" ${pcsOn('click','mbBackToPm',[pm.id])}>${icon('workflow')} Process Map 열기</button>
       </div>
     </div>
     ${topArea}
@@ -21595,24 +21669,7 @@ function mbAddStream(pmId){
   mbCreateStream(pmId);   // v99: store 함수(감사 기록·검증)
   render();
 }
-function mbGoList(){
-  const tab=getActiveTab();
-  tab.path=[{view:'massBalanceList',label:'Mass Balance',tag:'MB'}];
-  render();
-}
-function openMassBalanceFromPfd(pmId){
-  const existing=STATE.tabs.find(t=>t.ctx&&t.ctx.navKey==='massBalance');
-  if(existing){
-    existing.ctx.mbPmId=pmId;
-    existing.path=[{view:'massBalanceList',label:'Mass Balance',tag:'MB'},{view:'massBalanceEdit',label:'편집',tag:'MB'}];
-    switchTab(existing.id); return;
-  }
-  const tabId='tab_mb_'+Date.now().toString(36);
-  STATE.tabs.push({id:tabId,title:'Mass Balance',
-    path:[{view:'massBalanceList',label:'Mass Balance',tag:'MB'},{view:'massBalanceEdit',label:'편집',tag:'MB'}],
-    ctx:{navKey:'massBalance',mbPmId:pmId},isEditingList:false,isEditingProcessMap:false});
-  STATE.activeTabId=tabId; render();
-}
+function openMassBalanceFromPfd(pmId){ openMassBalance(pmId); }
 
 /* ── SheetJS CDN ── */
 (function loadSheetJs(){
@@ -21910,6 +21967,20 @@ function mbMigrateStreamOwners(data){
 }
 
 /* ---------- 데이터 접근 ---------- */
+/* v121 순수: data의 Process Map 하나 → 누적 수율 { s, r, steps } (UO 흐름 순서 → UO 안 Step 순서, 마지막으로 계산되는 값) */
+function mbCumYieldOf(data, pmId){
+  const streams = (((data.massBalance || {})[pmId] || {}).streams) || [];
+  if(!streams.length) return { s: null, r: null, steps: 0 };
+  const nodes = (data.nodes || []).filter(n => n.pmId === pmId).sort((a, b) => (a.order || 0) - (b.order || 0));
+  const ordered = mbPmLayout(pmTreeRows(nodes), streams).filter(x => x.type === 'step').map(x => x.stream);
+  const last = pfx => { const v = mbCalcCumYield(ordered, pfx).filter(x => x !== null); return v.length ? v[v.length - 1] : null; };
+  return { s: last('s_'), r: last('r_'), steps: streams.length };
+}
+/* Process Map 머리 Mass Balance 단추 옆 작은 누적 수율 */
+function pmCumYieldBadge(pmId){
+  const c = mbCumYieldOf(DATA, pmId);
+  return c.steps ? ` <span class="mb-btn-yield" data-mb-btn-yield>${c.s != null ? c.s + '%' : `Step ${c.steps}`}</span>` : '';
+}
 function mbOrderedStreams(pmId){
   const lay = mbPmLayout(pmTreeRows(getPmTreeNodes(pmId)), ensureMb(pmId).streams);
   return lay.filter(x => x.type === 'step').map(x => x.stream);
@@ -29914,6 +29985,7 @@ function pmDeleteNodes(pmId, ids){
   const set = new Set(ids);
   const gone = DATA.nodes.filter(n=>set.has(n.id));
   if(!gone.length) return 0;
+  pmTrashCapture(pmId, ids);   // v121: 지운 UO 내용 보관(구조 되돌리기 때 복원)
   store.removeNodes([...set]);
   PFD_NODE_SCOPED.forEach(k=>{ if(DATA[k]) set.forEach(id=>{ delete DATA[k][id]; }); });
   if(DATA.pmFlowEdges && DATA.pmFlowEdges[pmId]) DATA.pmFlowEdges[pmId] = DATA.pmFlowEdges[pmId].filter(e=>!set.has(e.from) && !set.has(e.to));
@@ -31371,7 +31443,9 @@ const PCS_CALLABLE = new Set([
   'mbAddStream',
   'mbClearCell',
   'mbConfirmRemoveStream',
-  'mbGoList',
+  'openMassBalance',
+  'mbBackToPm',
+  'pmSetUoOwnerUi',
   'mbOpenEdit',
   'mbSelectCell',
   'mbUiSetting',
