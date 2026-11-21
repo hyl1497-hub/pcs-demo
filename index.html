@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="pcs-api-base" content="">
 <meta name="pcs-firebase" content="{&quot;apiKey&quot;:&quot;AIzaSyASB4CKv15IwJUp8pIVKXFtOYwKlY7y1es&quot;,&quot;databaseURL&quot;:&quot;https://pcs-demo-18101-default-rtdb.asia-southeast1.firebasedatabase.app&quot;}">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-xu9hBNZCDztySoIz2Hdyy3XVM7EiX3Tk+nVZ4YaGT1Y=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-Zo2X1MCJaJlQWdskBH8G/nJYYN4XGrk7lfzrjUyHvg4=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'none'">
 <title>PCS Platform · Process Control System</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -5044,14 +5044,19 @@ function render(){
 /* -------- DASHBOARD -------- */
 /* ============================================================================
    05b_release_notes.js — v111  앱 버전과 "이번 버전에서 바뀐 점"
-   · PCS_APP_VERSION은 build.sh가 빌드 번호로 바꿔 넣는다(v128 자리).
+   · PCS_APP_VERSION은 build.sh가 빌드 번호로 바꿔 넣는다(v129 자리).
    · PCS_RELEASE_NOTES 맨 앞 항목은 항상 이번 빌드 버전이어야 한다(tests/unit/release-notes.test.cjs가 검사).
      버전을 올릴 때 여기 맨 앞에 한 항목을 넣는다. 테스트하는 사람이 무엇을 눌러 보면 되는지(try)를 같이 쓴다.
    · 오른쪽 위 사용자 메뉴 → "버전 vN · 바뀐 점" 으로 열고, 새 버전으로 처음 열면 알림을 한 번 띄운다.
    ========================================================================== */
-var PCS_APP_VERSION = 'v128';
+var PCS_APP_VERSION = 'v129';
 
 const PCS_RELEASE_NOTES = [
+  { version: 'v129', date: '2026-11-21', title: 'Process Map 노드 이름이 박스 위로 밀리던 것 고침',
+    items: [
+      'Unit Operation 이름이 두 줄이면(예: 1st Chromatography (ProA)) 첫 줄이 박스 위로 삐져나왔습니다. 이제 이름은 박스 위쪽과 배지 줄(P·E·M…) 사이 가운데에 놓입니다. 한 줄 이름도 같은 자리 가운데로 옵니다.',
+    ],
+    try: ['참고 PCS Process Map에서 2nd Chromatography (MMC) 등 두 줄 이름 노드'] },
   { version: 'v128', date: '2026-11-21', title: '저장된 데이터에 없는 새 버전 예시 가져오기 (DW-TOZ-10 시나리오 등)',
     items: [
       '저장된 데이터(공유 DB·브라우저)가 있으면 그 데이터가 기본 예시를 대신합니다. 그래서 저장본을 만든 뒤 추가된 예시(v122~v127: Mass Balance 계산식·회수 탱크·Titer 10 g/L 시나리오 PCS)는 보이지 않았습니다.',
@@ -10505,6 +10510,13 @@ const PM_DEPTH_COLORS = [
 ];
 function pmNodeFill(n, nodeDepth){ return n.hasContent ? '#FBD9DC' : PM_DEPTH_COLORS[Math.min(nodeDepth[n.id]||0, PM_DEPTH_COLORS.length-1)].fill; }
 function pmNodeStroke(n, nodeDepth){ return n.hasContent ? '#DDBCC0' : PM_DEPTH_COLORS[Math.min(nodeDepth[n.id]||0, PM_DEPTH_COLORS.length-1)].stroke; }
+/* v129: UO 노드 이름의 첫 줄 기준선 — 위쪽(0)과 배지 줄 사이(0 ~ PM_NODE_H-20) 가운데에 이름 묶음을 둔다.
+   전에는 14 - (줄 수-1)×8이라 두 줄이면 첫 줄이 박스 위로 삐져나왔다(13px 글자, 기준선 6). 순수 함수. */
+function pmUoLabelY0(lineCount){
+  const n = Math.max(1, lineCount || 1), lineH = 15, fontPx = 13, ascent = 10;
+  const mid = (PM_NODE_H - 20) / 2;   // 배지 줄(PM_NODE_H-20 ~ PM_NODE_H-5) 위 칸의 가운데
+  return Math.round(mid - (fontPx + (n - 1) * lineH) / 2 + ascent);
+}
 /* 일반 노드들 */
 function pmNodesSvg(nodes, nodeDepth, selectedId, isEditing, rowById, collapsed, multiSel){
   const rows = rowById || {}, col = collapsed || new Set(), multi = multiSel || new Set();
@@ -10535,7 +10547,7 @@ function pmNodesSvg(nodes, nodeDepth, selectedId, isEditing, rowById, collapsed,
     }
     const isReparentTarget = pmDrag && pmDrag.reparentTargetId===n.id;
     const labelLines = wrapLabel(n.name, 20);
-    const labelY0 = 14 - (labelLines.length-1)*8;
+    const labelY0 = pmUoLabelY0(labelLines.length);
     const labelSvg = labelLines.map((line,i)=>`<text class="pm-node-label" x="${PM_NODE_W/2}" y="${labelY0 + i*15}" text-anchor="middle" fill="#2A0810">${escapeXml(line)}</text>`).join('');
     const flowHandles = (isEditing && isSelected) ? `
       <circle class="pm-flow-handle" data-flow-handle="${n.id}" data-side="left" cx="0" cy="${PM_NODE_H/2}" r="6"/>
