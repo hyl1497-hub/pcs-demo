@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="pcs-api-base" content="">
 <meta name="pcs-firebase" content="{&quot;apiKey&quot;:&quot;AIzaSyASB4CKv15IwJUp8pIVKXFtOYwKlY7y1es&quot;,&quot;databaseURL&quot;:&quot;https://pcs-demo-18101-default-rtdb.asia-southeast1.firebasedatabase.app&quot;}">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-YGhZswrfCDg3zK7zZ1s0owysRcHNN5GV+8CGBEnI+Vs=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-Rm7G8E70P56OUQh99d5oMomA5aEBQqijA6b5yqlDiT4=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'none'">
 <title>PCS Platform · Process Control System</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -734,6 +734,9 @@ button:focus-visible, .crumb:focus-visible, [tabindex]:focus-visible, input:focu
 .uo-strip{border:1px solid var(--line); border-radius:12px; background:#fff; padding:8px 12px; margin-bottom:10px;}
 .uo-strip .ap-strip{margin:0 0 0 auto; padding:0; border:0;}
 .uo-strip-warn{font-size:11px; font-weight:800; color:#9A5B00; background:#FFF4E5; border-radius:10px; padding:1px 8px;}
+.uo-alert-actions{display:inline-flex; gap:6px; margin-left:8px; vertical-align:middle;}
+.uo-alert-actions .btn{padding:1px 8px; font-size:11px;}
+.uo-cause{color:#7A4E08;}
 .uo-strip-toggle{border:0; background:none; color:#2F6FB5; font-size:11.5px; font-weight:700; cursor:pointer; padding:2px 4px; font-family:inherit;}
 .uo-strip-head{display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--ink-700); flex-wrap:wrap;}
 .uo-strip-head b{color:var(--burgundy-900);}
@@ -5011,14 +5014,23 @@ function render(){
 /* -------- DASHBOARD -------- */
 /* ============================================================================
    05b_release_notes.js — v111  앱 버전과 "이번 버전에서 바뀐 점"
-   · PCS_APP_VERSION은 build.sh가 빌드 번호로 바꿔 넣는다(v125 자리).
+   · PCS_APP_VERSION은 build.sh가 빌드 번호로 바꿔 넣는다(v126 자리).
    · PCS_RELEASE_NOTES 맨 앞 항목은 항상 이번 빌드 버전이어야 한다(tests/unit/release-notes.test.cjs가 검사).
      버전을 올릴 때 여기 맨 앞에 한 항목을 넣는다. 테스트하는 사람이 무엇을 눌러 보면 되는지(try)를 같이 쓴다.
    · 오른쪽 위 사용자 메뉴 → "버전 vN · 바뀐 점" 으로 열고, 새 버전으로 처음 열면 알림을 한 번 띄운다.
    ========================================================================== */
-var PCS_APP_VERSION = 'v125';
+var PCS_APP_VERSION = 'v126';
 
 const PCS_RELEASE_NOTES = [
+  { version: 'v126', date: '2026-11-21', title: '"승인본과 내용이 다릅니다" 원인 찾기·되돌리기, 승인된 UO가 몰래 바뀌던 길 막음',
+    items: [
+      '승인된 Unit Operation이 승인본과 다르면, 경고에 달라진 부분(예: PFD 연동 추가 1)과 원인을 보여 줍니다. 앞 공정에서 전달받은 도형 때문에 바뀐 것이면 "앞 공정 전달 연동이 바꿈 — 사람이 고친 것이 아닙니다"라고 표시합니다.',
+      '경고마다 "차이 보기"(승인본 ↔ 지금 비교)와 "승인본으로 되돌리기"(승인 상태·버전은 그대로, Audit Trail에 남음)가 있습니다.',
+      '고친 문제: 전달 원본 도형에 연동을 더하거나 빼면 승인된 받는 UO의 복사본이 함께 바뀌었습니다. 이제 잠긴 받는 UO는 그대로 두고 알려 줍니다. 받는 UO가 잠겨 있으면 전달 해제와 원본 UO 삭제도 막습니다.',
+      '잠긴 UO가 쓰는 마스터 항목은 지울 수 없습니다(어느 UO가 쓰는지 알려 줌). Mass Balance Step을 잠긴 UO 주인으로 만들 수 없습니다.',
+      '화면을 열기만 해서는 승인본과 달라지지 않는다는 것을 v121~v125 데이터로 확인했습니다.',
+    ],
+    try: ['Process Map → Unit Operation 승인 줄 "▸ UO 목록·주의 보기" → 경고의 "차이 보기"'] },
   { version: 'v125', date: '2026-11-21', title: 'Process Map — 넓은 화면, 끌어 놓기로 계층 바꾸기, 방향에 맞는 + , 부모 가지 추가',
     items: [
       'Process Map이 화면 폭 전체를 씁니다. 머리는 한 줄로 줄였고, Unit Operation 승인 줄은 한 줄 요약으로 접혀 있다가 "▸ UO 목록 보기"로 펼칩니다. 도구 막대는 캔버스 위 띠라 맵을 가리지 않고, 패널을 열어도 맵·아웃라인·칸반 전환이 잘리지 않습니다.',
@@ -6315,6 +6327,9 @@ function moveProcessNode(id,delta){ const node=DATA.nodes.find(n=>n.id===id); if
 async function removeProcessNode(id){
   const node=DATA.nodes.find(n=>n.id===id); if(!node) return;
   const desc=getDescendantIds(id);
+  // v126: 승인 기록이 있는 UO·잠긴 UO로 전달한 노드는 지우지 않는다(가지 삭제와 같은 규칙)
+  const lockedOne = [id, ...desc].map(x=>DATA.nodes.find(n=>n.id===x)).find(n=>n && pmNodeLockReason(n));
+  if(lockedOne){ uoLockNotice(`"${lockedOne.name}"은(는) ${pmNodeLockReason(lockedOne)}이라 지울 수 없습니다.`); return; }
   if(!(await uiConfirm(desc.length?`"${node.name}" 및 하위 ${desc.length}개 노드를 삭제할까요?`:`"${node.name}" 노드를 삭제할까요?`, { title:'노드 삭제', okLabel:'삭제', danger:true }))) return;
   pmDeleteNodes(node.pmId, [id,...desc]);   // v99: 노드에 딸린 PFD·연동·전달·Mass Balance 연동·보드 슬라이드까지 함께 정리
   getActiveTab().ctx.selectedProcessNodeId='ROOT';
@@ -6982,6 +6997,9 @@ function pmNodeLockReason(n){
   if(!n || pmNodeKind(n) !== 'uo') return null;
   if(uoStatusOf(n.id) !== 'Draft') return `${uoStatusOf(n.id)} 상태`;
   if(uoVersionOf(n.id) > 0 || (DATA.uoSnapshots[n.id] || []).length) return `승인 기록 v${uoVersionOf(n.id)}`;
+  // v126: 잠긴 UO로 전달한 도형이 있으면 지우면 그 UO의 복사본이 사라진다
+  const locked = (DATA.pfdTransfers || []).filter(t => t.fromNodeId === n.id && t.toNodeId !== n.id && !uoEditable(t.toNodeId)).map(t => (uoNode(t.toNodeId) || {}).name || t.toNodeId);
+  if(locked.length) return `잠긴 ${[...new Set(locked)].join(', ')}(으)로 전달한 도형이 있음`;
   return null;
 }
 /* 지우면 함께 사라지는 내용(확인 창에 보여 줌) */
@@ -11137,7 +11155,17 @@ function saveMasterEditor(){
   if(stale.length) uoLockNotice(`승인된 Unit Operation ${stale.length}개가 재검토 필요 상태가 됐습니다: ${stale.slice(0,5).map(n=>n.name).join(', ')}${stale.length>5?' 외':''}`);
   else if(listKey === 'parameter') mbFormulaParamNotice();   // v123: 이 값을 쓰는 Mass Balance 계산식
 }
+/* v126: 마스터 항목을 지우면 그 항목을 쓰는 UO 리스트·PFD 연동도 지운다 → 잠긴(승인·회람 중) UO가 쓰면 막는다(승인본이 몰래 바뀌지 않게) */
+function masterLockedUsers(listKey, itemId){
+  const ids = new Set();
+  Object.entries(DATA.nodeLists || {}).forEach(([nodeId, b]) => { if(b && (b[listKey] || []).includes(itemId) && uoNode(nodeId) && !uoEditable(nodeId)) ids.add(nodeId); });
+  Object.entries(DATA.pfdLinks || {}).forEach(([nodeId, ls]) => { if((ls || []).some(l => l.listType === listKey && l.masterItemId === itemId) && uoNode(nodeId) && !uoEditable(nodeId)) ids.add(nodeId); });
+  if(listKey === 'material') Object.entries(DATA.bomRules || {}).forEach(([nodeId, rs]) => { if((rs || []).some(r => r.materialId === itemId) && uoNode(nodeId) && !uoEditable(nodeId)) ids.add(nodeId); });
+  return [...ids].map(id => uoNode(id));
+}
 async function deleteMasterItem(listKey, itemId){
+  const locked = masterLockedUsers(listKey, itemId);
+  if(locked.length){ uiAlert(`잠긴 Unit Operation ${locked.length}개가 이 항목을 씁니다:\n${locked.slice(0, 8).map(n => `  · ${n.name} (${uoStatusOf(n.id)})`).join('\n')}${locked.length > 8 ? '\n  · …' : ''}\n\n그 Unit Operation의 재작업을 시작해 리스트·PFD에서 뺀 뒤 지우세요.`, { title: 'Master 항목을 지울 수 없습니다' }); return; }
   const usageCount = {};
   Object.entries(DATA.nodeLists).forEach(([nodeId, bucket])=>{ (bucket[listKey]||[]).forEach(id=>{ usageCount[id]=(usageCount[id]||0)+1; }); });
   if(usageCount[itemId]){
@@ -11150,6 +11178,7 @@ async function deleteMasterItem(listKey, itemId){
 /* [store] 마스터 항목 삭제 — 그 항목을 쓰던 UO 리스트와 PFD 연동을 함께 정리하고 감사 기록을 남긴다 [MST-005, MST-007, INT-005]
    (예전에는 리스트만 정리하고 배열에서 바로 지워 PFD 연동이 없는 항목을 가리킨 채 남았고, 기록도 없었다) */
 function masterDeleteWithCleanup(listKey, itemId){
+  if(masterLockedUsers(listKey, itemId).length) return null;   // v126: 잠긴 UO가 쓰면 지우지 않는다
   let lists = 0, links = 0;
   Object.keys(DATA.nodeLists).forEach(nodeId=>{
     const b = DATA.nodeLists[nodeId];
@@ -11160,10 +11189,12 @@ function masterDeleteWithCleanup(listKey, itemId){
     DATA.pfdLinks[nodeId] = DATA.pfdLinks[nodeId].filter(l=>!(l.listType === listKey && l.masterItemId === itemId));
     links += before - DATA.pfdLinks[nodeId].length;
   });
+  let rules = 0;   // v126: Material이면 BOM 소요량 규칙도(예전에는 고아 참조로 남았다)
+  if(listKey === 'material') Object.keys(DATA.bomRules || {}).forEach(nodeId => { const before = DATA.bomRules[nodeId].length; DATA.bomRules[nodeId] = DATA.bomRules[nodeId].filter(r => r.materialId !== itemId); rules += before - DATA.bomRules[nodeId].length; if(!DATA.bomRules[nodeId].length) delete DATA.bomRules[nodeId]; });
   store.deleteMasterItem(listKey, itemId);
-  if(lists || links) logAudit('Master Data', 'Delete Cleanup', `${listKey} ${itemId}: UO 리스트 ${lists}곳 · PFD 연동 ${links}건 정리`);
+  if(lists || links || rules) logAudit('Master Data', 'Delete Cleanup', `${listKey} ${itemId}: UO 리스트 ${lists}곳 · PFD 연동 ${links}건${rules ? ` · 소요량 규칙 ${rules}건` : ''} 정리`);
   validateData(DATA);
-  return { lists, links };
+  return { lists, links, rules };
 }
 /* 우측 편집기 패널 HTML — Process Map Unit Operation 패널과 같은 .pm-side-panel 클래스를 재사용해 시각 언어를 통일한다 */
 function renderMasterEditorPanel(){
@@ -19953,7 +19984,9 @@ function linkPfdShapeToMaster(nodeId, shapeId, listType, masterItemId, actualVal
 
   /* ★ 전파(팀안 ④): 이 도형이 다른 공정으로 transfer 연동된 경우, B공정 복사본에도 새 링크 반영 */
   const outTransfers = getPfdTransfersFrom(nodeId).filter(t=>t.shapeId===shapeId);
+  const held = [];   // v126: 잠긴(승인·회람 중) 대상 UO의 복사본은 바꾸지 않는다 — 예전에는 승인된 UO 내용이 몰래 바뀌었다
   outTransfers.forEach(t=>{
+    if(!uoEditable(t.toNodeId)){ held.push(t.toNodeId); return; }
     const dstShapes = ensurePfdShapes(t.toNodeId);
     const copiedShape = dstShapes.find(s=>s._transferId===t.id);
     if(!copiedShape) return;
@@ -19973,6 +20006,12 @@ function linkPfdShapeToMaster(nodeId, shapeId, listType, masterItemId, actualVal
       addMasterItemToNode(t.toNodeId, listType, masterItemId);
     }
   });
+  pfdTransferHeldNotice(held);
+}
+/* v126: 전달 복사본을 잠금 때문에 못 바꾼 UO 알림 */
+function pfdTransferHeldNotice(ids){
+  const names = [...new Set(ids || [])].map(id => (uoNode(id) || {}).name || id);
+  if(names.length) uoLockNotice(`전달받은 ${names.join(', ')}은(는) ${names.length > 1 ? '잠겨' : uoStatusOf(ids[0]) + ' 상태라'} 복사본을 바꾸지 않았습니다 — 재작업을 시작하면 원본과 다시 맞출 수 있습니다.`);
 }
 /* 링크 1건만 해제 (다중 연동 중 하나만 제거) + transfer 복사본도 동기 해제(팀안 ④ 역전파) */
 function unlinkPfdLinkById(nodeId, linkId){
@@ -19981,7 +20020,9 @@ function unlinkPfdLinkById(nodeId, linkId){
   if(link){
     /* 이 도형이 outgoing transfer 대상이 있으면 복사본 링크도 제거 */
     const outTransfers = getPfdTransfersFrom(nodeId).filter(t=>t.shapeId===link.shapeId);
+    const held = [];
     outTransfers.forEach(t=>{
+      if(!uoEditable(t.toNodeId)){ held.push(t.toNodeId); return; }   // v126: 잠긴 대상은 그대로
       const dstShapes = ensurePfdShapes(t.toNodeId);
       const copiedShape = dstShapes.find(s=>s._transferId===t.id);
       if(!copiedShape) return;
@@ -19999,6 +20040,7 @@ function unlinkPfdLinkById(nodeId, linkId){
         }
       }
     });
+    pfdTransferHeldNotice(held);
   }
   DATA.pfdLinks[nodeId] = DATA.pfdLinks[nodeId].filter(l=>l.id!==linkId);
   if(link){
@@ -24300,6 +24342,8 @@ function pfdBoardSelectOnly(nodeId, target){
 const uoArg = i => args => args[i];
 const mbStreamOwner = args => { const s = typeof getMbStreamById === "function" ? getMbStreamById(args[0], args[1]) : null; return s ? s.nodeId : null; };   // v113
 const uoActiveSlide = () => pfdBoardState.activeNodeId;
+const uoTransferDst = args => { const t = (DATA.pfdTransfers || []).find(x => x.id === args[0]); return t ? t.toNodeId : null; };   // v126: 전달 해제는 받는 UO를 고친다
+const uoStreamFieldsOwner = args => (args[1] && args[1].nodeId) || null;   // v126: Step을 만들며 주인 UO를 정하면 그 UO
 const uoPanelNode = () => { const p = getActiveTab().ctx.pmPanel; return p ? p.nodeId : null; };
 const UO_CONTENT_MUTATORS = {
   // PFD 도형·연결선·배관망
@@ -24348,6 +24392,7 @@ const UO_CONTENT_MUTATORS = {
   mbSelectCell:mbStreamOwner, mbClearCell:mbStreamOwner, openMbCellPicker:mbStreamOwner,
   mbAddExtra:mbStreamOwner, mbSetExtraField:mbStreamOwner, mbRemoveExtra:mbStreamOwner, mbFillReceiving:mbStreamOwner,   // v122
   mbSetFormula:mbStreamOwner,   // v123
+  removePfdTransfer:uoTransferDst, mbCreateStream:uoStreamFieldsOwner,   // v126: 잠금 우회 막기
   mbAddStreamForUo:uoArg(0), mbUiAddStreamForUo:uoArg(0), bomSetRuleField:uoArg(0), bomUiSetRuleField:uoArg(0),
 };
 /* Process Map 구조를 바꾸는 함수 — 값은 pmId를 찾는 방법 */
@@ -24488,7 +24533,7 @@ function renderPmUoStrip(pm){
     </span>`;
   }).join('');
   const alerts = [
-    ...r.changed.map(n=>`<div class="uo-alert">${icon('info')}<span><b>${escapeXml(n.name)}</b> — 승인본과 내용이 다릅니다. 재작업을 시작해 다시 승인받아야 합니다.</span></div>`),
+    ...r.changed.map(n=>uoChangeAlertHtml(n)),   // v126: 무엇이 달라졌는지·원인·차이 보기·승인본으로 되돌리기
     ...r.drift.map(d=>`<div class="uo-alert">${icon('info')}<span><b>${escapeXml(d.node.name)}</b> — 재검토 필요: ${escapeXml(d.items.map(uoDriftText).join(' / '))}</span></div>`),
   ].join('');
   // v125: 맵을 넓게 — 한 줄 요약(승인 수·주의 수·결재 묶음)만 늘 보이고, UO 목록·주의 내용은 펼쳐서 본다(사람마다 기억)
@@ -24930,6 +24975,100 @@ async function apReturnFromModal(selectedOnly){
   const r = apReturn(v.id, ids, reason);
   v.error = r.ok ? '' : r.reason; v.checked = new Set();
   render(); apRenderModal();
+}
+/* ============================================================================
+   21c_uo_integrity.js — v126  "승인본과 내용이 다릅니다" 진단
+   승인된 UO의 내용이 승인본과 다를 때 무엇이(어느 부분) 왜(알 수 있으면) 달라졌는지 보여 주고,
+   사람이 고친 것이 아니라 앱이 잠금을 우회해 바꾼 것(v125까지: 전달 복사본 연동 추가·해제, 전달 해제, 전달 원본 UO 삭제)이면
+   "승인본으로 되돌리기"로 승인 당시 내용으로 돌려놓을 수 있다(확인 창 + 감사 기록). 되돌리지 않으려면 재작업 → 다시 승인.
+   ========================================================================== */
+var UO_PART_LABEL = {
+  name: 'UO 이름', description: '설명', slideTitle: '슬라이드 제목', shapes: 'PFD 도형', edges: 'PFD 연결선', netNodes: 'PFD 분기점·부품',
+  links: 'PFD 연동(Equipment·Material·Parameter)', tables: 'PFD 표', texts: 'PFD 글상자', zones: 'PFD 구역', images: 'PFD 그림', paths: 'PFD 펜',
+  docStyle: 'PFD 서식', nodeList: 'UO 리스트', wi: 'Work Instruction', massBalance: 'Mass Balance Step', bomRules: '소요량 규칙', nodeLinks: '노드 링크',
+};
+
+/* ---------- 순수 함수 ---------- */
+/* id가 있는 목록의 차이: { added, removed, changed } (항목 배열) */
+function uoListDiff(a, b){
+  const A = new Map((a || []).filter(x => x && x.id != null).map(x => [x.id, x])), B = new Map((b || []).filter(x => x && x.id != null).map(x => [x.id, x]));
+  const added = [...B.values()].filter(x => !A.has(x.id)), removed = [...A.values()].filter(x => !B.has(x.id));
+  const changed = [...B.values()].filter(x => A.has(x.id) && uoHash(A.get(x.id)) !== uoHash(x));
+  return { added, removed, changed };
+}
+/* 승인본 내용과 지금 내용 → 달라진 부분 [{ key, label, added, removed, changed, transfer }].
+   transfer: 그 부분의 차이가 모두 전달 복사본(_transferCopied·_transferId)에서 생겼으면 true — 앞 공정 전달이 바꾼 것 */
+function uoChangeParts(snap, cur){
+  const keys = [...new Set(Object.keys(snap || {}).concat(Object.keys(cur || {})))];
+  const out = [];
+  keys.forEach(k => {
+    const a = (snap || {})[k], b = (cur || {})[k];
+    if(uoHash(a) === uoHash(b)) return;
+    const part = { key: k, label: UO_PART_LABEL[k] || k, added: 0, removed: 0, changed: 0, transfer: false };
+    if(Array.isArray(a) || Array.isArray(b)){
+      const d = uoListDiff(a, b);
+      part.added = d.added.length; part.removed = d.removed.length; part.changed = d.changed.length;
+      const items = d.added.concat(d.removed, d.changed);
+      part.transfer = items.length > 0 && items.every(x => x._transferCopied || x._transferId);
+    } else part.changed = 1;
+    out.push(part);
+  });
+  // UO 리스트만 함께 바뀌었고 그 이유가 전달 연동이면 같이 전달 탓으로 본다
+  const tr = out.filter(p => p.transfer);
+  if(tr.length && out.every(p => p.transfer || p.key === 'nodeList')) out.forEach(p => { if(p.key === 'nodeList') p.transfer = true; });
+  return out;
+}
+function uoChangePartText(p){
+  const bits = [p.added ? `추가 ${p.added}` : '', p.removed ? `삭제 ${p.removed}` : '', p.changed && (p.added || p.removed || p.key === 'links' || p.key === 'shapes' || p.key === 'massBalance') ? `변경 ${p.changed}` : ''].filter(Boolean).join('·');
+  return p.label + (bits ? ` ${bits}` : '');
+}
+
+/* ---------- 데이터 ---------- */
+function uoChangeSummary(nodeId){
+  const snap = getUoSnapshot(nodeId);
+  if(!snap || uoStatusOf(nodeId) !== 'Approved') return null;
+  const parts = uoChangeParts(snap.content, JSON.parse(JSON.stringify(uoContentOf(nodeId))));
+  return { version: snap.version, parts, transferOnly: parts.length > 0 && parts.every(p => p.transfer) };
+}
+/* 경고 줄 HTML: 무엇이 달라졌는지 + 차이 보기 + (앱이 바꾼 경우) 승인본으로 되돌리기 */
+function uoChangeAlertHtml(n){
+  const s = uoChangeSummary(n.id);
+  const what = s && s.parts.length ? s.parts.map(uoChangePartText).join(', ') : '';
+  const cause = s && s.transferOnly ? ' <b class="uo-cause">앞 공정 전달 연동이 바꿈 — 앱 잠금 우회(v125까지), 사람이 고친 것이 아닙니다.</b>' : '';
+  return `<div class="uo-alert" data-uo-changed="${escapeXmlAttr(n.id)}">${icon('info')}<span><b>${escapeXml(n.name)}</b> — 승인본(v${s ? s.version : ''})과 내용이 다릅니다${what ? `: <span data-uo-change-parts>${escapeXml(what)}</span>` : ''}.${cause} 재작업을 시작해 다시 승인받거나${s && s.transferOnly ? ' 승인본으로 되돌리세요.' : ', 의도하지 않은 변경이면 승인본으로 되돌리세요.'}
+    <span class="uo-alert-actions"><button class="btn btn-sm" data-uo-diff data-on-click="openUoCompare" data-a-click="${pcsArgs([n.id])}">차이 보기</button><button class="btn btn-sm" data-uo-restore data-on-click="uoRestoreApprovedUi" data-a-click="${pcsArgs([n.id])}">승인본으로 되돌리기</button></span></span></div>`;
+}
+
+/* ---------- store ---------- */
+/* [store] 승인된 UO를 승인본 내용으로 되돌린다(승인 상태·버전은 그대로). 감사 기록 "Restore Approved Content" */
+function uoRestoreApproved(nodeId){
+  const n = uoNode(nodeId), snap = getUoSnapshot(nodeId);
+  if(!n || !snap || uoStatusOf(nodeId) !== 'Approved' || !uoUnapprovedChange(nodeId)) return false;
+  const parts = uoChangeParts(snap.content, JSON.parse(JSON.stringify(uoContentOf(nodeId)))).map(p => p.label);
+  const c = JSON.parse(JSON.stringify(snap.content));
+  n.name = c.name;
+  ['description', 'slideTitle'].forEach(k => { if(c[k]) n[k] = c[k]; else delete n[k]; });
+  if(c.nodeLinks) n.links = c.nodeLinks; else delete n.links;
+  UO_VIEW_KEYS.forEach(([dataKey, cKey]) => {
+    if(!DATA[dataKey]) DATA[dataKey] = {};
+    if(c[cKey] === undefined) delete DATA[dataKey][nodeId];
+    else if(dataKey === 'workInstructions') DATA[dataKey][nodeId] = Object.assign({}, DATA[dataKey][nodeId], c[cKey]);   // WI의 승인 대상은 단계·서명 흐름만 — 나머지 필드는 그대로
+    else DATA[dataKey][nodeId] = c[cKey];
+  });
+  if(c.massBalance || (DATA.massBalance && DATA.massBalance[n.pmId])){ const mb = ensureMb(n.pmId); mb.streams = mb.streams.filter(s => s.nodeId !== nodeId).concat(c.massBalance || []); }
+  if(c.bomRules){ DATA.bomRules = DATA.bomRules || {}; DATA.bomRules[nodeId] = c.bomRules; } else if(DATA.bomRules) delete DATA.bomRules[nodeId];
+  logAudit('Unit Operation', 'Restore Approved Content', `${n.name}: 승인본 v${snap.version}으로 되돌림 — ${parts.join(', ')}`, null, `v${snap.version}`, { nodeId });
+  validateData(DATA);
+  return !uoUnapprovedChange(nodeId);
+}
+async function uoRestoreApprovedUi(nodeId){
+  const n = uoNode(nodeId), s = uoChangeSummary(nodeId);
+  if(!n || !s) return;
+  const ok = await uiConfirm(`"${n.name}"을(를) 승인본 v${s.version}의 내용으로 되돌립니다.\n달라진 부분: ${s.parts.map(uoChangePartText).join(', ')}\n\n지금 내용 중 승인본과 다른 부분은 사라집니다(Audit Trail에 남음). 일부러 고친 내용이면 취소하고 재작업을 시작하세요.`, { title: '승인본으로 되돌리기', okLabel: '되돌리기' });
+  if(!ok) return;
+  if(uoRestoreApproved(nodeId)) uiToast(`${n.name}을(를) 승인본 v${s.version}으로 되돌렸습니다.`, { kind: 'success' });
+  else uiToast('되돌리지 못했습니다 — 차이 보기에서 확인하세요.', { kind: 'error' });
+  render();
 }
 /* ============================================================================
    22_pfd_arrange.js — v82
@@ -32385,6 +32524,7 @@ const PCS_CALLABLE = new Set([
   'openSignModal',
   'openSpEditorForPm',
   'openUoCompare',
+  'uoRestoreApprovedUi',
   'openWorkInstructionStudio',
   'pcsExportJson',
   'pcsLoadServerAudit',
