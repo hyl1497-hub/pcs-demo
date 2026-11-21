@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="pcs-api-base" content="">
 <meta name="pcs-firebase" content="{&quot;apiKey&quot;:&quot;AIzaSyASB4CKv15IwJUp8pIVKXFtOYwKlY7y1es&quot;,&quot;databaseURL&quot;:&quot;https://pcs-demo-18101-default-rtdb.asia-southeast1.firebasedatabase.app&quot;}">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-qP7XzsaCoDZEl2NSW1peYCFPkwmDsUFAfVtNHZyIYQQ=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-aC3Aj7yTh6rDeu9hik596Cy6CL5NNXQd1IqSrfIsNok=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'none'">
 <title>PCS Platform · Process Control System</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -2486,6 +2486,17 @@ textarea.ui-dialog-input{resize:vertical; min-height:72px;}
 .mb-extra-table select{width:auto; max-width:140px;}
 .mb-extra-table td, .mb-extra-table th{padding:4px 6px !important;}
 .mb-detail-add{display:flex; flex-wrap:wrap; gap:5px;}
+/* v123 Mass Balance 계산식 */
+.mb-fx{display:inline-block; margin:2px 0 0 4px; padding:0 5px; border-radius:4px; font-size:9.5px; font-weight:800; font-style:italic; background:#EEF4FF; color:#2F5FA8; white-space:nowrap; cursor:help;}
+.mb-fx.stale{background:#FFF4E5; color:#9A5B00;} .mb-fx.err{background:#FDECEC; color:#B42318;}
+.mb-fx-banner{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:9px 14px; margin-bottom:12px; border-radius:10px; font-size:12px; border:1px solid var(--line-soft);}
+.mb-fx-banner.ok{background:#F3F8FF; color:#2F5FA8;} .mb-fx-banner.warn{background:#FFF8EC; border-color:#F2D29B; color:#6B4300;}
+.mb-fx-block .mb-extra-table td{vertical-align:top;}
+.mb-fx-in{width:100%; min-width:220px; font-family:'IBM Plex Mono',monospace; font-size:11px !important;}
+.mb-fx-out{font-size:10.5px; margin-top:2px; color:var(--ink-600);} .mb-fx-err{color:#B42318;} .mb-fx-stale{color:#9A5B00; font-weight:700;}
+.mb-fx-help{line-height:1.8; margin-top:4px;}
+.mb-fx-block .mb-extra-table{width:100% !important;} .mb-fx-block .mb-extra-table td:first-child{white-space:nowrap; width:1%;}
+.pcs-mb-sum{font-size:10.5px;} .pcs-mb-sum th, .pcs-mb-sum td{padding:5px 6px !important;} .pcs-mb-sum td:nth-child(2){min-width:96px;} .mb-fx-help code{background:#F2F0EC; padding:0 4px; border-radius:3px; font-size:10.5px;}
 </style>
 </head>
 <body>
@@ -3323,6 +3334,8 @@ function validateData(data){
     (mb.streams||[]).forEach(s=>{
       // v122: 추가 투입·곁가지 산출 줄, 사이클
       (s.extras||[]).forEach(x=>{ if(!x.id || !['in','out'].includes(x.dir)) errors.push(`[Mass Balance] Step ${s.id} 곁가지 줄 ${x.id || '?'} 형식 오류`); });
+      // v123: 계산식 — 아는 칸에 문자열만
+      if(s.formulas !== undefined && (typeof s.formulas !== 'object' || !s.formulas || Object.entries(s.formulas).some(([f, e])=>typeof e !== 'string' || !e.trim() || (typeof MB_FORMULA_FIELDS !== 'undefined' && !MB_FORMULA_FIELDS.includes(f))))) errors.push(`[Mass Balance] Step ${s.id} 계산식 형식 오류`);
       if(s.cycles !== undefined && !(Number.isInteger(s.cycles) && s.cycles >= 1)) errors.push(`[Mass Balance] Step ${s.id} 사이클 ${s.cycles} 오류`);
       if(!s.nodeId) return;
       const n = (data.nodes||[]).find(x=>x.id===s.nodeId);
@@ -4972,14 +4985,23 @@ function render(){
 /* -------- DASHBOARD -------- */
 /* ============================================================================
    05b_release_notes.js — v111  앱 버전과 "이번 버전에서 바뀐 점"
-   · PCS_APP_VERSION은 build.sh가 빌드 번호로 바꿔 넣는다(v122 자리).
+   · PCS_APP_VERSION은 build.sh가 빌드 번호로 바꿔 넣는다(v123 자리).
    · PCS_RELEASE_NOTES 맨 앞 항목은 항상 이번 빌드 버전이어야 한다(tests/unit/release-notes.test.cjs가 검사).
      버전을 올릴 때 여기 맨 앞에 한 항목을 넣는다. 테스트하는 사람이 무엇을 눌러 보면 되는지(try)를 같이 쓴다.
    · 오른쪽 위 사용자 메뉴 → "버전 vN · 바뀐 점" 으로 열고, 새 버전으로 처음 열면 알림을 한 번 띄운다.
    ========================================================================== */
-var PCS_APP_VERSION = 'v122';
+var PCS_APP_VERSION = 'v123';
 
 const PCS_RELEASE_NOTES = [
+  { version: 'v123', date: '2026-11-21', title: 'Mass Balance 계산식 — Parameter Master·앞 Step 값으로, PCS Report 요약표',
+    items: [
+      'Mass Balance Step의 투입·회수·농도에 계산식을 달 수 있습니다. 예: 투입 = {P:HCCF Volume}, 투입 농도 = {P:Product Titer}, 다음 Step 투입 = {prev.output}. Step "▸ 상세"의 계산식 표에서 고칩니다.',
+      '계산식이 있는 칸에는 ƒx가 붙습니다. Parameter Master 값을 바꾸면 알림이 뜨고, Mass Balance 머리에 "n칸이 지금 값과 다릅니다 · ↻ 다시 계산"이 나옵니다(검증 패널에도 주의). 승인된 UO는 재작업을 시작해야 바뀝니다.',
+      'Excel을 올리지 않아도 Parameter Master만으로 숫자 출처를 남길 수 있습니다. 계산은 사칙연산·괄호·round·min·max·abs만 쓰는 안전한 계산기로 합니다.',
+      'PCS Report 7장에 Mass Balance 요약표(Table 2): Step별 투입·회수·Step 수율(질량/부피 기준)·누적 수율. 승인본 보고서는 승인 당시 값을 씁니다.',
+      '참고 PCS의 Step 13칸이 Parameter Master·앞 Step에 이어져 있습니다.',
+    ],
+    try: ['Parameter Master → HCCF Volume Target 16000 저장 → 참고 PCS ⚖ Mass Balance → ↻ 다시 계산', 'Protein A Capture "▸ 상세" → 계산식 표', '참고 PCS → PCS Report 7장'] },
   { version: 'v122', date: '2026-11-21', title: 'Mass Balance — 질량 수율, 곁가지 산출, 사이클, Step별 Scale',
     items: [
       'Step 수율은 이제 제품 질량(부피 × 농도 g/L) 기준입니다. 농도를 안 넣은 Step은 예전처럼 부피 비율로 계산하고 수율 옆에 "부피" 꼬리표가, 질량으로 계산한 Step은 "질량" 꼬리표가 붙습니다.',
@@ -6434,6 +6456,18 @@ function pcsReportOverviewFigure(pm, nodes, flowChains, unchainedNodes){
     </div>
     <div class="pcs-figure-caption">Figure 1: ${escapeXml(pm.name)} Process Overview</div>`;
 }
+const PCS_REPORT_TOC = [
+  { num:'', label:'LIST OF TABLES', page:'' },
+  { num:'', label:'LIST OF FIGURES', page:'' },
+  { num:'1', label:'INTRODUCTION' },
+  { num:'2', label:'PROCESS CONTROL DEFINITIONS AND DESCRIPTION' },
+  { num:'3', label:'PROCESS SCOPE' },
+  { num:'4', label:'PROCESS OVERVIEW (Figure 1)' },
+  { num:'5', label:'UNIT OPERATION DETAIL' },
+  { num:'6', label:'CRITICAL PROCESS PARAMETERS (Table 1)' },
+  { num:'7', label:'MASS BALANCE SUMMARY (Table 2)' },   // v123
+  { num:'8', label:'APPROVAL HISTORY' },
+];
 function renderPcsReport(){
   const ctx = getActiveTab().ctx;
   const pm = DATA.processMaps.find(m=>m.id===ctx.reportPmId);
@@ -6480,17 +6514,7 @@ function renderPcsReport(){
   /* v80: 보고서는 승인 기준선을 그대로 보여준다. 보고서에서 고친 값을 원본(Process Map·UO·마스터)에
      역반영하면 회람 없이 승인본이 바뀌므로 원본 연결 칸은 읽기 전용으로 둔다. 서식·주석·섹션 추가는 그대로 쓴다. */
   const srcEditable = false;
-  const tocEntries = [
-    { num:'', label:'LIST OF TABLES', page:'' },
-    { num:'', label:'LIST OF FIGURES', page:'' },
-    { num:'1', label:'INTRODUCTION' },
-    { num:'2', label:'PROCESS CONTROL DEFINITIONS AND DESCRIPTION' },
-    { num:'3', label:'PROCESS SCOPE' },
-    { num:'4', label:'PROCESS OVERVIEW (Figure 1)' },
-    { num:'5', label:'UNIT OPERATION DETAIL' },
-    { num:'6', label:'CRITICAL PROCESS PARAMETERS (Table 1)' },
-    { num:'7', label:'APPROVAL HISTORY' },
-  ];
+  const tocEntries = PCS_REPORT_TOC;
 
   return `
     <div class="view-head no-print">
@@ -6574,7 +6598,10 @@ function renderPcsReport(){
           <tbody>${allParams.map(p=>`<tr><td>${escapeXml(p.nodeName)}</td><td>${escapeXml(p.name)}</td><td class="mono">${escapeXml(p.unit&&p.unit!=='-'?p.unit:'-')}</td><td class="mono">${p.low}</td><td class="mono">${p.high}</td></tr>`).join('')}</tbody>
         </table>` : `<p class="pcs-report-p" style="color:var(--ink-400);">등록된 파라미터가 없습니다.</p>`}
 
-      <h3 class="pcs-report-h3">7. APPROVAL HISTORY</h3>
+      <h3 class="pcs-report-h3">7. MASS BALANCE SUMMARY</h3>
+      ${pcsReportMbSummaryHtml(pm)}
+
+      <h3 class="pcs-report-h3">8. APPROVAL HISTORY</h3>
       <table class="pcs-report-table">
         <thead><tr><th>Status</th><th>By</th><th>At</th></tr></thead>
         <tbody>${approvalRows || '<tr><td colspan="3" style="color:var(--ink-400);">이력 없음</td></tr>'}</tbody>
@@ -10838,6 +10865,7 @@ function saveMasterEditor(){
   STATE.masterEditor = null;
   render();
   if(stale.length) uoLockNotice(`승인된 Unit Operation ${stale.length}개가 재검토 필요 상태가 됐습니다: ${stale.slice(0,5).map(n=>n.name).join(', ')}${stale.length>5?' 외':''}`);
+  else if(listKey === 'parameter') mbFormulaParamNotice();   // v123: 이 값을 쓰는 Mass Balance 계산식
 }
 async function deleteMasterItem(listKey, itemId){
   const usageCount = {};
@@ -21454,6 +21482,7 @@ function renderMassBalanceEdit(){
     </div>
     ${topArea}
     ${scaleBar}
+    ${mbFormulaBannerHtml(pmId, true)}
     ${renderMbValidationPanel(pmId)}
     ${rt ? mbRenderInlineViewer(pmId) : ''}
     ${stepsTable}
@@ -21608,16 +21637,16 @@ function mbEditStepsTable(pmId, pm, mb, rt, streams, edgeOpts){
                 <input class="pfd-detail-input" style="width:100%;font-size:11px;margin-bottom:3px;" placeholder="0.0"
                   value="${escapeXmlAttr(String(s.s_input||''))}"
                   data-on-change="mbUiSet_1bc05d" data-a-change="${pcsArgs([String(pmId), String(s.id)])}">
-                ${mbCellMapBtn(pmId, rt, s.id,'s_input',s.s_inputCellSheet||'',s.s_inputCell||'',s.s_input||'')}
-                <input class="pfd-detail-input mb-conc" data-mb-conc="s_concentrationIn" style="width:100%;font-size:10px;margin-top:3px;" placeholder="농도 g/L (선택)" value="${escapeXmlAttr(String(s.s_concentrationIn||''))}" data-on-change="mbUiSet_453f04" data-a-change="${pcsArgs([String(pmId), String(s.id)])}" title="농도를 넣으면 부피 대신 질량(부피×농도)으로 수율을 검증합니다">
+                ${mbCellMapBtn(pmId, rt, s.id,'s_input',s.s_inputCellSheet||'',s.s_inputCell||'',s.s_input||'')}${mbFxMark(pmId,s,'s_input')}
+                <input class="pfd-detail-input mb-conc" data-mb-conc="s_concentrationIn" style="width:100%;font-size:10px;margin-top:3px;" placeholder="농도 g/L (선택)" value="${escapeXmlAttr(String(s.s_concentrationIn||''))}" data-on-change="mbUiSet_453f04" data-a-change="${pcsArgs([String(pmId), String(s.id)])}" title="농도를 넣으면 부피 대신 질량(부피×농도)으로 수율을 검증합니다">${mbFxMark(pmId,s,'s_concentrationIn')}
               </td>
               <!-- Sending Output -->
               <td style="padding:7px 8px;background:#F8FBFF;">
                 <input class="pfd-detail-input" style="width:100%;font-size:11px;margin-bottom:3px;" placeholder="0.0"
                   value="${escapeXmlAttr(String(s.s_output||''))}"
                   data-on-change="mbUiSet_dd3229" data-a-change="${pcsArgs([String(pmId), String(s.id)])}">
-                ${mbCellMapBtn(pmId, rt, s.id,'s_output',s.s_outputCellSheet||'',s.s_outputCell||'',s.s_output||'')}
-                <input class="pfd-detail-input mb-conc" data-mb-conc="s_concentration" style="width:100%;font-size:10px;margin-top:3px;" placeholder="농도 g/L (선택)" value="${escapeXmlAttr(String(s.s_concentration||''))}" data-on-change="mbUiSet_8e4c3c" data-a-change="${pcsArgs([String(pmId), String(s.id)])}" title="농도를 넣으면 부피 대신 질량(부피×농도)으로 수율을 검증합니다">
+                ${mbCellMapBtn(pmId, rt, s.id,'s_output',s.s_outputCellSheet||'',s.s_outputCell||'',s.s_output||'')}${mbFxMark(pmId,s,'s_output')}
+                <input class="pfd-detail-input mb-conc" data-mb-conc="s_concentration" style="width:100%;font-size:10px;margin-top:3px;" placeholder="농도 g/L (선택)" value="${escapeXmlAttr(String(s.s_concentration||''))}" data-on-change="mbUiSet_8e4c3c" data-a-change="${pcsArgs([String(pmId), String(s.id)])}" title="농도를 넣으면 부피 대신 질량(부피×농도)으로 수율을 검증합니다">${mbFxMark(pmId,s,'s_concentration')}
                 <input class="pfd-detail-input mb-purity" data-mb-purity="s_purity" style="width:100%;font-size:10px;margin-top:3px;" placeholder="순도 % (선택)" aria-label="Sending 순도" value="${escapeXmlAttr(String(s.s_purity||''))}" ${pcsOn('change', 'mbSetField', [pmId, s.id, 's_purity'])}>
               </td>
               <!-- Sending 단위 -->
@@ -21642,16 +21671,16 @@ function mbEditStepsTable(pmId, pm, mb, rt, streams, edgeOpts){
                 <input class="pfd-detail-input" style="width:100%;font-size:11px;margin-bottom:3px;" placeholder="0.0"
                   value="${escapeXmlAttr(String(s.r_input||''))}"
                   data-on-change="mbUiSet_402799" data-a-change="${pcsArgs([String(pmId), String(s.id)])}">
-                ${mbCellMapBtn(pmId, rt, s.id,'r_input',s.r_inputCellSheet||'',s.r_inputCell||'',s.r_input||'')}
-                <input class="pfd-detail-input mb-conc" data-mb-conc="r_concentrationIn" style="width:100%;font-size:10px;margin-top:3px;" placeholder="농도 g/L (선택)" value="${escapeXmlAttr(String(s.r_concentrationIn||''))}" data-on-change="mbUiSet_b06fb9" data-a-change="${pcsArgs([String(pmId), String(s.id)])}" title="농도를 넣으면 부피 대신 질량(부피×농도)으로 수율을 검증합니다">
+                ${mbCellMapBtn(pmId, rt, s.id,'r_input',s.r_inputCellSheet||'',s.r_inputCell||'',s.r_input||'')}${mbFxMark(pmId,s,'r_input')}
+                <input class="pfd-detail-input mb-conc" data-mb-conc="r_concentrationIn" style="width:100%;font-size:10px;margin-top:3px;" placeholder="농도 g/L (선택)" value="${escapeXmlAttr(String(s.r_concentrationIn||''))}" data-on-change="mbUiSet_b06fb9" data-a-change="${pcsArgs([String(pmId), String(s.id)])}" title="농도를 넣으면 부피 대신 질량(부피×농도)으로 수율을 검증합니다">${mbFxMark(pmId,s,'r_concentrationIn')}
               </td>
               <!-- Receiving Output -->
               <td style="padding:7px 8px;background:#FCF8FF;">
                 <input class="pfd-detail-input" style="width:100%;font-size:11px;margin-bottom:3px;" placeholder="0.0"
                   value="${escapeXmlAttr(String(s.r_output||''))}"
                   data-on-change="mbUiSet_135ac9" data-a-change="${pcsArgs([String(pmId), String(s.id)])}">
-                ${mbCellMapBtn(pmId, rt, s.id,'r_output',s.r_outputCellSheet||'',s.r_outputCell||'',s.r_output||'')}
-                <input class="pfd-detail-input mb-conc" data-mb-conc="r_concentration" style="width:100%;font-size:10px;margin-top:3px;" placeholder="농도 g/L (선택)" value="${escapeXmlAttr(String(s.r_concentration||''))}" data-on-change="mbUiSet_c957ce" data-a-change="${pcsArgs([String(pmId), String(s.id)])}" title="농도를 넣으면 부피 대신 질량(부피×농도)으로 수율을 검증합니다">
+                ${mbCellMapBtn(pmId, rt, s.id,'r_output',s.r_outputCellSheet||'',s.r_outputCell||'',s.r_output||'')}${mbFxMark(pmId,s,'r_output')}
+                <input class="pfd-detail-input mb-conc" data-mb-conc="r_concentration" style="width:100%;font-size:10px;margin-top:3px;" placeholder="농도 g/L (선택)" value="${escapeXmlAttr(String(s.r_concentration||''))}" data-on-change="mbUiSet_c957ce" data-a-change="${pcsArgs([String(pmId), String(s.id)])}" title="농도를 넣으면 부피 대신 질량(부피×농도)으로 수율을 검증합니다">${mbFxMark(pmId,s,'r_concentration')}
                 <input class="pfd-detail-input mb-purity" data-mb-purity="r_purity" style="width:100%;font-size:10px;margin-top:3px;" placeholder="순도 % (선택)" aria-label="Receiving 순도" value="${escapeXmlAttr(String(s.r_purity||''))}" ${pcsOn('change', 'mbSetField', [pmId, s.id, 'r_purity'])}>
               </td>
               <!-- Receiving 단위 -->
@@ -22107,7 +22136,7 @@ function renderUoMassBalanceBody(node){
   const editable = uoEditable(node.id);
   const dis = editable ? '' : 'disabled';
   const streams = mbStreamsOfUo(node.id);
-  const field = (s, f, w) => `<input class="pfd-detail-input mb-uo-in" style="width:${w || 74}px;" value="${escapeXmlAttr(String(s[f] ?? ''))}" ${dis} aria-label="${escapeXmlAttr(f)}" ${pcsOn('change', 'mbSetField', [pmId, s.id, f])}>`;
+  const field = (s, f, w) => `<input class="pfd-detail-input mb-uo-in" style="width:${w || 74}px;" value="${escapeXmlAttr(String(s[f] ?? ''))}" ${dis} aria-label="${escapeXmlAttr(f)}" ${pcsOn('change', 'mbSetField', [pmId, s.id, f])}>${mbFxMark(pmId, s, f)}`;
   const yld = (s, p) => { const y = mbCalcStepYield(s, p); return (y === null ? '–' : y + '%') + mbYieldBasisTag(s, p); };
   const stepRows = streams.map(s => `<tr data-uo-mb-step="${escapeXmlAttr(s.id)}">
       <td>${field(s, 'stepName', 140)}${mbDetailToggleHtml(s)}</td>
@@ -22133,6 +22162,7 @@ function renderUoMassBalanceBody(node){
         <button class="btn btn-sm" data-on-click="mbOpenEdit" data-a-click="${pcsArgs([pmId])}" title="Process Map 전체 Mass Balance(흐름 순서·단계 소계·Excel 연동)">전체 ↗</button>
       </div>
     </div>
+    ${streams.some(s => s.formulas) ? mbFormulaBannerHtml(pmId, editable) : ''}
     ${editable ? '' : `<div class="note-banner" style="margin-bottom:8px;">${icon('shield')}<span>${escapeXml(uoStatusOf(node.id))} 상태라 Mass Balance·소요량 규칙이 잠겨 있습니다.</span></div>`}
     <div class="card" style="padding:0; overflow:auto; margin-bottom:6px;">
       <table class="data-table mb-uo-table" data-uo-mb>
@@ -22392,6 +22422,7 @@ function mbStepDetailHtml(pmId, s, editable){
       <span class="mb-uo-sub">Receiving 예상: 투입 ${escapeXml(plan.fields.r_input || '–')} · 회수 ${escapeXml(plan.fields.r_output || '–')} ${escapeXml(plan.fields.r_unit)} (Sending × ${plan.scale})</span>
       ${editable ? `<button class="btn btn-sm" data-mb-fill-r data-on-click="mbUiFillReceiving" data-a-click="${pcsArgs([pmId, s.id])}">Receiving 채우기</button>` : ''}
     </div>
+    ${mbFormulaBlockHtml(pmId, s, editable)}
     <div class="mb-extra-wrap"><table class="data-table mb-extra-table"><thead><tr><th>방향</th><th>종류</th><th>이름</th><th class="mb-s">Sending 부피</th><th class="mb-s">농도</th><th class="mb-r">Receiving 부피</th><th class="mb-r">농도</th><th></th></tr></thead>
       <tbody>${rows || `<tr><td colspan="8" class="mb-uo-sub" style="text-align:center; padding:8px;">추가 투입·곁가지 산출이 없습니다 — 버퍼·Feed, Flow-through·Strip·폐액·QC 샘플을 적으면 수지를 맞춰 봅니다.</td></tr>`}</tbody></table></div>
     ${editable ? `<div class="mb-detail-add">${MB_EXTRA_KINDS.filter(k => k[0] !== 'other').map(k => `<button class="btn btn-sm" data-mb-add-extra="${k[0]}" data-on-click="mbUiAddExtra" data-a-click="${pcsArgs([pmId, s.id, k[0]])}">${k[2] === 'in' ? '＋' : '－'} ${escapeXml(k[1])}</button>`).join('')}</div>` : ''}
@@ -22420,6 +22451,309 @@ function seedMbModelExample(){
   mbSetExtraField('pm_toz', s.id, b, 'name', '용출 버퍼(Elution)'); mbSetExtraField('pm_toz', s.id, b, 's_vol', String(out)); mbSetExtraField('pm_toz', s.id, b, 's_conc', '0');
   const f = mbAddExtra('pm_toz', s.id, 'flowthrough');
   mbSetExtraField('pm_toz', s.id, f, 's_vol', String(inp)); mbSetExtraField('pm_toz', s.id, f, 's_conc', '0.4');
+  DATA.auditTrail.length = auditLen;
+}
+/* ============================================================================
+   17d_mb_formula.js — v123  Mass Balance 숫자 출처: 계산식
+   · Step 값(투입·회수·투입 농도·회수 농도, Sending/Receiving)에 계산식을 달 수 있다 — s.formulas = { s_input: '{P:HCCF Volume}', ... }.
+     쓸 수 있는 값: {P:파라미터 이름 또는 ID}(Parameter Master Target), {input}·{output}·{concIn}·{conc}(이 Step의 같은 사이트 값),
+     {prev.input}·{prev.output}·{prev.concIn}·{prev.conc}(흐름 순서상 앞 Step), {scale}(Step Scale), {cycles}. 연산 + − × ÷ ( ), 함수 min·max·round(x, 자리)·abs.
+   · 안전한 계산기(토큰 → 구문 트리 → 계산). eval·Function을 쓰지 않는다.
+   · 파라미터·앞 Step 값이 바뀌면 저장값과 계산값이 어긋난다 → 검증 경고(formula-stale)·머리 배너 "다시 계산"(store mbRecalcFormulas, 승인된 UO는 건너뜀).
+   · PCS Report 7장 Mass Balance 요약표(Table 2) — pcsReportMbSummaryHtml.
+   ========================================================================== */
+var MB_FORMULA_FIELDS = ['s_input', 's_output', 's_concentrationIn', 's_concentration', 'r_input', 'r_output', 'r_concentrationIn', 'r_concentration'];
+var MB_FORMULA_KEYS = { input: 'input', output: 'output', concIn: 'concentrationIn', conc: 'concentration' };
+var MB_FORMULA_LABEL = { input: '투입', output: '회수', concentrationIn: '투입 농도', concentration: '회수 농도' };
+var MB_FORMULA_FNS = { min: [1, 9], max: [1, 9], round: [1, 2], abs: [1, 1] };
+
+/* ---------- 순수: 토큰 → 구문 트리 ---------- */
+function mbFormulaTokens(src){
+  const s = String(src == null ? '' : src), out = [];
+  let i = 0;
+  while(i < s.length){
+    const c = s[i], rest = s.slice(i);
+    if(/\s/.test(c)){ i++; continue; }
+    if(/[0-9.]/.test(c)){
+      const m = /^(?:\d+\.?\d*|\.\d+)(?:e[+-]?\d+)?/i.exec(rest);
+      if(!m) throw new Error(`숫자를 읽을 수 없습니다: "${rest.slice(0, 6)}"`);
+      out.push({ k: 'num', v: parseFloat(m[0]) }); i += m[0].length; continue;
+    }
+    if(c === '{'){
+      const j = s.indexOf('}', i);
+      if(j < 0) throw new Error('"{"를 닫는 "}"가 없습니다');
+      out.push({ k: 'ref', v: s.slice(i + 1, j).trim() }); i = j + 1; continue;
+    }
+    if(/[a-z]/i.test(c)){ const m = /^[a-z]+/i.exec(rest); out.push({ k: 'fn', v: m[0].toLowerCase() }); i += m[0].length; continue; }
+    if('+-*/(),×÷'.includes(c)){ out.push({ k: 'op', v: c === '×' ? '*' : c === '÷' ? '/' : c }); i++; continue; }
+    throw new Error(`쓸 수 없는 글자 "${c}"`);
+  }
+  return out;
+}
+function mbFormulaRefOk(ref){
+  if(/^P:\s*\S/.test(ref)) return true;
+  const k = ref.replace(/^prev\./, '');
+  return Object.prototype.hasOwnProperty.call(MB_FORMULA_KEYS, k) || (ref === k && (k === 'scale' || k === 'cycles'));
+}
+/* expr → { ast, refs, error } */
+function mbFormulaParse(expr){
+  try {
+    const t = mbFormulaTokens(expr);
+    if(!t.length) throw new Error('계산식이 비어 있습니다');
+    let p = 0;
+    const refs = [];
+    const peek = () => t[p], isOp = v => t[p] && t[p].k === 'op' && t[p].v === v;
+    const need = v => { if(!isOp(v)) throw new Error(`"${v}"가 있어야 합니다`); p++; };
+    const primary = () => {
+      const x = t[p];
+      if(!x) throw new Error('식이 덜 끝났습니다');
+      if(x.k === 'num'){ p++; return { t: 'num', v: x.v }; }
+      if(x.k === 'ref'){
+        p++;
+        if(!mbFormulaRefOk(x.v)) throw new Error(`모르는 값 {${x.v}}`);
+        refs.push(x.v); return { t: 'ref', v: x.v };
+      }
+      if(x.k === 'fn'){
+        const spec = MB_FORMULA_FNS[x.v];
+        if(!spec) throw new Error(`모르는 함수 ${x.v}`);
+        p++; need('(');
+        const args = [expr0()];
+        while(isOp(',')){ p++; args.push(expr0()); }
+        need(')');
+        if(args.length < spec[0] || args.length > spec[1]) throw new Error(`${x.v}의 값 개수가 맞지 않습니다`);
+        return { t: 'fn', name: x.v, args };
+      }
+      if(isOp('(')){ p++; const e = expr0(); need(')'); return e; }
+      throw new Error(`"${x.v}" 자리가 맞지 않습니다`);
+    };
+    const unary = () => { if(isOp('-')){ p++; return { t: 'neg', a: unary() }; } if(isOp('+')){ p++; return unary(); } return primary(); };
+    const term = () => { let a = unary(); while(isOp('*') || isOp('/')){ const op = peek().v; p++; a = { t: 'bin', op, a, b: unary() }; } return a; };
+    function expr0(){ let a = term(); while(isOp('+') || isOp('-')){ const op = peek().v; p++; a = { t: 'bin', op, a, b: term() }; } return a; }
+    const ast = expr0();
+    if(p < t.length) throw new Error(`"${t[p].v}" 앞에서 식이 끝나야 합니다`);
+    return { ast, refs, error: null };
+  } catch(e){ return { ast: null, refs: [], error: e.message }; }
+}
+function mbFormulaEvalAst(n, resolve){
+  if(n.t === 'num') return n.v;
+  if(n.t === 'ref') return resolve(n.v);
+  if(n.t === 'neg') return -mbFormulaEvalAst(n.a, resolve);
+  if(n.t === 'fn'){
+    const a = n.args.map(x => mbFormulaEvalAst(x, resolve));
+    if(n.name === 'round'){ const d = Math.max(0, Math.min(6, Math.round(a[1] || 0))), k = Math.pow(10, d); return Math.round(a[0] * k) / k; }
+    return Math[n.name].apply(null, a);
+  }
+  const a = mbFormulaEvalAst(n.a, resolve), b = mbFormulaEvalAst(n.b, resolve);
+  if(n.op === '/' && b === 0) throw new Error('0으로 나눕니다');
+  return n.op === '+' ? a + b : n.op === '-' ? a - b : n.op === '*' ? a * b : a / b;
+}
+/* 계산값 자리 맞춤: 1 이상은 소수 둘째 자리, 그보다 작으면 유효숫자 3자리 */
+function mbRoundCalc(v){ return Math.abs(v) >= 1 || v === 0 ? Math.round(v * 100) / 100 : Number(v.toPrecision(3)); }
+function mbFormulaEval(expr, resolve){
+  const p = mbFormulaParse(expr);
+  if(p.error) return { value: null, error: p.error };
+  try {
+    const v = mbFormulaEvalAst(p.ast, resolve);
+    if(typeof v !== 'number' || !isFinite(v)) return { value: null, error: '계산 결과가 숫자가 아닙니다' };
+    return { value: mbRoundCalc(v), error: null };
+  } catch(e){ return { value: null, error: e.message }; }
+}
+/* 파라미터 찾기(ID 또는 이름, 대소문자·앞뒤 공백 무시) — Target 값 */
+function mbParamLookup(params){
+  return key => {
+    const k = String(key).trim().toLowerCase();
+    const m = (params || []).find(x => String(x.id).toLowerCase() === k) || (params || []).find(x => String(x.name || '').trim().toLowerCase() === k);
+    if(!m) throw new Error(`파라미터 "${String(key).trim()}"가 Parameter Master에 없습니다`);
+    const v = Number(m.target);
+    if(m.target == null || m.target === '' || !isFinite(v)) throw new Error(`파라미터 "${m.name}"의 Target 값이 없습니다`);
+    return v;
+  };
+}
+/* 한 Step의 계산식 결과 — prevVals: 앞 Step의 (계산 반영) 값, 없으면 null. 같은 Step 안에서 서로 참조하면 오류 */
+function mbFormulaStep(s, prevVals, paramOf, scale){
+  const fx = (s && s.formulas) || {}, res = {}, vals = Object.assign({}, s), busy = {};
+  const num = v => { const x = parseFloat(v); return isFinite(x) ? x : null; };
+  const compute = f => {
+    if(res[f]) return res[f];
+    if(busy[f]) throw new Error('계산식이 서로를 참조합니다');
+    busy[f] = true;
+    const pfx = f.slice(0, 2);
+    const r = mbFormulaEval(fx[f], ref => {
+      if(ref.startsWith('P:')) return paramOf(ref.slice(2));
+      if(ref === 'scale') return scale;
+      if(ref === 'cycles') return mbCycles(s);
+      const prev = ref.startsWith('prev.'), key = pfx + MB_FORMULA_KEYS[ref.replace(/^prev\./, '')];
+      if(prev){ if(!prevVals) throw new Error('앞 Step이 없습니다'); const v = num(prevVals[key]); if(v == null) throw new Error(`앞 Step의 ${MB_FORMULA_LABEL[key.slice(2)]} 값이 없습니다`); return v; }
+      if(key === f) throw new Error('자기 자신을 참조합니다');
+      const v = fx[key] ? compute(key).value : num(s[key]);
+      if(v == null) throw new Error(`이 Step의 ${MB_FORMULA_LABEL[key.slice(2)]} 값이 없습니다`);
+      return v;
+    });
+    busy[f] = false;
+    res[f] = r;
+    return r;
+  };
+  Object.keys(fx).filter(f => MB_FORMULA_FIELDS.includes(f)).forEach(f => {
+    let r;
+    try { r = compute(f); } catch(e){ r = { value: null, error: e.message }; res[f] = r; }
+    if(r.value != null) vals[f] = String(r.value);
+  });
+  return { res, vals };
+}
+/* Process Map 전체(흐름 순서) — 계산식마다 { sid, stepName, nodeId, field, expr, current, value, error, stale } */
+function mbFormulaPlan(ordered, params, scaleOf){
+  const paramOf = mbParamLookup(params), rows = [];
+  let prev = null;
+  (ordered || []).forEach(s => {
+    const r = mbFormulaStep(s, prev, paramOf, scaleOf(s));
+    Object.entries(r.res).forEach(([f, x]) => {
+      const cur = parseFloat(s[f]);
+      rows.push({ sid: s.id, stepName: s.stepName || 'Step', nodeId: s.nodeId || null, field: f, expr: s.formulas[f], current: s[f] == null ? '' : String(s[f]), value: x.value, error: x.error,
+        stale: !x.error && x.value != null && !(isFinite(cur) && Math.abs(cur - x.value) < 1e-9) });
+    });
+    prev = r.vals;
+  });
+  return rows;
+}
+function mbFormulaFieldLabel(f){ return `${f.startsWith('s_') ? 'Sending' : 'Receiving'} ${MB_FORMULA_LABEL[f.slice(2)] || f}`; }
+
+/* ---------- 데이터 연결 ---------- */
+function mbFormulaPlanFor(pmId){
+  const mb = ensureMb(pmId);
+  if(!mb.streams.some(s => s.formulas)) return [];
+  return mbFormulaPlan(mbOrderedStreams(pmId), getMasterArray('parameter') || [], s => mbStepScale(s, mb));
+}
+function mbFormulaStreamEditable(s){ return !s.nodeId || typeof uoEditable !== 'function' || uoEditable(s.nodeId); }
+
+/* ---------- store ---------- */
+/* 계산식 달기·바꾸기·지우기(빈 값) — 바로 다시 계산해 이 Step과 뒤 Step(고칠 수 있는 UO만)에 반영 */
+function mbSetFormula(pmId, sid, field, expr){
+  const s = getMbStreamById(pmId, sid);
+  if(!s || !MB_FORMULA_FIELDS.includes(field)) return false;
+  const v = String(expr == null ? '' : expr).trim();
+  if(v === ((s.formulas || {})[field] || '')) return false;
+  if(v && mbFormulaParse(v).error) return false;
+  const fx = Object.assign({}, s.formulas);
+  if(v) fx[field] = v; else delete fx[field];
+  if(Object.keys(fx).length) s.formulas = fx; else delete s.formulas;
+  const changed = mbApplyFormulas(pmId);
+  logAudit('Mass Balance', 'Set Formula', `${pmId} · ${s.stepName || sid} · ${mbFormulaFieldLabel(field)} = ${v || '(지움)'}${changed.length ? ` · 다시 계산 ${changed.length}칸` : ''}`, null, sid, { nodeId: s.nodeId, pmId });
+  validateData(DATA);
+  return true;
+}
+/* 어긋난 계산값을 저장값으로(고칠 수 있는 UO의 Step만). 바뀐 칸 [{ sid, field, from, to }] */
+function mbApplyFormulas(pmId){
+  const changed = [];
+  mbFormulaPlanFor(pmId).filter(r => r.stale).forEach(r => {
+    const s = getMbStreamById(pmId, r.sid);
+    if(!s || !mbFormulaStreamEditable(s)) return;
+    changed.push({ sid: r.sid, field: r.field, from: r.current, to: String(r.value) });
+    s[r.field] = String(r.value);
+  });
+  return changed;
+}
+function mbRecalcFormulas(pmId){
+  const changed = mbApplyFormulas(pmId);
+  const locked = mbFormulaPlanFor(pmId).filter(r => r.stale).length;
+  if(changed.length){
+    logAudit('Mass Balance', 'Recalculate Formulas', `${pmId} · ${changed.length}칸: ${changed.slice(0, 6).map(c => `${(getMbStreamById(pmId, c.sid) || {}).stepName || c.sid} ${mbFormulaFieldLabel(c.field)} ${c.from || '–'}→${c.to}`).join(', ')}${changed.length > 6 ? ' …' : ''}`, null, pmId, { pmId });
+    validateData(DATA);
+  }
+  return { changed: changed.length, locked };
+}
+
+/* ---------- UI ---------- */
+function mbUiSetFormula(pmId, sid, field, v){
+  const err = String(v || '').trim() ? mbFormulaParse(v).error : null;
+  if(err){ uiToast(`계산식 오류 — ${err}`, { kind: 'error' }); render(); return; }
+  if(mbSetFormula(pmId, sid, field, v)) render();
+}
+function mbUiRecalc(pmId){
+  const r = mbRecalcFormulas(pmId);
+  render();
+  uiToast(r.changed ? `${r.changed}칸을 계산식으로 다시 계산했습니다${r.locked ? ` · 승인된 UO ${r.locked}칸은 재작업 뒤에` : ''}` : (r.locked ? `승인된 UO ${r.locked}칸은 재작업을 시작해야 다시 계산됩니다` : '바뀐 값이 없습니다'), { kind: r.changed ? 'success' : 'info' });
+}
+/* 파라미터를 저장한 뒤: 어긋난 Mass Balance 계산식이 있으면 알린다 */
+function mbFormulaStaleCounts(){
+  return DATA.processMaps.map(pm => ({ pm, n: (DATA.massBalance && DATA.massBalance[pm.id] ? mbFormulaPlanFor(pm.id) : []).filter(r => r.stale).length })).filter(x => x.n);
+}
+function mbFormulaParamNotice(){
+  const c = mbFormulaStaleCounts();
+  if(c.length) uiToast(`Mass Balance 계산식 값이 바뀌었습니다 — ${c.map(x => `${x.pm.name} ${x.n}칸`).join(', ')}. Mass Balance에서 "다시 계산"을 누르세요.`, { kind: 'info' });
+}
+/* 값 칸 옆 ƒx 표시(계산식이 있을 때만) */
+function mbFxMark(pmId, s, f){
+  const expr = (s.formulas || {})[f];
+  if(!expr) return '';
+  const r = mbFormulaPlanFor(pmId).find(x => x.sid === s.id && x.field === f) || {};
+  const cls = r.error ? 'err' : r.stale ? 'stale' : '';
+  const tip = `계산식: ${expr}${r.error ? ` — 오류: ${r.error}` : r.stale ? ` — 계산값 ${r.value}(지금 값과 다름)` : ''}`;
+  return `<span class="mb-fx ${cls}" data-mb-fx="${escapeXmlAttr(f)}" title="${escapeXmlAttr(tip)}">ƒx${r.stale ? ' ↻' : r.error ? ' !' : ''}</span>`;
+}
+/* 머리 배너: 계산식 수 · 어긋난 값 · 다시 계산 */
+function mbFormulaBannerHtml(pmId, editable){
+  const rows = mbFormulaPlanFor(pmId);
+  if(!rows.length) return '';
+  const stale = rows.filter(r => r.stale), err = rows.filter(r => r.error);
+  const lockedN = stale.filter(r => { const s = getMbStreamById(pmId, r.sid); return s && !mbFormulaStreamEditable(s); }).length;
+  if(!stale.length && !err.length) return `<div class="mb-fx-banner ok" data-mb-fx-banner="ok">ƒx 계산식 ${rows.length}개 — 모두 Parameter Master·앞 Step 값과 맞습니다.</div>`;
+  const list = stale.slice(0, 5).map(r => `${escapeXml(r.stepName)} ${escapeXml(mbFormulaFieldLabel(r.field))} ${escapeXml(r.current || '–')} → <b>${escapeXml(String(r.value))}</b>`).join(' · ');
+  return `<div class="mb-fx-banner warn" data-mb-fx-banner="warn">
+    <span>ƒx 계산식 ${rows.length}개 중 <b>${stale.length}칸</b>이 지금 값과 다릅니다${err.length ? ` · 오류 ${err.length}개` : ''} — 파라미터나 앞 Step 값이 바뀌었습니다.${list ? `<div class="mb-uo-sub">${list}${stale.length > 5 ? ' …' : ''}</div>` : ''}${lockedN ? `<div class="mb-uo-sub">승인된 UO의 ${lockedN}칸은 재작업을 시작해야 바뀝니다.</div>` : ''}</span>
+    ${editable && stale.length > lockedN ? `<button class="btn btn-sm btn-primary" data-mb-recalc data-on-click="mbUiRecalc" data-a-click="${pcsArgs([pmId])}">↻ 다시 계산</button>` : ''}</div>`;
+}
+/* Step 상세 줄 안의 계산식 표 */
+function mbFormulaBlockHtml(pmId, s, editable){
+  const rows = mbFormulaPlanFor(pmId).filter(r => r.sid === s.id);
+  const cell = f => {
+    const expr = (s.formulas || {})[f] || '', r = rows.find(x => x.field === f);
+    const out = !r ? '' : r.error ? `<span class="mb-fx-err">⚠ ${escapeXml(r.error)}</span>` : `= <b>${escapeXml(String(r.value))}</b>${r.stale ? ` <span class="mb-fx-stale">지금 ${escapeXml(r.current || '–')}</span>` : ''}`;
+    return `<td class="${f.slice(0, 2) === 's_' ? 'mb-s' : 'mb-r'}"><input class="pfd-detail-input mb-fx-in" value="${escapeXmlAttr(expr)}" placeholder="${f.startsWith('s_') ? '예: {P:HCCF Volume}' : '예: {P:HCCF Volume} * {scale}'}" ${editable ? '' : 'disabled'} aria-label="${escapeXmlAttr(mbFormulaFieldLabel(f))} 계산식" data-mb-formula="${f}" ${pcsOn('change', 'pcsCallWithValue', ['mbUiSetFormula', pmId, s.id, f])}><div class="mb-fx-out" data-mb-formula-out="${f}">${out}</div></td>`;
+  };
+  const params = s.nodeId ? (ensureNodeListBucket(s.nodeId).parameter || []).map(id => getMasterItem('parameter', id)).filter(p => p && p.target != null && p.target !== '') : [];
+  return `<div class="mb-fx-block" data-mb-fx-block="${escapeXmlAttr(s.id)}">
+    <table class="data-table mb-extra-table"><thead><tr><th>계산식</th><th class="mb-s">Sending</th><th class="mb-r">Receiving</th></tr></thead><tbody>
+      ${Object.entries(MB_FORMULA_KEYS).map(([k, key]) => `<tr><td>${escapeXml(MB_FORMULA_LABEL[key])} <code>{${k}}</code></td>${cell('s_' + key)}${cell('r_' + key)}</tr>`).join('')}</tbody></table>
+    <div class="mb-uo-sub mb-fx-help">쓸 수 있는 값: <code>{P:파라미터 이름}</code> · <code>{prev.output}</code> 앞 Step 회수 · <code>{input}</code> <code>{output}</code> <code>{concIn}</code> <code>{conc}</code> · <code>{scale}</code> <code>{cycles}</code> · 함수 <code>round(x, 2)</code> <code>min</code> <code>max</code> <code>abs</code>${params.length ? `<br>이 UO의 파라미터: ${params.map(p => `<code>{P:${escapeXml(p.name)}}</code> ${escapeXml(String(p.target))}${p.unit ? ' ' + escapeXml(p.unit) : ''}`).join(' · ')}` : ''}</div>
+  </div>`;
+}
+
+/* ---------- PCS Report 7장: Mass Balance 요약표(순수 행 + HTML) ---------- */
+function mbReportRows(ordered){
+  const cumS = mbCalcCumYield(ordered, 's_'), cumR = mbCalcCumYield(ordered, 'r_');
+  return ordered.map((s, i) => ({ s, sy: mbYieldOf(s, 's_'), ry: mbYieldOf(s, 'r_'), sb: mbStepBalance(s, 's_').basis, rb: mbStepBalance(s, 'r_').basis, cs: cumS[i], cr: cumR[i] }));
+}
+function pcsReportMbSummaryHtml(pm){
+  const ordered = mbOrderedStreams(pm.id);
+  if(!ordered.length) return `<p class="pcs-report-p" style="color:var(--ink-400);" data-report-mb>Mass Balance Step이 없습니다.</p>`;
+  const nodeName = id => { const n = DATA.nodes.find(x => x.id === id); return n ? n.name : '-'; };
+  const pct = (v, b) => v == null ? '–' : `${v}%${b === 'volume' ? '<sup>V</sup>' : ''}`;
+  const num = v => v == null || v === '' ? '–' : escapeXml(String(v));
+  const hasR = ordered.some(s => mbNum(s.r_input) != null || mbNum(s.r_output) != null);   // Receiving 값이 하나도 없으면 열을 뺀다(종이 폭)
+  const rows = mbReportRows(ordered).map((r, i) => `<tr data-report-mb-row="${escapeXmlAttr(r.s.id)}"><td class="mono">${i + 1}</td><td>${escapeXml(r.s.stepName || 'Step')}${(r.s.formulas && Object.keys(r.s.formulas).length) ? ' <span class="mb-fx">ƒx</span>' : ''}</td><td>${escapeXml(nodeName(r.s.nodeId))}</td>
+      <td class="mono">${num(r.s.s_input)}</td><td class="mono">${num(r.s.s_output)}</td><td class="mono">${escapeXml(r.s.s_unit || 'L')}</td><td class="mono">${pct(r.sy, r.sb)}</td><td class="mono">${pct(r.cs)}</td>
+      ${hasR ? `<td class="mono">${num(r.s.r_input)}</td><td class="mono">${num(r.s.r_output)}</td><td class="mono">${pct(r.ry, r.rb)}</td><td class="mono">${pct(r.cr)}</td>` : ''}</tr>`).join('');
+  const mb = ensureMb(pm.id);
+  return `<div class="pcs-table-caption">Table 2 — Mass Balance Summary (Step별 수율, 흐름 순서) · Scale Factor ${escapeXml(String(mb.scaleFactor || 1))}${hasR ? '' : ' · Receiving 값 없음(Sending만)'}</div>
+    <table class="pcs-report-table pcs-mb-sum" data-report-mb data-report-mb-r="${hasR}"><thead><tr><th>No</th><th>Step</th><th>Unit Operation</th><th>${hasR ? 'Sending ' : ''}Input</th><th>Output</th><th>Unit</th><th>Step Yield</th><th>Cumulative</th>${hasR ? '<th>Receiving Input</th><th>Output</th><th>Step Yield</th><th>Cumulative</th>' : ''}</tr></thead><tbody>${rows}</tbody></table>
+    <p class="pcs-report-p" style="font-size:11px; color:var(--ink-500);">수율은 제품 질량(부피 × 농도) 기준이며, <sup>V</sup> 표시는 농도가 없어 부피 비율로 계산한 값입니다. ƒx는 Parameter Master·앞 Step 값에서 계산식으로 구한 Step입니다.</p>`;
+}
+
+/* ---------- 시드: 참고 PCS Step 값을 Parameter Master·앞 Step에 잇는다(실제 store 함수, 감사 기록은 남기지 않음) ----------
+   값이 Parameter Master와 같은 칸만 잇는다(CEX·Viral·UF/DF 회수량은 참고 PFD 값이 Parameter Master와 달라 직접 입력 그대로). 40_pfd_validation.js에서 부른다. */
+function seedMbFormulas(){
+  if(!DATA.processMaps.some(p => p.id === 'pm_toz')) return;
+  const mb = ensureMb('pm_toz');
+  if(mb.streams.some(s => s.formulas)) return;
+  const auditLen = DATA.auditTrail.length;
+  const by = n => mb.streams.find(s => s.stepName === n);
+  const set = (name, f, e) => { const s = by(name); if(s) mbSetFormula('pm_toz', s.id, f, e); };
+  set('Protein A Capture', 's_input', '{P:HCCF Volume}');
+  set('Protein A Capture', 's_output', '{P:ProA Pooling Volume}');
+  set('Protein A Capture', 's_concentrationIn', '{P:Product Titer}');
+  set('Protein A Capture', 's_concentration', 'round({input} * {concIn} * {P:ProA Step Yield} / 100 / {output}, 2)');
+  [['Low pH VI', 'Low pH VIN Volume'], ['Depth Filtration', 'Filtered VIN Volume'], ['MMC Polishing', 'MMC Pooling Volume']].forEach(([n, p]) => { set(n, 's_input', '{prev.output}'); set(n, 's_output', `{P:${p}}`); });
+  ['CEX Polishing', 'Viral Filtration', 'UF/DF'].forEach(n => set(n, 's_input', '{prev.output}'));
   DATA.auditTrail.length = auditLen;
 }
 /* =========================================================
@@ -23720,6 +24054,7 @@ const UO_CONTENT_MUTATORS = {
   mbSetStreamField:mbStreamOwner, mbLinkEdge:mbStreamOwner, mbUnlinkEdge:mbStreamOwner, mbRemoveStream:mbStreamOwner, mbConfirmRemoveStream:mbStreamOwner,
   mbSelectCell:mbStreamOwner, mbClearCell:mbStreamOwner, openMbCellPicker:mbStreamOwner,
   mbAddExtra:mbStreamOwner, mbSetExtraField:mbStreamOwner, mbRemoveExtra:mbStreamOwner, mbFillReceiving:mbStreamOwner,   // v122
+  mbSetFormula:mbStreamOwner,   // v123
   mbAddStreamForUo:uoArg(0), mbUiAddStreamForUo:uoArg(0), bomSetRuleField:uoArg(0), bomUiSetRuleField:uoArg(0),
 };
 /* Process Map 구조를 바꾸는 함수 — 값은 pmId를 찾는 방법 */
@@ -30100,6 +30435,11 @@ function mbValidate(pmId){
   const issues = mbValidateStreams(mbOrderedStreams(pmId), pfx, true).map(x=>Object.assign({ area:'stream' }, x));
   const noConc = mbNoConcSteps(mb.streams, pfx);   // v122: 질량 근거 없는 Step — 한 줄로
   if(noConc.length) issues.push({ area:'stream', level:'info', code:'no-conc', msg:`Step ${noConc.length}개는 농도가 없어 수율을 부피 비율로 계산했습니다(${noConc.slice(0, 4).map(s=>s.stepName || 'Step').join(', ')}${noConc.length > 4 ? ' …' : ''}) — 투입·회수 농도(g/L)를 넣으면 질량 수율` });
+  // v123: 계산식 — 오류, 저장값과 계산값이 어긋남(파라미터·앞 Step 값이 바뀜)
+  mbFormulaPlanFor(pmId).forEach(r=>{
+    if(r.error) issues.push({ area:'stream', level:'error', code:'formula-error', streamId: r.sid, msg:`${r.stepName}: ${mbFormulaFieldLabel(r.field)} 계산식 오류 — ${r.error}` });
+    else if(r.stale) issues.push({ area:'stream', level:'warn', code:'formula-stale', streamId: r.sid, msg:`${r.stepName}: ${mbFormulaFieldLabel(r.field)} ${r.current || '(비어 있음)'} ≠ 계산식 결과 ${r.value} — "다시 계산"` });
+  });
   // 매핑이 가리키는 연결선이 없음
   mb.streams.forEach(s=>(s.pfdMappings || []).forEach(m=>{
     if(!(DATA.pfdEdges[m.nodeId] || []).some(e=>e.id === m.edgeId))
@@ -30224,6 +30564,7 @@ function seedReferenceMassBalance(){
 }
 seedReferenceMassBalance();
 seedMbModelExample();   // v122: 17c_mb_model.js — ProA 질량·사이클·곁가지 예시
+seedMbFormulas();       // v123: 17d_mb_formula.js — Step 값을 Parameter Master·앞 Step에 잇는 계산식
 seedPmHierarchy();   // v112: 07b_pm_hierarchy.js
 pmMigrateVersionTrees(DATA);   // v119: 시드의 승인 버전에도 구조(스키마 3과 같은 규칙)
 seedReferenceBomRules();   // v113: 17b_uo_mass_balance.js
@@ -31706,6 +32047,8 @@ const PCS_CALLABLE = new Set([
   'mbUiRemoveExtra',
   'mbUiFillReceiving',
   'mbToggleDetail',
+  'mbUiSetFormula',
+  'mbUiRecalc',
   'navSidebar',
   'openAiWizard',
   'openBatchRecord',
