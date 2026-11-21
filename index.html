@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="pcs-api-base" content="">
 <meta name="pcs-firebase" content="{&quot;apiKey&quot;:&quot;AIzaSyASB4CKv15IwJUp8pIVKXFtOYwKlY7y1es&quot;,&quot;databaseURL&quot;:&quot;https://pcs-demo-18101-default-rtdb.asia-southeast1.firebasedatabase.app&quot;}">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-Rm7G8E70P56OUQh99d5oMomA5aEBQqijA6b5yqlDiT4=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-C5ftx+Q5JspI6ftPiZfvaViD2z/fBUFYulZoqyLutzo=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'none'">
 <title>PCS Platform · Process Control System</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -2524,6 +2524,14 @@ textarea.ui-dialog-input{resize:vertical; min-height:72px;}
 .pm-plus-parent circle{stroke:#8B2E3C; stroke-dasharray:2 2;}
 .pm-plus-parent text{fill:#8B2E3C;}
 .pm-node-g.dragging{opacity:.75; cursor:grabbing;}
+
+/* v127 회수 용기·시나리오 비교 */
+.mb-fill{display:inline-block; font-size:10.5px; font-weight:800; padding:1px 7px; border-radius:10px; background:#EAF6EE; color:#2E7D32; white-space:nowrap;}
+.mb-fill.tight{background:#FFF4E5; color:#9A5B00;} .mb-fill.over{background:#FDECEC; color:#B42318;}
+.mb-cmp-flags{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px;}
+.mb-cmp-flag{font-size:12px; padding:7px 12px; border-radius:9px; border:1px solid var(--line-soft); background:#F3F8F4;}
+.mb-cmp-flag.tight{background:#FFF8EC; border-color:#F2D29B;} .mb-cmp-flag.over{background:#FDF1F1; border-color:#F2B8B5; color:#8A1C14;}
+.mb-cmp-table td, .mb-cmp-table th{white-space:nowrap; font-size:11.5px;}
 </style>
 </head>
 <body>
@@ -2827,10 +2835,16 @@ const DATA = {
       { id:'eq_cex_column', no:50, name:'CEX Column', tag:'CHX-3431', area:'Suite 600', cal:'', vendor:'Cytiva', modelNo:'Capto S ImpAct', manufacturer:'Cytiva', class1:'10.MSAT', class2:'COLUMN', linkedParams:[] },
       { id:'eq_virus_filter', no:51, name:'Virus Filter', tag:'VFX-3531', area:'Suite 600', cal:'', vendor:'Pall', modelNo:'Pegasus Prime', manufacturer:'Pall', class1:'10.MSAT', class2:'VIRAL FILTER', linkedParams:[] },
       { id:'eq_ufdf_cassette', no:52, name:'UF/DF Cassette', tag:'UFDF-3731', area:'Suite 600', cal:'', vendor:'Merck', modelNo:'Pellicon 3', manufacturer:'Merck', class1:'10.MSAT', class2:'TFF SYSTEM', linkedParams:[] },
-      { id:'eq_10kl_vessel', no:53, name:'10kL Vessel', tag:'PP-3144', area:'Suite 600', cal:'', vendor:'', modelNo:'', manufacturer:'', class1:'10.MSAT', class2:'VESSEL', linkedParams:[] },
-      { id:'eq_15kl_vessel', no:54, name:'15kL Vessel', tag:'PP-3161', area:'Suite 600', cal:'', vendor:'', modelNo:'', manufacturer:'', class1:'10.MSAT', class2:'VESSEL', linkedParams:[] },
+      { id:'eq_10kl_vessel', no:53, name:'10kL Vessel', tag:'PP-3144', area:'Suite 600', cal:'', vendor:'', modelNo:'', manufacturer:'', class1:'10.MSAT', class2:'VESSEL', linkedParams:[], capacityL:10000 },
+      { id:'eq_15kl_vessel', no:54, name:'15kL Vessel', tag:'PP-3161', area:'Suite 600', cal:'', vendor:'', modelNo:'', manufacturer:'', class1:'10.MSAT', class2:'VESSEL', linkedParams:[], capacityL:15000 },
       { id:'eq_tp1', no:55, name:'Transfer Panel 1', tag:'TP-3111', area:'Suite 600', cal:'', vendor:'', modelNo:'', manufacturer:'', class1:'10.MSAT', class2:'TRANSFER PANEL', linkedParams:[] },
       { id:'eq_tp2', no:56, name:'Transfer Panel 2', tag:'TP-3151', area:'Suite 600', cal:'', vendor:'', modelNo:'', manufacturer:'', class1:'10.MSAT', class2:'TRANSFER PANEL', linkedParams:[] },
+      // v127: 참고 PFD(Downstream)의 회수 탱크 — 용량(L)으로 Mass Balance 회수량의 용기 여유를 본다
+      { id:'eq_pp3101', no:58, name:'10kL Pooling Tank', tag:'PP-3101', area:'Suite 600', cal:'', vendor:'', modelNo:'', manufacturer:'', class1:'10.MSAT', class2:'VESSEL', linkedParams:[], capacityL:10000 },
+      { id:'eq_pp3241', no:59, name:'15kL Pooling Tank', tag:'PP-3241', area:'Suite 600', cal:'', vendor:'', modelNo:'', manufacturer:'', class1:'10.MSAT', class2:'VESSEL', linkedParams:[], capacityL:15000 },
+      { id:'eq_pp3341', no:60, name:'10kL Pooling Tank', tag:'PP-3341', area:'Suite 600', cal:'', vendor:'', modelNo:'', manufacturer:'', class1:'10.MSAT', class2:'VESSEL', linkedParams:[], capacityL:10000 },
+      { id:'eq_pp3561', no:61, name:'10kL Pooling Tank', tag:'PP-3561', area:'Suite 600', cal:'', vendor:'', modelNo:'', manufacturer:'', class1:'10.MSAT', class2:'VESSEL', linkedParams:[], capacityL:10000 },
+      { id:'eq_pp3761', no:62, name:'1kL Pooling Tank', tag:'PP-3761', area:'Suite 600', cal:'', vendor:'', modelNo:'', manufacturer:'', class1:'10.MSAT', class2:'VESSEL', linkedParams:[], capacityL:1000 },
       { id:'eq_tp3', no:57, name:'Transfer Panel 3', tag:'TP-3211', area:'Suite 600', cal:'', vendor:'', modelNo:'', manufacturer:'', class1:'10.MSAT', class2:'TRANSFER PANEL', linkedParams:[] },
     ],
     parameter: [
@@ -3161,6 +3175,7 @@ const MASTER_FIELD_CONFIG = {
     { key:'tag', label:'Tag ID', type:'text' },
     { key:'class1', label:'Class 1', type:'select', options:['01.MECHANICAL','02.PIPING','03.INSTRUMENT','04.ELECTRIC','05.HVAC','06.SYSTEM & CONTROL','07.COLDFREEZER','08.COTS','09.CALIBRATION','10.MSAT','11.QC'] },
     { key:'class2', label:'Class 2 (하위분류)', type:'eq_class2' },
+    { key:'capacityL', label:'용량 (L) — 용기·탱크', type:'number' },   // v127: Mass Balance 회수 용기 여유
     { key:'linkedParams', label:'연동 Parameter (복수 선택)', type:'eq_param_multi' },
     { key:'vendor', label:'Vendor', type:'text' },
     { key:'modelNo', label:'Model No.', type:'text' },
@@ -3363,6 +3378,8 @@ function validateData(data){
     (mb.streams||[]).forEach(s=>{
       // v122: 추가 투입·곁가지 산출 줄, 사이클
       (s.extras||[]).forEach(x=>{ if(!x.id || !['in','out'].includes(x.dir)) errors.push(`[Mass Balance] Step ${s.id} 곁가지 줄 ${x.id || '?'} 형식 오류`); });
+      // v127: 회수 용기는 있는 Equipment
+      ['s_vessel', 'r_vessel'].forEach(k=>{ if(s[k] && !((data.masterLists || {}).equipment || []).some(e=>e.id === s[k])) errors.push(`[고아 참조] MB Step ${s.id} ${k} → Equipment ${s[k]} 미존재`); });
       // v123: 계산식 — 아는 칸에 문자열만
       if(s.formulas !== undefined && (typeof s.formulas !== 'object' || !s.formulas || Object.entries(s.formulas).some(([f, e])=>typeof e !== 'string' || !e.trim() || (typeof MB_FORMULA_FIELDS !== 'undefined' && !MB_FORMULA_FIELDS.includes(f))))) errors.push(`[Mass Balance] Step ${s.id} 계산식 형식 오류`);
       if(s.cycles !== undefined && !(Number.isInteger(s.cycles) && s.cycles >= 1)) errors.push(`[Mass Balance] Step ${s.id} 사이클 ${s.cycles} 오류`);
@@ -4982,6 +4999,7 @@ function render(){
     case 'masterListFull': html = renderMasterListFull(); break;
     case 'massBalanceList': html = renderPmExplorer(); break;   // v121: Mass Balance 목록은 Process Map 목록의 "누적 수율" 열로 옮겼다(예전 탭)
     case 'massBalanceEdit': html = renderMassBalanceEdit(); break;
+    case 'mbCompare': html = renderMbCompare(); break;   // v127 시나리오 비교
     case 'mbrMasterList': html = renderMbrMasterList(); break;
     case 'brMasterList': html = renderBrMasterList(); break;
     case 'pfd': html = renderPfdBoard(); break;
@@ -5014,14 +5032,22 @@ function render(){
 /* -------- DASHBOARD -------- */
 /* ============================================================================
    05b_release_notes.js — v111  앱 버전과 "이번 버전에서 바뀐 점"
-   · PCS_APP_VERSION은 build.sh가 빌드 번호로 바꿔 넣는다(v126 자리).
+   · PCS_APP_VERSION은 build.sh가 빌드 번호로 바꿔 넣는다(v127 자리).
    · PCS_RELEASE_NOTES 맨 앞 항목은 항상 이번 빌드 버전이어야 한다(tests/unit/release-notes.test.cjs가 검사).
      버전을 올릴 때 여기 맨 앞에 한 항목을 넣는다. 테스트하는 사람이 무엇을 눌러 보면 되는지(try)를 같이 쓴다.
    · 오른쪽 위 사용자 메뉴 → "버전 vN · 바뀐 점" 으로 열고, 새 버전으로 처음 열면 알림을 한 번 띄운다.
    ========================================================================== */
-var PCS_APP_VERSION = 'v126';
+var PCS_APP_VERSION = 'v127';
 
 const PCS_RELEASE_NOTES = [
+  { version: 'v127', date: '2026-11-21', title: 'Titer 10 g/L 시나리오 PCS, 회수 용기 용량 여유, 시나리오 비교',
+    items: [
+      '참고 PDF Downstream 3쪽(Product Titer 10 g/L)을 별도 PCS "DW-TOZ-10"으로 넣었습니다. 같은 파라미터에 다른 Set Point(ProA Pooling 4,479 L, MMC Pooling 16,196 L 등)와 사이클(ProA 5·MMC 5·CEX 6)을 두고, Mass Balance는 계산식으로 다시 계산했습니다. 원본(8 g/L)과 Parameter Master는 그대로입니다.',
+      'Equipment Master에 "용량 (L)"이 생겼고, Mass Balance Step "▸ 상세"에서 회수 용기를 고릅니다. 배치 회수량이 용기의 90%를 넘으면 "여유 부족", 100%를 넘으면 "넘침"으로 표시·검증합니다. 10 g/L에서 MMC 풀(16,196 L)이 15 kL 탱크 PP-3241의 108%로 넘칩니다 — PDF의 "Limited capacity margin" 지적과 같습니다.',
+      'Mass Balance 머리 "⇄ 시나리오 비교": 두 PCS를 Step 이름으로 맞춰 투입·회수·수율·누적 수율·용기 충진율과 회수 차이, Set Point가 다른 파라미터 표를 나란히 봅니다.',
+      'Process Map 머리 "복제": 시나리오 이름을 붙여 PCS를 복제합니다(기존 복제 범위 그대로, 원본 표시). 머리에 "시나리오 … · 원본 …"이 나옵니다.',
+    ],
+    try: ['참고 PCS ⚖ Mass Balance → ⇄ 시나리오 비교', 'DW-TOZ-10 → Mass Balance → MMC Polishing "▸ 상세"의 회수 용기', 'Process Map 머리 "복제"'] },
   { version: 'v126', date: '2026-11-21', title: '"승인본과 내용이 다릅니다" 원인 찾기·되돌리기, 승인된 UO가 몰래 바뀌던 길 막음',
     items: [
       '승인된 Unit Operation이 승인본과 다르면, 경고에 달라진 부분(예: PFD 연동 추가 1)과 원인을 보여 줍니다. 앞 공정에서 전달받은 도형 때문에 바뀐 것이면 "앞 공정 전달 연동이 바꿈 — 사람이 고친 것이 아닙니다"라고 표시합니다.',
@@ -6349,13 +6375,14 @@ function renderProcessMap(){
 
   return `<div class="pm-view ${STATE.pmFocus ? 'pm-focus' : ''}">
     <div class="view-head pm-head"><div><span class="view-eyebrow">${escapeXml(product.code)}</span><h1 class="view-title">${escapeXml(pm.code)} ${escapeXml(pm.kind || 'Upstream')} PCS</h1>
-      <div class="pm-meta-inline" data-pm-meta><span>Product <b>${escapeXml(product.code)}</b></span><span>버전 <b>${escapeXml(pm.version)}</b></span><span>Reviewed by <b>${escapeXml(pm.reviewedBy || '–')}</b></span><span>Approved by <b>${escapeXml(pm.approvedBy || '–')}</b></span></div></div>
+      <div class="pm-meta-inline" data-pm-meta><span>Product <b>${escapeXml(product.code)}</b></span><span>버전 <b>${escapeXml(pm.version)}</b></span><span>Reviewed by <b>${escapeXml(pm.reviewedBy || '–')}</b></span><span>Approved by <b>${escapeXml(pm.approvedBy || '–')}</b></span>${pm.scenarioOf ? `<span data-pm-scenario>시나리오 <b>${escapeXml(pm.scenarioLabel || '')}</b> · 원본 ${escapeXml((DATA.processMaps.find(m=>m.id===pm.scenarioOf) || {}).code || '')}</span>` : ''}</div></div>
       <div class="view-actions">
         <button class="btn ${isEditing ? 'btn-primary' : ''}" data-on-click="toggleProcessMapEdit"><span>${isEditing ? icon('check') : icon('plus')}</span>${isEditing ? '편집 완료' : '공정 커스텀'}</button>
         <button class="btn" data-on-click="goTo_719a82" data-a-click="${pcsArgs([String(pm.id)])}" title="이 PCS의 모든 PFD를 한 보드에서 편집"><span>${icon('layoutGrid')}</span>PFD 보드</button>
         <button class="btn" data-on-click="openPmApprovalHistory" data-a-click="${pcsArgs([String(pm.id)])}"><span>${icon('history')}</span>버전 기록 (${pm.version})</button>
         <button class="btn ${pm.status==='Approved'?'btn-primary':''}" id="pmPcsReportBtn" ${pcsOn('click','openPcsReport',[pm.id])} title="${pm.status==='Approved'?'승인본 PCS Report':'승인 전 작업본(Draft / In Approval)으로 열립니다'}"><span>${icon('fileText')}</span>${pm.status==='Approved'?'Export PCS Report':'PCS Report (작업본)'}</button>
         <button class="btn ${pm.status==='Approved'?'btn-primary':''}" id="pmBomReportBtn" ${pcsOn('click','openBomReport',[pm.id])} title="${pm.status==='Approved'?'승인본 BOM Report':'승인 전 작업본(Draft / In Approval)으로 열립니다'}"><span>${icon('flask')}</span>${pm.status==='Approved'?'Export BOM Report':'BOM Report (작업본)'}</button>
+        <button class="btn" id="pmDuplicateBtn" ${pcsOn('click','pmDuplicateUi',[pm.id])} title="같은 공정을 조건만 바꿔 검토할 시나리오 PCS로 복제(노드·PFD·리스트·WI·Mass Balance)">${icon('copy')}<span>복제</span></button>
         <button class="btn" id="pmMbBtn" ${pcsOn('click','openMassBalance',[pm.id])} title="이 Process Map의 Mass Balance — Step별 투입·회수·수율, Sending/Receiving 비교"><span>⚖</span>Mass Balance${pmCumYieldBadge(pm.id)}</button>
         ${renderPmApprovalActions(pm)}
       </div></div>
@@ -6647,7 +6674,7 @@ function renderPcsReport(){
           ${srcEditable ? `<div style="margin:4px 0 10px;">${editableTextarea(ns.node.description,'node',ns.node.id,'description',srcEditable)}</div>` : ''}
           ${pmReportNodeInfoHtml(ns.node, srcEditable)}
           <div class="pcs-uo-row"><span class="pcs-uo-label">Work Instruction</span><span class="badge ${WI_STATUS_BADGE[ns.wi ? wiStatusOf(ns.node.id) : '']||'badge-gray'}"><span class="badge-dot"></span>${ns.wiStatus}</span></div>
-          ${ns.eq.length ? `<div class="pcs-uo-label" style="margin-top:8px;">Equipment (${ns.eq.length})</div><table class="pcs-report-table"><thead><tr><th>Name</th><th>Tag ID</th><th>Area</th><th>Calibration</th></tr></thead><tbody>${ns.eq.map(e=>`<tr><td>${editableCell(e.name,'equipment',e.id,'name',srcEditable)}</td><td class="mono">${editableCell(e.tag,'equipment',e.id,'tag',srcEditable)}</td><td>${editableCell(e.area,'equipment',e.id,'area',srcEditable)}</td><td>${editableCell(e.cal,'equipment',e.id,'cal',srcEditable)}</td></tr>`).join('')}</tbody></table>` : ''}
+          ${ns.eq.length ? `<div class="pcs-uo-label" style="margin-top:8px;">Equipment (${ns.eq.length})</div><table class="pcs-report-table"><thead><tr><th>Name</th><th>Tag ID</th><th>용량 (L)</th><th>Area</th><th>Calibration</th></tr></thead><tbody>${ns.eq.map(e=>`<tr><td>${editableCell(e.name,'equipment',e.id,'name',srcEditable)}</td><td class="mono">${editableCell(e.tag,'equipment',e.id,'tag',srcEditable)}</td><td class="mono">${escapeXml(String(e.capacityL || '-'))}</td><td>${editableCell(e.area,'equipment',e.id,'area',srcEditable)}</td><td>${editableCell(e.cal,'equipment',e.id,'cal',srcEditable)}</td></tr>`).join('')}</tbody></table>` : ''}
           ${ns.mat.length ? `<div class="pcs-uo-label" style="margin-top:8px;">Material (${ns.mat.length})</div><table class="pcs-report-table"><thead><tr><th>Name</th><th>Cat No.</th><th>Specification</th><th>BOM Class</th><th>Storage</th></tr></thead><tbody>${ns.mat.map(m=>`<tr><td>${editableCell(m.name,'material',m.id,'name',srcEditable)}</td><td class="mono">${editableCell(m.cat,'material',m.id,'cat',srcEditable)}</td><td>${editableCell(m.spec,'material',m.id,'spec',srcEditable)}</td><td>${editableCell(m.bomClass,'material',m.id,'bomClass',srcEditable)}</td><td>${editableCell(m.storage,'material',m.id,'storage',srcEditable)}</td></tr>`).join('')}</tbody></table>` : ''}
           ${ns.param.length ? `<div class="pcs-uo-label" style="margin-top:8px;">Parameter (${ns.param.length})</div><table class="pcs-report-table"><thead><tr><th>Parameter</th><th>Unit</th><th>Set Point</th><th>Low</th><th>High</th></tr></thead><tbody>${ns.param.map(p=>`<tr><td>${editableCell(p.name,'parameter',p.id,'name',srcEditable)}</td><td class="mono">${editableCell(p.unit,'parameter',p.id,'unit',srcEditable)}</td><td class="mono" data-report-sp="${escapeXmlAttr(p.id)}">${escapeXml(String(pcsReportSetPointText(ns.node.id, p)))}</td><td class="mono">${editableCell(pcsReportNum(p.low),'parameter',p.id,'low',srcEditable)}</td><td class="mono">${editableCell(pcsReportNum(p.high),'parameter',p.id,'high',srcEditable)}</td></tr>`).join('')}</tbody></table>` : ''}
           ${ns.wi && ns.wi.defaultSignatureFlow && ns.wi.defaultSignatureFlow.length ? `
@@ -9757,6 +9784,69 @@ function pmDropNode(pmId, nodeId, hit){
   }
   return ok;
 }
+/* ============================================================================
+   07k_pm_scenario.js — v127  PCS 복제(시나리오)
+   같은 공정을 조건만 바꿔(예: Product Titer 8 → 10 g/L) 따로 검토하려면 PCS를 통째로 복제한다:
+   기존 복제(cloneProcessMap — 노드·PFD·리스트·WI·Mass Balance·소요량 규칙·흐름·보드, PCS_CLONE_SCOPE)를 그대로 쓴다.
+   복제본은 pm.scenarioOf(원본 ID)·scenarioLabel을 가지고, Mass Balance "시나리오 비교"의 기본 비교 대상이 된다.
+   Set Point는 공정마다(v124) — 복제본의 PFD Set Point를 바꿔도 원본·Parameter Master는 그대로다.
+   ========================================================================== */
+
+/* [store] PCS 복제 — 기존 복제(cloneProcessMap, PCS_CLONE_SCOPE)에 시나리오 정보를 더한다.
+   o: { code, name, label, withPfd(기본 true — false면 PFD를 비워 두고 호출부가 다시 그린다) }. 반환 { pmId, idMap }(원본 ID → 새 ID) */
+function pmDuplicateProcessMap(srcPmId, o){
+  const src = DATA.processMaps.find(m => m.id === srcPmId);
+  const opt = o || {};
+  if(!src) return null;
+  const res = cloneProcessMap(srcPmId, genId('pm'), String(opt.name || src.name + ' (복제)').trim());
+  if(!res) return null;
+  const pm = DATA.processMaps.find(m => m.id === res.pmId), map = res.idMap;
+  pm.code = String(opt.code || src.code + '-B').trim();
+  pm.scenarioOf = srcPmId; pm.scenarioLabel = String(opt.label || '').trim();
+  if(src.layout && src.layout.byStage) pm.layout = Object.assign({}, src.layout, { byStage: Object.fromEntries(Object.entries(src.layout.byStage).map(([k, v]) => [map[k] || k, v])) });   // 단계별 배치 키도 복제본으로
+  if(opt.withPfd === false){
+    const ids = getProcessNodes(res.pmId).map(n => n.id);
+    ids.forEach(id => { ['pfdShapes', 'pfdEdges', 'pfdNodes', 'pfdTexts', 'pfdZones', 'pfdImages', 'pfdTables', 'pfdPaths', 'pfdLinks'].forEach(k => { if(DATA[k]) DATA[k][id] = []; }); const n = DATA.nodes.find(x => x.id === id); if(n) n.hasContent = false; });
+    DATA.pfdTransfers = (DATA.pfdTransfers || []).filter(t => !ids.includes(t.fromNodeId) && !ids.includes(t.toNodeId));
+    ((DATA.massBalance[res.pmId] || {}).streams || []).forEach(s => { delete s.pfdMappings; });   // 다시 그린 도면의 연결선은 ID가 다르다
+  }
+  logAudit('Process Map', 'Duplicate As Scenario', `${src.code} → ${pm.code} ${pm.name}${pm.scenarioLabel ? ` (${pm.scenarioLabel})` : ''}`, srcPmId, res.pmId, { pmId: res.pmId });
+  validateData(DATA);
+  return res;
+}
+async function pmDuplicateUi(pmId){
+  const src = DATA.processMaps.find(m => m.id === pmId);
+  if(!src) return;
+  const r = await uiForm({ title: 'PCS 복제 — 시나리오', okLabel: '복제', message: '같은 공정을 조건만 바꿔 따로 검토할 때 씁니다. 노드·PFD·리스트·WI·Mass Balance(계산식)를 새 Draft PCS로 복사합니다. 복제본의 Set Point를 바꿔도 원본은 그대로입니다.', fields: [
+    { key: 'label', label: '시나리오 이름', placeholder: '예: Titer 10 g/L, 2000 L Scale', required: true },
+    { key: 'code', label: 'PCS 코드', value: src.code + '-B', required: true },
+    { key: 'name', label: 'PCS 이름', value: src.name, required: true },
+  ] });
+  if(!r) return;
+  const res = pmDuplicateProcessMap(pmId, { code: r.code, name: `${r.name} — ${r.label}`, label: r.label });
+  if(res){ uiToast(`${r.code} 시나리오 PCS를 만들었습니다.`, { kind: 'success' }); openProcessMapInNewTab(res.pmId); }
+}
+
+/* ---------- 시드: 참고 PCS의 Titer 10 g/L 시나리오(참고 PDF Downstream 3쪽) ----------
+   실제 복제 함수로 만들고, PFD는 참고 도면 그리기(시나리오 값)로, 사이클은 PDF 값(ProA 5·MMC 5·CEX 6),
+   Mass Balance는 계산식 다시 계산으로 채운다. 시드라 감사 기록은 지운다. 40_pfd_validation.js에서 부른다. */
+function seedTiterScenario(){
+  if(!DATA.processMaps.some(p => p.id === 'pm_toz') || DATA.processMaps.some(p => p.scenarioOf === 'pm_toz')) return;
+  const auditLen = DATA.auditTrail.length;
+  const src = DATA.processMaps.find(p => p.id === 'pm_toz');
+  const res = pmDuplicateProcessMap('pm_toz', { code: src.code + '-10', name: `${src.name} — Titer 10 g/L`, label: 'Titer 10 g/L', withPfd: false });
+  if(!res) return;
+  pfdEditDepth++;
+  try { Object.entries(res.idMap).forEach(([oldId, newId]) => { if(pfdHasReference(oldId)) pfdBuildReferenceDrawingAs(newId, oldId, 'g10'); }); }
+  finally { pfdEditDepth--; }
+  const S = PFD_REF_SCENARIOS.g10;
+  const streams = ensureMb(res.pmId).streams, by = n => streams.find(s => s.stepName === n);
+  [['Protein A Capture', S.cyc.proa], ['MMC Polishing', S.cyc.mmc], ['CEX Polishing', S.cyc.cex]].forEach(([n, c]) => { const s = by(n); if(s) mbSetStreamField(res.pmId, s.id, 'cycles', c); });
+  const proa = by('Protein A Capture'), elu = proa && (proa.extras || []).find(x => x.kind === 'buffer');
+  if(elu) mbSetExtraField(res.pmId, proa.id, elu.id, 's_vol', String(S.proaPool));   // 용출 버퍼 = ProA Pool 부피
+  mbRecalcFormulas(res.pmId);
+  DATA.auditTrail.length = auditLen;
+}
 function openBomReport(pmId){
   goTo('bomReport', { reportPmId: pmId }, { label:'BOM Report', tag:'BOM' });
 }
@@ -10861,7 +10951,7 @@ function renderListBody(node, listType){
   };
   const colsMap = {
     material: [['Name','name'],['Cat Number','cat','mono'],['Specification','spec'],['Storage','storage','badge']],
-    equipment: [['Name','name'],['Tag ID','tag','mono'],['Area','area'],['Calibration','cal','badge-green']],
+    equipment: [['Name','name'],['Tag ID','tag','mono'],['용량 (L)','capacityL','mono'],['Area','area'],['Calibration','cal','badge-green']],
     parameter: [['Parameter','name'],['중요도','criticality','crit'],['Unit','unit','mono'],['기본 Set Point','target','mono'],['Low Limit','low','mono'],['High Limit','high','mono']],
     training: [['SOP No.','no','mono'],['Title','title'],['Version','version','mono']],
     sampling: [['No.','no','mono'],['Sample Type','sampleType'],['Test','test'],['Qty','qty','mono'],['Container','container']],
@@ -10984,7 +11074,7 @@ function renderMasterImportModal(keepFocus){
   // 리스트 타입별 컬럼 정의
   const colsMap = {
     material: [['Name','name'],['Cat Number','cat'],['Specification','spec'],['BOM Class','bomClass'],['Storage','storage']],
-    equipment: [['Name','name'],['Tag ID','tag'],['Area','area'],['Calibration','cal']],
+    equipment: [['Name','name'],['Tag ID','tag'],['용량 (L)','capacityL'],['Area','area'],['Calibration','cal']],
     parameter: [['Parameter','name'],['중요도','criticality'],['Unit','unit'],['기본 Set Point','target'],['Low','low'],['High','high']],
     training: [['SOP No.','no'],['Title','title'],['Version','version']],
     sampling: [['No.','no'],['Sample Type','sampleType'],['Test','test'],['Qty','qty'],['Container','container']],
@@ -11304,7 +11394,7 @@ function renderMasterListFull(){
 
   const titleColsMap = {
     material: [['No.','no','mono'],['Name','name'],['Cat Number','cat','mono'],['Material Code','code','mono'],['Specification','spec'],['BOM Class','bomClass','bom-class'],['BOM Type','bomType','bom-type'],['Unit','unit','mono'],['Unit Cost (KRW)','unitCost','cost'],['Vendor','vendor'],['Storage','storage','badge']],
-    equipment: [['No.','no','mono'],['Name','name'],['Tag ID','tag','mono'],['Class 1','class1'],['Class 2','class2'],['Vendor','vendor'],['Model No.','modelNo','mono'],['Manufacturer','manufacturer'],['Area','area'],['Parameter','linkedParams'],['Calibration','cal','badge-green']],
+    equipment: [['No.','no','mono'],['Name','name'],['Tag ID','tag','mono'],['Class 1','class1'],['Class 2','class2'],['Vendor','vendor'],['Model No.','modelNo','mono'],['Manufacturer','manufacturer'],['용량 (L)','capacityL','mono'],['Area','area'],['Parameter','linkedParams'],['Calibration','cal','badge-green']],
     parameter: [['No.','no','mono'],['Parameter','name'],['중요도','criticality','crit'],['Unit','unit','mono'],['기본 Set Point','target','mono'],['Low Limit','low','mono'],['High Limit','high','mono']],
     training: [['SOP No.','no','mono'],['Title','title'],['Version','version','mono']],
     sampling: [['No.','no','mono'],['Sample Type','sampleType'],['Test','test'],['Qty','qty','mono'],['Container','container'],['Frequency','frequency'],['Storage','storage'],['Unit Operation','unitOperationId']],
@@ -17158,7 +17248,7 @@ function renderPfdLinkageTable(nodeId){
   const eqRows = eqLinks.map(l=>{
     const e = DATA.masterLists.equipment.find(x=>x.id===l.masterItemId); if(!e) return '';
     const dup = multiInstance.has('equipment:'+l.masterItemId);
-    return `<tr><td class="cell-mono">${escapeXml(e.tag||'-')}</td><td>${escapeXml(e.name)}</td><td>${dup?`<span class="pfd-lt-instance">${escapeXml(shapeLabel(l.shapeId))}</span>`:ownerCell(l.shapeId)}</td><td>${escapeXml(e.class1||'-')}</td><td>${escapeXml(e.class2||'-')}</td><td>${escapeXml(e.vendor||'-')}</td><td>${escapeXml(e.modelNo||'-')}</td><td>${(e.linkedParams||[]).map(pid=>{const p=DATA.masterLists.parameter.find(x=>x.id===pid); return p?p.name:'?';}).join(', ')||'-'}</td></tr>`;
+    return `<tr><td class="cell-mono">${escapeXml(e.tag||'-')}</td><td>${escapeXml(e.name)}</td><td>${dup?`<span class="pfd-lt-instance">${escapeXml(shapeLabel(l.shapeId))}</span>`:ownerCell(l.shapeId)}</td><td>${escapeXml(e.class1||'-')}</td><td>${escapeXml(e.class2||'-')}</td><td class="cell-mono">${e.capacityL ? escapeXml(String(e.capacityL)) : '-'}</td><td>${escapeXml(e.vendor||'-')}</td><td>${escapeXml(e.modelNo||'-')}</td><td>${(e.linkedParams||[]).map(pid=>{const p=DATA.masterLists.parameter.find(x=>x.id===pid); return p?p.name:'?';}).join(', ')||'-'}</td></tr>`;
   }).join('');
   const matRows = matLinks.map(l=>{
     const m = DATA.masterLists.material.find(x=>x.id===l.masterItemId); if(!m) return '';
@@ -17188,7 +17278,7 @@ function renderPfdLinkageTable(nodeId){
       <p style="font-size:11px; color:var(--ink-400); margin-bottom:12px;">Set Point는 이 공정(이 UO의 PFD)의 값입니다 — 비워 두면 Parameter Master 기본값을 씁니다. Low/High(허용 범위)는 Parameter Master 전역 스펙이라 고치면 모든 공정에 반영됩니다. 같은 항목을 쓰는 도형이 여럿이면 도형명이 강조 표시됩니다.</p>
       ${eqLinks.length ? `<div style="margin-bottom:16px;">
         <div class="pm-note-label">Equipment (${eqLinks.length})</div>
-        <div class="data-table-wrap"><table class="data-table"><thead><tr><th>Tag ID</th><th>Name</th><th>연결된 도형</th><th>Class 1</th><th>Class 2</th><th>Vendor</th><th>Model No.</th><th>Parameter</th></tr></thead><tbody>${eqRows}</tbody></table></div>
+        <div class="data-table-wrap"><table class="data-table"><thead><tr><th>Tag ID</th><th>Name</th><th>연결된 도형</th><th>Class 1</th><th>Class 2</th><th>용량 (L)</th><th>Vendor</th><th>Model No.</th><th>Parameter</th></tr></thead><tbody>${eqRows}</tbody></table></div>
       </div>` : ''}
       ${matLinks.length ? `<div style="margin-bottom:16px;">
         <div class="pm-note-label">Material (${matLinks.length})</div>
@@ -17215,14 +17305,14 @@ function renderTransferredItemsTable(nodeId){
   const fromNames = [...new Set(transferredShapes.map(s=>{
     const n = DATA.nodes.find(x=>x.id===s._fromNodeId); return n ? n.name : '이전 공정';
   }))].join(', ');
-  const eqRows = trEq.map(e=>`<tr style="background:#FFFBEE;"><td class="cell-mono">${escapeXml(e.tag||'-')}</td><td>${escapeXml(e.name)}</td><td>${escapeXml(e.class1||'-')}</td><td>${escapeXml(e.class2||'-')}</td><td>${escapeXml(e.vendor||'-')}</td><td>${escapeXml(e.modelNo||'-')}</td></tr>`).join('');
+  const eqRows = trEq.map(e=>`<tr style="background:#FFFBEE;"><td class="cell-mono">${escapeXml(e.tag||'-')}</td><td>${escapeXml(e.name)}</td><td>${escapeXml(e.class1||'-')}</td><td>${escapeXml(e.class2||'-')}</td><td class="cell-mono">${e.capacityL ? escapeXml(String(e.capacityL)) : '-'}</td><td>${escapeXml(e.vendor||'-')}</td><td>${escapeXml(e.modelNo||'-')}</td></tr>`).join('');
   const matRows = trMat.map(m=>`<tr style="background:#FFFBEE;"><td class="cell-mono">${escapeXml(m.code||'-')}</td><td>${escapeXml(m.name)}</td><td><span class="badge ${BOM_CLASS_BADGE[m.bomClass]||'badge-gray'}"><span class="badge-dot"></span>${m.bomClass||'-'}</span></td><td>${m.bomType||'-'}</td><td>${escapeXml(m.unit||'-')}</td></tr>`).join('');
   return `
     <div style="margin-top:8px; padding:14px; border:1.5px solid #F3D98B; border-radius:10px; background:#FFFBEE;">
       <div class="pm-note-label" style="color:#8A5A00;">⬇ 전달받은 항목 — ${escapeXml(fromNames)}에서 전달됨</div>
       ${trEq.length ? `<div style="margin-bottom:12px;">
         <div style="font-size:11.5px; font-weight:700; color:#8A5A00; margin-bottom:6px;">Equipment (${trEq.length})</div>
-        <div class="data-table-wrap"><table class="data-table"><thead><tr><th>Tag ID</th><th>Name</th><th>Class 1</th><th>Class 2</th><th>Vendor</th><th>Model No.</th></tr></thead><tbody>${eqRows}</tbody></table></div>
+        <div class="data-table-wrap"><table class="data-table"><thead><tr><th>Tag ID</th><th>Name</th><th>Class 1</th><th>Class 2</th><th>용량 (L)</th><th>Vendor</th><th>Model No.</th></tr></thead><tbody>${eqRows}</tbody></table></div>
       </div>` : ''}
       ${trMat.length ? `<div>
         <div style="font-size:11.5px; font-weight:700; color:#8A5A00; margin-bottom:6px;">Material (${trMat.length})</div>
@@ -21119,7 +21209,7 @@ function pfdGroupParametersByEquipment(paramList){
   return { groups, ungrouped };
 }
 function candidateMetaText(listType, it, relatedParamIds){
-  if(listType==='equipment') return [it.class2, it.vendor, it.tag].filter(Boolean).join(' · ');
+  if(listType==='equipment') return [it.class2, it.capacityL ? `${it.capacityL} L` : '', it.vendor, it.tag].filter(Boolean).join(' · ');
   if(listType==='parameter'){
     const isRelated = relatedParamIds && relatedParamIds.has(it.id);
     const setpoint = (it.target!==undefined && it.target!==null && it.target!=='') ? `기본 ${it.target}` : '';
@@ -21786,6 +21876,7 @@ function renderMassBalanceEdit(){
         <p class="view-sub">기술이전 Mass Balance — Sending/Receiving 비교 · Step & Cumulative Yield 자동 계산 · Excel 셀 연동 · PFD Arrow 잠금</p>
       </div>
       <div class="view-actions">
+        ${mbCompareCandidates(pm.id).length ? `<button class="btn" id="mbCompareBtn" ${pcsOn('click','openMbCompare',[pm.id])} title="같은 공정의 다른 PCS(시나리오)와 수율·용기 여유 비교">⇄ 시나리오 비교</button>` : ''}
         <button class="btn" id="mbOpenPmBtn" ${pcsOn('click','mbBackToPm',[pm.id])}>${icon('workflow')} Process Map 열기</button>
       </div>
     </div>
@@ -22727,6 +22818,7 @@ function mbStepDetailHtml(pmId, s, editable){
     <div class="mb-detail-ctrl">
       <label>사이클 <input class="pfd-detail-input" type="number" min="1" style="width:56px;" value="${mbCycles(s)}" ${dis} aria-label="사이클 수" data-mb-cycles ${pcsOn('change', 'pcsCallWithValue', ['mbUiSet', pmId, s.id, 'cycles'])}></label>
       <label><input type="checkbox" ${s.perCycle ? 'checked' : ''} ${dis} data-mb-percycle ${pcsOn('change', 'pcsCallWithChecked', ['mbUiSet', pmId, s.id, 'perCycle'])}> 값은 사이클당(배치 = × 사이클)</label>
+      <label>회수 용기 <select class="pfd-detail-select" style="width:auto; max-width:200px;" ${dis} aria-label="회수 용기" data-mb-vessel ${pcsOn('change', 'pcsCallWithValue', ['mbUiSet', pmId, s.id, (mb.activeVersion === 'receiving' ? 'r_' : 's_') + 'vessel'])}><option value="">— 없음 —</option>${mbVesselOptions().map(e => `<option value="${escapeXmlAttr(e.id)}" ${s[(mb.activeVersion === 'receiving' ? 'r_' : 's_') + 'vessel'] === e.id ? 'selected' : ''}>${escapeXml(e.tag || '')} ${escapeXml(e.name)} · ${escapeXml(String(e.capacityL))} L</option>`).join('')}</select> ${mbFillCell(mbVesselFill(s, mb.activeVersion === 'receiving' ? 'r_' : 's_'))}</label>
       <label>Step Scale <input class="pfd-detail-input" style="width:64px;" value="${escapeXmlAttr(String(s.scale || ''))}" placeholder="${escapeXmlAttr(String(mb.scaleFactor || 1))}" ${dis} aria-label="Step Scale Factor" data-mb-scale ${pcsOn('change', 'pcsCallWithValue', ['mbUiSet', pmId, s.id, 'scale'])}></label>
       <span class="mb-uo-sub">Receiving 예상: 투입 ${escapeXml(plan.fields.r_input || '–')} · 회수 ${escapeXml(plan.fields.r_output || '–')} ${escapeXml(plan.fields.r_unit)} (Sending × ${plan.scale})</span>
       ${editable ? `<button class="btn btn-sm" data-mb-fill-r data-on-click="mbUiFillReceiving" data-a-click="${pcsArgs([pmId, s.id])}">Receiving 채우기</button>` : ''}
@@ -23086,6 +23178,126 @@ function seedMbFormulas(){
   [['Low pH VI', 'Low pH VIN Volume'], ['Depth Filtration', 'Filtered VIN Volume'], ['MMC Polishing', 'MMC Pooling Volume']].forEach(([n, p]) => { set(n, 's_input', '{prev.output}'); set(n, 's_output', `{P:${p}}`); });
   [['CEX Polishing', 'CEX Pooling Volume'], ['Viral Filtration', 'Virus Filtration Volume'], ['UF/DF', 'UFDF Volume']].forEach(([n, p]) => { set(n, 's_input', '{prev.output}'); set(n, 's_output', `{P:${p}}`); });
   [['MMC Polishing', 4], ['CEX Polishing', 5]].forEach(([n, c]) => { const s = by(n); if(s) mbSetStreamField('pm_toz', s.id, 'cycles', c); });
+  DATA.auditTrail.length = auditLen;
+}
+/* ============================================================================
+   17e_mb_compare.js — v127  용기 용량 여유·시나리오 비교
+   · Step마다 회수 용기(Equipment Master의 용량 L) — s.s_vessel / s.r_vessel(Equipment ID). 충진율 = 배치 회수량 ÷ 용량.
+     90% 넘으면 "여유 부족"(주의), 100% 넘으면 "넘침"(오류). 참고 PDF 3쪽(10 g/L)의 "Limited capacity margin"이 이것이다.
+   · 시나리오 비교: 같은 공정의 두 PCS(예: Titer 8 g/L ↔ 10 g/L)를 Step 이름으로 맞춰 투입·회수·수율·누적 수율·용기 충진율을 나란히,
+     두 PCS의 Set Point가 다른 파라미터 목록(PFD 연동 값 → 없으면 Parameter Master 기본값)과 함께.
+   ========================================================================== */
+var MB_VESSEL_TIGHT = 90;
+
+/* ---------- 순수 함수 ---------- */
+/* 충진율 — vol: 배치 회수량(L), cap: 용량(L). { pct, level: 'ok'|'tight'|'over'|null, margin } */
+function mbVesselFillOf(vol, cap){
+  const v = Number(vol), c = Number(cap);
+  if(!isFinite(v) || !isFinite(c) || c <= 0 || vol == null || vol === '') return { pct: null, level: null, margin: null };
+  const pct = Math.round(v / c * 1000) / 10;
+  return { pct, level: pct > 100 ? 'over' : pct > MB_VESSEL_TIGHT ? 'tight' : 'ok', margin: Math.round((c - v) * 10) / 10 };
+}
+/* Step 이름으로 두 목록 맞추기(같은 이름이 여럿이면 순서대로) — [{ name, a, b }] (한쪽만 있으면 다른 쪽 null) */
+function mbScenarioPairs(as, bs){
+  const used = new Set(), rows = [];
+  (as || []).forEach(a => {
+    const j = (bs || []).findIndex((b, i) => !used.has(i) && (b.stepName || '') === (a.stepName || ''));
+    if(j >= 0) used.add(j);
+    rows.push({ name: a.stepName || 'Step', a, b: j >= 0 ? bs[j] : null });
+  });
+  (bs || []).forEach((b, i) => { if(!used.has(i)) rows.push({ name: b.stepName || 'Step', a: null, b }); });
+  return rows;
+}
+/* 한 PCS의 Step 지표 — cap(equipmentId) → 용량 L */
+function mbScenarioMetrics(ordered, pfx, cap){
+  const cum = mbCalcCumYield(ordered, pfx);
+  const out = new Map();
+  ordered.forEach((s, i) => {
+    const outV = mbTotalNum(s, s[pfx + 'output']), vessel = s[pfx + 'vessel'] || '';
+    out.set(s, { input: mbTotalNum(s, s[pfx + 'input']), output: outV, unit: s[pfx + 'unit'] || 'L', yld: mbYieldOf(s, pfx), basis: mbStepBalance(s, pfx).basis, cum: cum[i], cycles: mbCycles(s), vessel, fill: mbVesselFillOf(outV, vessel ? cap(vessel) : null) });
+  });
+  return out;
+}
+/* 두 PCS의 파라미터 값 차이 — params(Parameter Master), spA·spB(mbParamSetPointIndex), ids: 비교할 파라미터 ID. 다른 것만 [{ param, a, b, src }] */
+function mbSetPointDiff(params, spA, spB, ids){
+  const val = (sp, p) => { const l = (sp[p.id] || []).map(x => x.value); return l.length ? [...new Set(l)].join(' / ') : (p.target == null || p.target === '' ? '' : String(p.target)) + ' (기본)'; };
+  return (ids || []).map(id => (params || []).find(p => p.id === id)).filter(Boolean)
+    .map(p => ({ param: p, a: val(spA, p), b: val(spB, p) })).filter(r => r.a !== r.b);
+}
+
+/* ---------- 데이터 ---------- */
+function mbEquipCapacity(id){ const e = getMasterItem('equipment', id); const c = e ? Number(e.capacityL) : NaN; return isFinite(c) && c > 0 ? c : null; }
+function mbVesselFill(s, pfx){ const id = s[pfx + 'vessel']; return mbVesselFillOf(mbTotalNum(s, s[pfx + 'output']), id ? mbEquipCapacity(id) : null); }
+/* 용기 후보: 용량이 있는 Equipment(용기·탱크) */
+function mbVesselOptions(){ return (getMasterArray('equipment') || []).filter(e => Number(e.capacityL) > 0).sort((a, b) => Number(a.capacityL) - Number(b.capacityL)); }
+/* 같은 제품의 다른 PCS(시나리오 관계 먼저) */
+function mbCompareCandidates(pmId){
+  const pm = DATA.processMaps.find(m => m.id === pmId);
+  if(!pm) return [];
+  const rel = m => m.scenarioOf === pmId || pm.scenarioOf === m.id || (pm.scenarioOf && m.scenarioOf === pm.scenarioOf);
+  return DATA.processMaps.filter(m => m.id !== pmId && !m._virtual && ((DATA.massBalance || {})[m.id] || {}).streams && (m.productId === pm.productId || rel(m)))
+    .sort((a, b) => (rel(b) ? 1 : 0) - (rel(a) ? 1 : 0));
+}
+
+/* ---------- 화면 ---------- */
+function openMbCompare(pmId, otherId){
+  const other = otherId || (mbCompareCandidates(pmId)[0] || {}).id;
+  if(!other){ uiToast('비교할 다른 PCS가 없습니다 — Process Map 머리의 "복제"로 시나리오 PCS를 만드세요.'); return; }
+  goTo('mbCompare', { mbPmId: pmId, cmpPmId: other }, { label: '시나리오 비교', tag: 'MB' });
+}
+function mbCompareSetOther(v){ const t = getActiveTab(); t.ctx.cmpPmId = v; render(); }
+function mbCompareSetSite(v){ const t = getActiveTab(); t.ctx.cmpSite = v === 'r_' ? 'r_' : 's_'; render(); }
+function mbFillCell(f){
+  if(!f || f.pct == null) return '<span class="mb-uo-sub">–</span>';
+  return `<span class="mb-fill ${f.level}" title="여유 ${mbFmt(f.margin, 0)} L">${f.pct}%${f.level === 'over' ? ' 넘침' : f.level === 'tight' ? ' 여유 부족' : ''}</span>`;
+}
+function renderMbCompare(){
+  const ctx = getActiveTab().ctx;
+  const A = DATA.processMaps.find(m => m.id === ctx.mbPmId), B = DATA.processMaps.find(m => m.id === ctx.cmpPmId);
+  if(!A || !B) return '<p style="padding:24px">비교할 PCS를 찾을 수 없습니다.</p>';
+  const pfx = ctx.cmpSite === 'r_' ? 'r_' : 's_';
+  const oa = mbOrderedStreams(A.id), ob = mbOrderedStreams(B.id);
+  const ma = mbScenarioMetrics(oa, pfx, mbEquipCapacity), mb = mbScenarioMetrics(ob, pfx, mbEquipCapacity);
+  const pairs = mbScenarioPairs(oa, ob);
+  const n = v => v == null || Number.isNaN(v) ? '–' : mbFmt(v, 0);
+  const pct = (v, b) => v == null ? '–' : `${v}%${b === 'volume' ? '<sup>V</sup>' : ''}`;
+  const side = (m, s) => s ? (x => `<td class="mono">${n(x.input)}</td><td class="mono">${n(x.output)}${x.cycles > 1 ? `<div class="mb-uo-sub">${x.cycles} cycles</div>` : ''}</td><td class="mono">${pct(x.yld, x.basis)}</td><td class="mono">${pct(x.cum)}</td><td>${mbFillCell(x.fill)}${x.vessel ? `<div class="mb-uo-sub">${escapeXml((getMasterItem('equipment', x.vessel) || {}).tag || x.vessel)}</div>` : ''}</td>`)(m.get(s)) : '<td colspan="5" class="mb-uo-sub" style="text-align:center;">이 Step 없음</td>';
+  const rows = pairs.map(p => {
+    const xa = p.a && ma.get(p.a), xb = p.b && mb.get(p.b);
+    const d = xa && xb && xa.output && xb.output != null ? Math.round((xb.output - xa.output) / xa.output * 1000) / 10 : null;
+    return `<tr data-cmp-step="${escapeXmlAttr(p.name)}"><td><b>${escapeXml(p.name)}</b></td>${side(ma, p.a)}${side(mb, p.b)}<td class="mono">${d == null ? '–' : (d > 0 ? '+' : '') + d + '%'}</td></tr>`;
+  }).join('');
+  const all = getMasterArray('parameter') || [];
+  const spA = mbSetPointsOf(A.id), spB = mbSetPointsOf(B.id);
+  const ids = [...new Set(Object.keys(spA).concat(Object.keys(spB)))];
+  const diff = mbSetPointDiff(all, spA, spB, ids);
+  const warn = (m, pm) => { const xs = [...m.values()].filter(x => x.fill.level === 'over' || x.fill.level === 'tight'); return xs.length ? `<div class="mb-cmp-flag ${xs.some(x => x.fill.level === 'over') ? 'over' : 'tight'}" data-cmp-flag="${escapeXmlAttr(pm.id)}"><b>${escapeXml(pm.code)}</b> 용기 ${xs.map(x => `${escapeXml((getMasterItem('equipment', x.vessel) || {}).tag || '')} ${x.fill.pct}%`).join(', ')} — ${xs.some(x => x.fill.level === 'over') ? '용량 초과(넘침)' : '여유 부족(90% 초과)'}</div>` : `<div class="mb-cmp-flag ok"><b>${escapeXml(pm.code)}</b> 모든 회수 용기 90% 이하</div>`; };
+  const opts = mbCompareCandidates(A.id).map(m => `<option value="${escapeXmlAttr(m.id)}" ${m.id === B.id ? 'selected' : ''}>${escapeXml(m.code)} · ${escapeXml(m.name)}${m.scenarioLabel ? ` (${escapeXml(m.scenarioLabel)})` : ''}</option>`).join('');
+  const head = pm => `<th colspan="5" class="${pm === A ? 'mb-s' : 'mb-r'}">${escapeXml(pm.code)}${pm.scenarioLabel ? ` · ${escapeXml(pm.scenarioLabel)}` : ''}</th>`;
+  const sub = '<th>투입</th><th>회수</th><th>Step 수율</th><th>누적</th><th>용기 충진</th>';
+  return `
+    <div class="view-head"><div><span class="view-eyebrow">MASS BALANCE · 시나리오 비교</span><h1 class="view-title">${escapeXml(A.name)} ⇄ ${escapeXml(B.name)}</h1>
+      <p class="view-sub">같은 공정의 두 PCS를 Step 이름으로 맞춰 수율과 회수 용기 용량 여유를 나란히 봅니다. 값은 각 PCS의 PFD Set Point·계산식에서 나옵니다.</p></div>
+      <div class="view-actions"><label class="mb-uo-sub">비교 대상 <select class="pfd-detail-select" id="mbCmpOther" ${pcsOn('change', 'pcsCallWithValue', ['mbCompareSetOther'])}>${opts}</select></label>
+        <div class="pm-mode-switch">${[['s_', 'Sending'], ['r_', 'Receiving']].map(([k, l]) => `<button class="pm-mode-btn ${pfx === k ? 'on' : ''}" data-on-click="mbCompareSetSite" data-a-click="${pcsArgs([k])}">${l}</button>`).join('')}</div>
+        <button class="btn" data-on-click="openMassBalance" data-a-click="${pcsArgs([A.id])}">⚖ ${escapeXml(A.code)} Mass Balance</button></div></div>
+    <div class="mb-cmp-flags">${warn(ma, A)}${warn(mb, B)}</div>
+    <div class="card" style="padding:0; overflow:auto; margin-bottom:16px;"><table class="data-table mb-cmp-table" data-mb-compare>
+      <thead><tr><th rowspan="2">Step</th>${head(A)}${head(B)}<th rowspan="2">회수 차이</th></tr><tr>${sub}${sub}</tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="card" style="padding:14px 16px;"><b>Set Point가 다른 파라미터</b> <span class="mb-uo-sub">${diff.length}개 — PFD 연동 값, 없으면 Parameter Master 기본값</span>
+      ${diff.length ? `<table class="data-table" data-cmp-setpoints style="margin-top:8px;"><thead><tr><th>Parameter</th><th class="mb-s">${escapeXml(A.code)}</th><th class="mb-r">${escapeXml(B.code)}</th><th>Unit</th></tr></thead><tbody>${diff.map(r => `<tr><td>${escapeXml(r.param.name)}</td><td class="mono">${escapeXml(r.a)}</td><td class="mono">${escapeXml(r.b)}</td><td class="mono">${escapeXml(r.param.unit || '')}</td></tr>`).join('')}</tbody></table>` : '<div class="mb-uo-sub" style="margin-top:6px;">두 PCS의 Set Point가 같습니다.</div>'}</div>
+    <p class="mb-uo-sub" style="margin-top:10px;"><sup>V</sup> 농도가 없어 부피 비율로 계산한 수율 · 누적 수율은 Step 수율을 곱한 값 · 용기 충진 = 배치 회수량 ÷ 회수 용기 용량(Equipment Master), 90% 초과 여유 부족·100% 초과 넘침</p>`;
+}
+
+/* ---------- 시드: 참고 PCS Step의 회수 탱크(참고 PFD Downstream — 회수 풀이 담기는 탱크) ----------
+   Low pH VI는 ProA 풀 탱크(PP-3101)에서 중화한다. 실제 store 함수, 시드라 감사 기록은 지운다. 40_pfd_validation.js에서 부른다. */
+function seedMbVessels(){
+  if(!DATA.processMaps.some(p => p.id === 'pm_toz')) return;
+  const streams = ensureMb('pm_toz').streams;
+  if(streams.some(s => s.s_vessel)) return;
+  const auditLen = DATA.auditTrail.length;
+  [['Protein A Capture', 'eq_pp3101'], ['Low pH VI', 'eq_pp3101'], ['Depth Filtration', 'eq_15kl_vessel'], ['MMC Polishing', 'eq_pp3241'], ['CEX Polishing', 'eq_pp3341'], ['Viral Filtration', 'eq_pp3561'], ['UF/DF', 'eq_pp3761']]
+    .forEach(([n, eq]) => { const s = streams.find(x => x.stepName === n); if(s && getMasterItem('equipment', eq)) mbSetStreamField('pm_toz', s.id, 's_vessel', eq); });
   DATA.auditTrail.length = auditLen;
 }
 /* =========================================================
@@ -30730,39 +30942,46 @@ function pfdRefDspStep(nodeId, o){
   k.text(ex + ew + 24, ey + eh * 0.18 + 26, 200, o.eq.spec || '', { fontStep:'note' });
   // v124: 이 공정의 Set Point(참고 PDF 8 g/L 값)를 도형에 연동 — Parameter Master는 기본값, 공정별 값은 여기
   [['in', o.in], ['eq', o.eq], ['out', o.out]].forEach(([key, part]) => ((part && part.sp) || []).forEach(([pid, v]) => { if(k.K[key] && getMasterItem('parameter', pid)) linkPfdShapeToMaster(nodeId, k.K[key], 'parameter', pid, String(v)); }));
+  if(o.out && o.out.eq && k.K.out && getMasterItem('equipment', o.out.eq)) linkPfdShapeToMaster(nodeId, k.K.out, 'equipment', o.out.eq);   // v127: 회수 탱크 = Equipment(용량)
   if(o.viralSplit) k.text(300, 600, 400, 'Pre Viral  ┆  Post Viral', { fontStep:'equipment', bold:true, textColor:'#C62828', textAlign:'center' });
-  k.text(40, 640, 500, 'Hyunseokimab Downstream · Product Titer : 8 g/L', { fontStep:'note', textColor:'#6B6B6B' });
+  k.text(40, 640, 500, `Hyunseokimab Downstream · Product Titer : ${o.titer || 8} g/L`, { fontStep:'note', textColor:'#6B6B6B' });
 }
 /* 노드 → 생성기. 같은 모양의 장은 같은 함수 */
-function pfdReferenceBuilders(){
+/* v127: 참고 PDF Downstream의 두 시나리오 — 2쪽 Product Titer 8 g/L(참고 PCS), 3쪽 10 g/L(시나리오 PCS). 도면 글·Set Point·사이클이 여기서 나온다 */
+var PFD_REF_SCENARIOS = {
+  g8:  { titer: 8,  hccf: 15000, proaPool: 3583, lowph: 7023, filtered: 7183, mmcPool: 12973, cexPool: 3981, vf: 4425, uf1: 925,  uf2: 462, ufdf: 494, cyc: { proa: 4, mmc: 4, cex: 5 }, page: 2 },
+  g10: { titer: 10, hccf: 15000, proaPool: 4479, lowph: 8778, filtered: 8958, mmcPool: 16196, cexPool: 4777, vf: 5316, uf1: 1156, uf2: 578, ufdf: 618, cyc: { proa: 5, mmc: 5, cex: 6 }, page: 3 },
+};
+function pfdReferenceBuilders(scn){
+  const S = PFD_REF_SCENARIOS[scn] || PFD_REF_SCENARIOS.g8, f = v => Number(v).toLocaleString('en-US');
   const br = (name, o)=>nodeId=>pfdRefBioreactorOp(nodeId, Object.assign({ name }, o));
-  const dsp = o=>nodeId=>pfdRefDspStep(nodeId, o);
-  const tank = (vol, tag, extra, sp)=>({ label:`${vol}\n${tag}`, note: extra || '', sp });
+  const dsp = o=>nodeId=>pfdRefDspStep(nodeId, Object.assign({ titer: S.titer }, o));
+  const tank = (vol, tag, extra, sp, eq)=>({ label:`${vol}\n${tag}`, note: extra || '', sp, eq });   // eq: 이 탱크의 Equipment(용량) — v127
   return {
     nt_media_prep: pfdRefMediaPrep,
     nt_cell_exp: pfdRefCellExpansion,
     nt_wave: pfdRefWave,
     nt_n1_seed: br('3 kL\nN-1 Seed Bioreactor', { basal:'Basal\nMP 3 kL', basalVessel:true, third:{ tpl:'sym_cellsbag', label:'Cells' }, filterAfterBasal:true }),
     nt_production: br('15 kL\nN Bioreactor', { basal:'Basal\nMP 12 kL', basalVessel:true, feed:'Feed\nMH 8 kL', third:{ tpl:'sym_tag_left', label:'N-1 Seed 이송', w:120, h:28, props:{ fontStep:'note' } }, transfer:'Harvest', filterAfterBasal:true }),
-    nt_chrom1: dsp({ in:{ label:'HCCF\npool', note:'· HCCF Vol. 15,000 L\n· Product Titer 8 g/L', sp:[['param_hccf_vol', 15000], ['param_product_titer', 8]] }, inTP:'TP 1 (TP-2111)',
-      eq:{ tpl:'sym_chromskid', name:'1st Chromatography', spec:'(CHX-3131)\n- Protein A (B/E)\n- Column i.d. 180 cm\n- 4 cycles' },
-      out: tank('10 kL', 'PP-3101', '· Pro A Pooling 3,583 L\n· Low pH VIN 7,023 L', [['param_proa_pool_vol', 3583], ['param_low_ph_vin', 7023]]), outTP:'TP 2 (TP-3101)' }),
-    nt_depth_filt: dsp({ in: tank('10 kL', 'PP-3101', '· Low pH VIN 7,023 L'), inTP:'TP 2 (TP-3101)',
+    nt_chrom1: dsp({ in:{ label:'HCCF\npool', note:`· HCCF Vol. ${f(S.hccf)} L\n· Product Titer ${S.titer} g/L`, sp:[['param_hccf_vol', S.hccf], ['param_product_titer', S.titer]] }, inTP:'TP 1 (TP-2111)',
+      eq:{ tpl:'sym_chromskid', name:'1st Chromatography', spec:`(CHX-3131)\n- Protein A (B/E)\n- Column i.d. 180 cm\n- ${S.cyc.proa} cycles` },
+      out: tank('10 kL', 'PP-3101', `· Pro A Pooling ${f(S.proaPool)} L\n· Low pH VIN ${f(S.lowph)} L`, [['param_proa_pool_vol', S.proaPool], ['param_low_ph_vin', S.lowph]], 'eq_pp3101'), outTP:'TP 2 (TP-3101)' }),
+    nt_depth_filt: dsp({ in: tank('10 kL', 'PP-3101', `· Low pH VIN ${f(S.lowph)} L`), inTP:'TP 2 (TP-3101)',
       eq:{ tpl:'sym_depthrack', name:'Depth Filtration', spec:'(DFX-3151)\n- Depth filter + 0.2 µm\n- 1 cycle', w:150, h:150 },
-      out: tank('15 kL', 'PP-3161', '· Filtered VIN 7,183 L', [['param_filtered_vin', 7183]]), outTP:'TP 3 (TP-3161)' }),
-    nt_chrom2: dsp({ in: tank('15 kL', 'PP-3161', '· Filtered VIN 7,183 L'), inTP:'TP 3 (TP-3211)',
-      eq:{ tpl:'sym_chromskid', name:'2nd Chromatography', spec:'(CHX-3231)\n- MMC (F/T)\n- Column i.d. 160 cm\n- 4 cycles' },
-      out: tank('15 kL', 'PP-3241', '· MMC Pooling 12,973 L', [['param_mmc_pool_vol', 12973]]), outTP:'TP 4 (TP-3241)' }),
-    nt_chrom3: dsp({ in: tank('15 kL', 'PP-3241', '· MMC Pooling 12,973 L'), inTP:'TP 5 (TP-3411)',
-      eq:{ tpl:'sym_chromskid', name:'3rd Chromatography', spec:'(CHX-3431)\n- CEX (B/E)\n- Column i.d. 160 cm\n- 5 cycles' },
-      out: tank('10 kL', 'PP-3341', '· CEX Pooling 3,981 L', [['param_cex_pool_vol', 3981]]), outTP:'TP 6 (TP-3511)' }),
-    nt_viral_filt: dsp({ in: tank('10 kL', 'PP-3341', '· CEX Pooling 3,981 L'), inTP:'TP 6 (TP-3511)',
+      out: tank('15 kL', 'PP-3161', `· Filtered VIN ${f(S.filtered)} L`, [['param_filtered_vin', S.filtered]], 'eq_15kl_vessel'), outTP:'TP 3 (TP-3161)' }),
+    nt_chrom2: dsp({ in: tank('15 kL', 'PP-3161', `· Filtered VIN ${f(S.filtered)} L`), inTP:'TP 3 (TP-3211)',
+      eq:{ tpl:'sym_chromskid', name:'2nd Chromatography', spec:`(CHX-3231)\n- MMC (F/T)\n- Column i.d. 160 cm\n- ${S.cyc.mmc} cycles` },
+      out: tank('15 kL', 'PP-3241', `· MMC Pooling ${f(S.mmcPool)} L`, [['param_mmc_pool_vol', S.mmcPool]], 'eq_pp3241'), outTP:'TP 4 (TP-3241)' }),
+    nt_chrom3: dsp({ in: tank('15 kL', 'PP-3241', `· MMC Pooling ${f(S.mmcPool)} L`), inTP:'TP 5 (TP-3411)',
+      eq:{ tpl:'sym_chromskid', name:'3rd Chromatography', spec:`(CHX-3431)\n- CEX (B/E)\n- Column i.d. 160 cm\n- ${S.cyc.cex} cycles` },
+      out: tank('10 kL', 'PP-3341', `· CEX Pooling ${f(S.cexPool)} L`, [['param_cex_pool_vol', S.cexPool]], 'eq_pp3341'), outTP:'TP 6 (TP-3511)' }),
+    nt_viral_filt: dsp({ in: tank('10 kL', 'PP-3341', `· CEX Pooling ${f(S.cexPool)} L`), inTP:'TP 6 (TP-3511)',
       eq:{ tpl:'sym_virusfilter', name:'Viral Filtration', spec:'(VFX-3531)\n- 1 cycle', w:60, h:150 },
-      out: tank('10 kL', 'PP-3561', '· Virus Filtration 4,425 L', [['param_virus_filt_vol', 4425]]), outTP:'TP 7 (TP-3611)', viralSplit:true }),
-    nt_ufdf: dsp({ in: tank('10 kL', 'PP-3561', '· Virus Filtration 4,425 L'), inTP:'TP 8 (TP-3711)',
-      eq:{ tpl:'sym_ufdf', name:'UF/DF', spec:'(UFDF-3731)\n- 1 cycle\nUF/DF Vol.\nUF1 925 L · UF2 462 L', w:180, h:126, sp:[['param_ufdf_vol', 925], ['param_uf2_vol', 462]] },
-      out: tank('1 kL', 'PP-3761', '· UF/DF Pool 494 L', [['param_ufdf_pool_vol', 494]]), outTP:'TP 9 (TP-3761)' }),
-    nt_formulation: dsp({ in: tank('1 kL', 'PP-3761', '· UF/DF Pool 494 L'), inTP:'TP 9 (TP-3761)',
+      out: tank('10 kL', 'PP-3561', `· Virus Filtration ${f(S.vf)} L`, [['param_virus_filt_vol', S.vf]], 'eq_pp3561'), outTP:'TP 7 (TP-3611)', viralSplit:true }),
+    nt_ufdf: dsp({ in: tank('10 kL', 'PP-3561', `· Virus Filtration ${f(S.vf)} L`), inTP:'TP 8 (TP-3711)',
+      eq:{ tpl:'sym_ufdf', name:'UF/DF', spec:`(UFDF-3731)\n- 1 cycle\nUF/DF Vol.\nUF1 ${f(S.uf1)} L · UF2 ${f(S.uf2)} L`, w:180, h:126, sp:[['param_ufdf_vol', S.uf1], ['param_uf2_vol', S.uf2]] },
+      out: tank('1 kL', 'PP-3761', `· UF/DF Pool ${f(S.ufdf)} L`, [['param_ufdf_pool_vol', S.ufdf]], 'eq_pp3761'), outTP:'TP 9 (TP-3761)' }),
+    nt_formulation: dsp({ in: tank('1 kL', 'PP-3761', `· UF/DF Pool ${f(S.ufdf)} L`), inTP:'TP 9 (TP-3761)',
       eq:{ tpl:'sym_sumixer', name:'Formulation', spec:'- Formulation buffer 첨가\n- 목표 농도 조정', w:130, h:146 },
       out: tank('0.5 kL', 'PP-3801', '· Formulated Bulk'), outTP:'TP 10 (TP-3801)' }),
     nt_bulk_fill: dsp({ in: tank('0.5 kL', 'PP-3801', '· Formulated Bulk'), inTP:'TP 10 (TP-3801)',
@@ -30778,8 +30997,10 @@ function pfdSlideIsEmpty(nodeId){
   return !n('pfdShapes') && !n('pfdEdges') && !n('pfdTexts') && !n('pfdTables');
 }
 /* [store] 참고 도면 그리기 — 빈 슬라이드에만. 반환: 그렸으면 true */
-function pfdBuildReferenceDrawing(nodeId){
-  const build = pfdReferenceBuilders()[nodeId];
+function pfdBuildReferenceDrawing(nodeId){ return pfdBuildReferenceDrawingAs(nodeId, nodeId, 'g8'); }
+/* v127: 다른 노드(시나리오 PCS의 복제 노드)에 참고 도면을 시나리오 값으로 — refId: 참고 도면 키(원본 노드 ID) */
+function pfdBuildReferenceDrawingAs(nodeId, refId, scn){
+  const build = pfdReferenceBuilders(scn)[refId];
   if(!build || !pfdSlideIsEmpty(nodeId)) return false;
   pfdSetSlideFrame(nodeId, 'slide');
   build(nodeId);
@@ -30875,6 +31096,14 @@ function mbValidate(pmId){
   const issues = mbValidateStreams(mbOrderedStreams(pmId), pfx, true).map(x=>Object.assign({ area:'stream' }, x));
   const noConc = mbNoConcSteps(mb.streams, pfx);   // v122: 질량 근거 없는 Step — 한 줄로
   if(noConc.length) issues.push({ area:'stream', level:'info', code:'no-conc', msg:`Step ${noConc.length}개는 농도가 없어 수율을 부피 비율로 계산했습니다(${noConc.slice(0, 4).map(s=>s.stepName || 'Step').join(', ')}${noConc.length > 4 ? ' …' : ''}) — 투입·회수 농도(g/L)를 넣으면 질량 수율` });
+  // v127: 회수 용기 용량 여유 — 90% 초과 주의, 100% 초과 오류
+  mbOrderedStreams(pmId).forEach(s=>{
+    const f = mbVesselFill(s, pfx);
+    if(f.level !== 'over' && f.level !== 'tight') return;
+    const e = getMasterItem('equipment', s[pfx + 'vessel']) || {};
+    issues.push({ area:'stream', level: f.level === 'over' ? 'error' : 'warn', code: f.level === 'over' ? 'vessel-over' : 'vessel-tight', streamId: s.id,
+      msg:`${s.stepName || 'Step'}: 회수 ${mbFmt(mbTotalNum(s, s[pfx + 'output']), 0)} L가 ${e.tag || ''} ${e.name || ''}(${mbFmt(Number(e.capacityL), 0)} L)의 ${f.pct}% — ${f.level === 'over' ? '용기를 넘칩니다' : '여유가 10% 미만입니다'}` });
+  });
   // v123: 계산식 — 오류, 저장값과 계산값이 어긋남(파라미터·앞 Step 값이 바뀜)
   mbFormulaPlanFor(pmId).forEach(r=>{
     if(r.error) issues.push({ area:'stream', level:'error', code:'formula-error', streamId: r.sid, msg:`${r.stepName}: ${mbFormulaFieldLabel(r.field)} 계산식 오류 — ${r.error}` });
@@ -30946,12 +31175,13 @@ function mbUnlinkEdge(pmId, sid, nodeId, edgeId){
 /* [store] Step 값 하나 */
 function mbSetStreamField(pmId, sid, field, value){
   const s = getMbStreamById(pmId, sid);
-  if(!s || !(MB_NUM_FIELDS.includes(field) || MB_TEXT_FIELDS.includes(field) || ['stepOrder', 'cycles', 'perCycle', 'scale'].includes(field))) return false;
+  if(!s || !(MB_NUM_FIELDS.includes(field) || MB_TEXT_FIELDS.includes(field) || ['stepOrder', 'cycles', 'perCycle', 'scale', 's_vessel', 'r_vessel'].includes(field))) return false;
+  if((field === 's_vessel' || field === 'r_vessel') && value && !getMasterItem('equipment', value)) return false;   // v127: 회수 용기 = Equipment ID
   // v122: 사이클(1 이상 정수)·사이클당 여부·Step Scale(비우면 Process Map 값)
   if(field === 'scale' && String(value).trim() !== '' && !(parseFloat(value) > 0)) return false;
   const v = field === 'stepOrder' ? (parseInt(value, 10) || 1) : field === 'cycles' ? Math.max(1, parseInt(value, 10) || 1) : field === 'perCycle' ? !!value : String(value == null ? '' : value).trim();
   if((s[field] ?? (field === 'cycles' ? 1 : field === 'perCycle' ? false : '')) === v) return false;
-  if((field === 'cycles' && v === 1) || (field === 'perCycle' && !v) || (field === 'scale' && v === '')) delete s[field]; else s[field] = v;
+  if((field === 'cycles' && v === 1) || (field === 'perCycle' && !v) || ((field === 'scale' || field === 's_vessel' || field === 'r_vessel') && v === '')) delete s[field]; else s[field] = v;
   logAudit('Mass Balance', 'Step 값 변경', `${pmId} · ${s.stepName || sid} · ${field} = ${v}`);
   validateData(DATA);
   return true;
@@ -31005,6 +31235,8 @@ function seedReferenceMassBalance(){
 seedReferenceMassBalance();
 seedMbModelExample();   // v122: 17c_mb_model.js — ProA 질량·사이클·곁가지 예시
 seedMbFormulas();       // v123: 17d_mb_formula.js — Step 값을 Parameter Master·앞 Step에 잇는 계산식
+seedMbVessels();        // v127: 17e_mb_compare.js — 참고 PCS Step의 회수 탱크(용량)
+seedTiterScenario();    // v127: 07k_pm_scenario.js — Titer 10 g/L 시나리오 PCS(참고 PDF 3쪽)
 seedPmHierarchy();   // v112: 07b_pm_hierarchy.js
 pmMigrateVersionTrees(DATA);   // v119: 시드의 승인 버전에도 구조(스키마 3과 같은 규칙)
 seedReferenceBomRules();   // v113: 17b_uo_mass_balance.js
@@ -32491,6 +32723,10 @@ const PCS_CALLABLE = new Set([
   'mbUiRecalc',
   'pmToggleUoStrip',
   'pmStartInlineParent',
+  'openMbCompare',
+  'mbCompareSetOther',
+  'mbCompareSetSite',
+  'pmDuplicateUi',
   'navSidebar',
   'openAiWizard',
   'openBatchRecord',
