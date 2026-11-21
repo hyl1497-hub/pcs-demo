@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="pcs-api-base" content="">
 <meta name="pcs-firebase" content="{&quot;apiKey&quot;:&quot;AIzaSyASB4CKv15IwJUp8pIVKXFtOYwKlY7y1es&quot;,&quot;databaseURL&quot;:&quot;https://pcs-demo-18101-default-rtdb.asia-southeast1.firebasedatabase.app&quot;}">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-aE5DgFKkVQ2lw/LxMNbA5uQD2lc7nHfLpemSB0dVVyE=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-YGhZswrfCDg3zK7zZ1s0owysRcHNN5GV+8CGBEnI+Vs=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'none'">
 <title>PCS Platform · Process Control System</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -241,6 +241,17 @@ button:focus-visible, .crumb:focus-visible, [tabindex]:focus-visible, input:focu
 .view-title{font-size:23px; font-weight:800; letter-spacing:-.02em; color:var(--burgundy-900); margin:0;}
 .view-sub{font-size:13.5px; color:var(--ink-500); margin-top:5px; max-width:600px; line-height:1.55;}
 .view-actions{display:flex; gap:8px; flex-shrink:0;}
+/* v125 Process Map: 화면 폭 전체 — 맵이 넓게(ThinkWise처럼 캔버스 중심) */
+.view:has(> .fade-enter > .pm-view){max-width:none; padding:14px 18px 28px;}
+.pm-head{margin-bottom:10px; align-items:center;}
+.pm-head .view-title{font-size:20px;}
+.pm-head .view-actions{flex-wrap:wrap; flex-shrink:1; justify-content:flex-end;}
+.pm-meta-inline{display:flex; flex-wrap:wrap; gap:4px 16px; margin-top:4px; font-size:11.5px; color:var(--ink-500);}
+.pm-meta-inline b{color:var(--ink-800, #2b2224); font-weight:700;}
+.pm-head > div:first-child{flex:0 1 auto; min-width:280px;}
+.pm-head .view-actions{gap:6px;}
+.pm-head .view-actions .btn{padding:6px 10px; font-size:12px; height:auto;}
+.pm-toolbar-hint{margin-left:auto; font-size:11px; color:var(--ink-400); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; flex:0 1 auto;}
 
 .btn{
   border:1px solid var(--line); background:#fff; color:var(--ink-700); font-size:13px; font-weight:600;
@@ -348,6 +359,7 @@ button:focus-visible, .crumb:focus-visible, [tabindex]:focus-visible, input:focu
 .pm-container { display:flex; flex-direction:row; flex-wrap:nowrap; gap:20px; align-items:flex-start; }
 .pm-container > .card { flex:1 1 0%; min-width:300px; overflow:hidden; }
 .pm-container.panel-open > .card { max-width:calc(100% - 648px); }
+.pm-container{gap:14px;}
 .pm-legend{display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-top:14px; padding:10px 14px; background:#FAF8F8; border:1px solid var(--line); border-radius:10px; font-size:11.5px; color:var(--ink-500);}
 .pm-legend-title{display:flex; align-items:center; gap:5px; font-weight:700; color:var(--ink-700);}
 .pm-legend-item{display:flex; align-items:center; gap:5px;}
@@ -368,7 +380,7 @@ button:focus-visible, .crumb:focus-visible, [tabindex]:focus-visible, input:focu
 .pm-meta-val{font-size:13px; color:var(--burgundy-900); font-weight:600;}
 
 /* ===== Process Map — Free-drag canvas (tree links + free position) ===== */
-#pmCanvasWrap{position:relative; min-height:520px; height:calc(100vh - 210px); overflow:auto; overscroll-behavior:contain; background:
+#pmCanvasWrap{position:relative; min-height:520px; height:calc(100vh - 350px); overflow:auto; overscroll-behavior:contain; background:
   radial-gradient(circle, #E7E2E1 1px, transparent 1px) 0 0/22px 22px, #FCFBFB;
 }
 #pmCanvasWrap.pm-panning{cursor:grabbing;}
@@ -378,7 +390,8 @@ button:focus-visible, .crumb:focus-visible, [tabindex]:focus-visible, input:focu
 .pm-layout-popup{position:absolute; top:40px; right:0; background:#fff; border:1px solid var(--line); border-radius:10px; box-shadow:var(--shadow-lg); padding:12px; z-index:20; display:grid; grid-template-columns:repeat(3,1fr); gap:6px; min-width:220px;}
 .pm-layout-opt{display:flex; flex-direction:column; align-items:center; gap:2px; padding:8px 6px; border-radius:8px; cursor:pointer; transition:background .12s;}
 .pm-layout-opt:hover{background:var(--pink-100);}
-.pm-canvas-toolbar{position:absolute; top:12px; right:12px; display:flex; gap:6px; z-index:30;}
+.pm-canvas-toolbar{position:relative; display:flex; flex-wrap:wrap; align-items:center; gap:6px; z-index:30; padding:7px 10px; border-bottom:1px solid var(--line); background:#FCFBFA;}   /* v125: 캔버스 위 띠(노드를 가리지 않고, 좁아지면 줄바꿈 — 보기 전환이 잘리지 않게) */
+.pm-canvas-toolbar .pm-mode-switch{flex-shrink:0;}
 .pm-zoom-btn{width:30px;height:30px;border-radius:8px;background:#fff;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;font-weight:700;color:var(--ink-700);box-shadow:var(--shadow-sm);}
 .pm-zoom-btn:hover{border-color:#D9CFCE;background:#FAF8F8;}
 
@@ -718,7 +731,10 @@ button:focus-visible, .crumb:focus-visible, [tabindex]:focus-visible, input:focu
 .pfd-board-table-editor th{background:#F3F4F6; font-weight:600;}
 .pfd-board-table-editor td:hover{background:#F9FAFB; cursor:text;}
 /* v80: Unit Operation 단위 승인 */
-.uo-strip{border:1px solid var(--line); border-radius:12px; background:#fff; padding:12px 14px; margin-bottom:14px;}
+.uo-strip{border:1px solid var(--line); border-radius:12px; background:#fff; padding:8px 12px; margin-bottom:10px;}
+.uo-strip .ap-strip{margin:0 0 0 auto; padding:0; border:0;}
+.uo-strip-warn{font-size:11px; font-weight:800; color:#9A5B00; background:#FFF4E5; border-radius:10px; padding:1px 8px;}
+.uo-strip-toggle{border:0; background:none; color:#2F6FB5; font-size:11.5px; font-weight:700; cursor:pointer; padding:2px 4px; font-family:inherit;}
 .uo-strip-head{display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--ink-700); flex-wrap:wrap;}
 .uo-strip-head b{color:var(--burgundy-900);}
 .uo-strip-note{font-size:11.5px; color:var(--ink-500);}
@@ -2498,6 +2514,13 @@ textarea.ui-dialog-input{resize:vertical; min-height:72px;}
 .mb-fx-src{font-size:9.5px; padding:0 4px; border-radius:3px; background:#EEF4FF; color:#2F5FA8;} .mb-fx-src.master{background:#F2F0EC; color:var(--ink-500);}
 .mb-fx-block .mb-extra-table{width:100% !important;} .mb-fx-block .mb-extra-table td:first-child{white-space:nowrap; width:1%;}
 .pcs-mb-sum{font-size:10.5px;} .pcs-mb-sum th, .pcs-mb-sum td{padding:5px 6px !important;} .pcs-mb-sum td:nth-child(2){min-width:96px;} .mb-fx-help code{background:#F2F0EC; padding:0 4px; border-radius:3px; font-size:10.5px;}
+
+/* v125 Process Map 끌어 놓기·방향 + */
+.pm-drop-line line{stroke:#2F6FB5; stroke-width:3; stroke-linecap:round;}
+.pm-drop-line circle{fill:#2F6FB5;}
+.pm-plus-parent circle{stroke:#8B2E3C; stroke-dasharray:2 2;}
+.pm-plus-parent text{fill:#8B2E3C;}
+.pm-node-g.dragging{opacity:.75; cursor:grabbing;}
 </style>
 </head>
 <body>
@@ -4988,14 +5011,22 @@ function render(){
 /* -------- DASHBOARD -------- */
 /* ============================================================================
    05b_release_notes.js — v111  앱 버전과 "이번 버전에서 바뀐 점"
-   · PCS_APP_VERSION은 build.sh가 빌드 번호로 바꿔 넣는다(v124 자리).
+   · PCS_APP_VERSION은 build.sh가 빌드 번호로 바꿔 넣는다(v125 자리).
    · PCS_RELEASE_NOTES 맨 앞 항목은 항상 이번 빌드 버전이어야 한다(tests/unit/release-notes.test.cjs가 검사).
      버전을 올릴 때 여기 맨 앞에 한 항목을 넣는다. 테스트하는 사람이 무엇을 눌러 보면 되는지(try)를 같이 쓴다.
    · 오른쪽 위 사용자 메뉴 → "버전 vN · 바뀐 점" 으로 열고, 새 버전으로 처음 열면 알림을 한 번 띄운다.
    ========================================================================== */
-var PCS_APP_VERSION = 'v124';
+var PCS_APP_VERSION = 'v125';
 
 const PCS_RELEASE_NOTES = [
+  { version: 'v125', date: '2026-11-21', title: 'Process Map — 넓은 화면, 끌어 놓기로 계층 바꾸기, 방향에 맞는 + , 부모 가지 추가',
+    items: [
+      'Process Map이 화면 폭 전체를 씁니다. 머리는 한 줄로 줄였고, Unit Operation 승인 줄은 한 줄 요약으로 접혀 있다가 "▸ UO 목록 보기"로 펼칩니다. 도구 막대는 캔버스 위 띠라 맵을 가리지 않고, 패널을 열어도 맵·아웃라인·칸반 전환이 잘리지 않습니다.',
+      '편집 모드를 켜지 않아도 노드를 끌어 계층을 바꿉니다. 다른 노드 위에 놓으면 그 노드의 하위로, 형제 사이(틈이나 가장자리)에 놓으면 그 자리로 들어가고, 끄는 동안 놓을 자리가 파란 선·테두리로 보입니다. Ctrl+Z로 되돌립니다.',
+      '노드를 고르면 나오는 + 가 가지가 뻗는 방향을 따릅니다: 오른쪽 트리에서는 오른쪽 + = 하위, 위·아래 + = 형제, 왼쪽(점선) + = 부모. 공정 흐름·조직도에서는 아래 = 하위, 하위 단계 목록에서는 오른쪽 = 하위.',
+      '부모 가지 추가: 점선 + , 우클릭 "부모 가지 추가", Ctrl+Shift+Enter. UO 위에는 공정 단계가, 하위 단계 위에는 하위 단계가 기본으로 끼워집니다.',
+    ],
+    try: ['참고 PCS → 배치 "오른쪽 트리" → 노드 하나 고르고 둘레 + 보기', 'Wave Bioreactor를 끌어 Cell Expansion 위쪽 가장자리에 놓기', 'Viral Filtration 고르고 왼쪽 점선 + → 공정 단계 이름 입력'] },
   { version: 'v124', date: '2026-11-21', title: 'Set Point는 공정마다 — Parameter Master는 정의·허용 범위·기본값, 참고 PCS 값 바로잡음',
     items: [
       'PFD에서 Parameter Set Point를 고치면 이제 그 공정(그 UO의 PFD)에만 저장됩니다. 예전처럼 Parameter Master가 바뀌어 다른 PCS까지 따라 바뀌지 않습니다. 비워 두면 Parameter Master 기본값을 씁니다.',
@@ -6302,7 +6333,8 @@ function renderProcessMap(){
   const sidePanel = panel ? renderPmPanel(pm.id, panel) : '';
 
   return `<div class="pm-view ${STATE.pmFocus ? 'pm-focus' : ''}">
-    <div class="view-head"><div><span class="view-eyebrow">${escapeXml(product.code)}</span><h1 class="view-title">${escapeXml(pm.code)} ${escapeXml(pm.kind || 'Upstream')} PCS</h1><p class="view-sub">각 공정 노드를 클릭하면 우측 패널에서 Process Flow Design, 장비/자재/파라미터 리스트, Work Instruction을 확인하거나 추가할 수 있습니다. 편집 모드에서는 노드를 자유롭게 드래그해 배치할 수 있습니다.</p></div>
+    <div class="view-head pm-head"><div><span class="view-eyebrow">${escapeXml(product.code)}</span><h1 class="view-title">${escapeXml(pm.code)} ${escapeXml(pm.kind || 'Upstream')} PCS</h1>
+      <div class="pm-meta-inline" data-pm-meta><span>Product <b>${escapeXml(product.code)}</b></span><span>버전 <b>${escapeXml(pm.version)}</b></span><span>Reviewed by <b>${escapeXml(pm.reviewedBy || '–')}</b></span><span>Approved by <b>${escapeXml(pm.approvedBy || '–')}</b></span></div></div>
       <div class="view-actions">
         <button class="btn ${isEditing ? 'btn-primary' : ''}" data-on-click="toggleProcessMapEdit"><span>${isEditing ? icon('check') : icon('plus')}</span>${isEditing ? '편집 완료' : '공정 커스텀'}</button>
         <button class="btn" data-on-click="goTo_719a82" data-a-click="${pcsArgs([String(pm.id)])}" title="이 PCS의 모든 PFD를 한 보드에서 편집"><span>${icon('layoutGrid')}</span>PFD 보드</button>
@@ -6312,7 +6344,6 @@ function renderProcessMap(){
         <button class="btn" id="pmMbBtn" ${pcsOn('click','openMassBalance',[pm.id])} title="이 Process Map의 Mass Balance — Step별 투입·회수·수율, Sending/Receiving 비교"><span>⚖</span>Mass Balance${pmCumYieldBadge(pm.id)}</button>
         ${renderPmApprovalActions(pm)}
       </div></div>
-    <div class="pm-meta-grid"><div class="pm-meta-cell"><div class="pm-meta-label">Product Code</div><div class="pm-meta-val">${escapeXml(product.code)}</div></div><div class="pm-meta-cell"><div class="pm-meta-label">Reviewed by</div><div class="pm-meta-val">${escapeXml(pm.reviewedBy)}</div></div><div class="pm-meta-cell"><div class="pm-meta-label">Approved by</div><div class="pm-meta-val">${escapeXml(pm.approvedBy)}</div></div><div class="pm-meta-cell"><div class="pm-meta-label">버전</div><div class="pm-meta-val">${pm.version}</div></div></div>
     ${renderPmUoStrip(pm)}
     <div class="pm-container${sidePanel?' panel-open':''}">
       <div class="card" style="padding:0; overflow:hidden; position:relative;${sidePanel?` max-width:calc(100% - ${getPmPanelWidth()+48}px);`:''}">
@@ -6333,7 +6364,7 @@ function renderProcessMap(){
       <span class="pm-legend-sep"></span>
       ${Object.entries(PM_NODE_STATUS_COLOR).map(([st,color])=>`<span class="pm-legend-item"><span class="pm-legend-dot" style="background:${color}"></span>${st}</span>`).join('')}
     </div>
-    ${isEditing ? `<p class="pm-edit-hint" style="font-size:12px; color:var(--ink-500); margin-top:14px;">${icon('move')} 노드를 드래그해 위치를 자유롭게 배치하세요. 연결선(트리 구조)은 그대로 유지됩니다.</p>` : ''}
+    ${isEditing ? `<p class="pm-edit-hint" style="font-size:12px; color:var(--ink-500); margin-top:14px;">${icon('move')} 자유 배치에서는 노드를 끌어 놓은 자리에 그대로 둡니다. 계산 배치에서는 편집 모드가 아니어도 끌어서 계층을 바꿀 수 있습니다.</p>` : ''}
     </div>
   `;
 }
@@ -7157,6 +7188,8 @@ function pmNodeMenuHtml(nodeId){
       const toKinds = Object.keys(PM_NODE_KINDS).filter(k => k !== kind);
       h += head('종류 바꾸기') + toKinds.map(k => item(PM_NODE_KINDS[k].label, 'pmSetNodeKindUi', [nodeId, k], `data-menu-kind="${k}"`)).join('');
       h += head('순서') + item('↑ 앞으로', 'pcsCloseMenuThenCall', ['moveProcessNode', nodeId, -1]) + item('↓ 뒤로', 'pcsCloseMenuThenCall', ['moveProcessNode', nodeId, 1]);
+      const pKinds = ['stage', 'uo', 'step'].filter(k => pmKindAllowed(k, n.parentId ? pmNodeKind(DATA.nodes.find(x => x.id === n.parentId)) : null) && pmKindAllowed(kind, k));   // v125
+      if(pKinds.length) h += head('부모 가지 추가 (위에 끼우기)') + pKinds.map(k => item(`⤒ ${PM_NODE_KINDS[k].label}`, 'pcsCloseMenuThenCall', ['pmStartInlineParent', nodeId, k], `data-menu-parent="${k}"`)).join('');
     }
     h += head('가지 선택') + [['children', '모든 하위'], ['siblings', '모든 형제'], ['level', '같은 레벨 모두']].map(([m, l]) => item(l, 'pmSelectBranch', [nodeId, m], `data-menu-select="${m}"`)).join('');
     if(editable){
@@ -7288,6 +7321,7 @@ function pmKeyAction(e){
   if(mod && (k === 'c' || k === 'C')) return 'copy';
   if(mod && (k === 'x' || k === 'X')) return 'cut';
   if(mod && (k === 'v' || k === 'V')) return 'paste';
+  if(mod && e.shiftKey && k === 'Enter') return 'addParent';   // v125 부모 가지
   if(mod && k === 'Enter') return 'addBefore';
   if(mod && k === 'ArrowUp') return 'moveUp';
   if(mod && k === 'ArrowDown') return 'moveDown';
@@ -7469,7 +7503,8 @@ function pmPasteBranch(targetParentId, clip){
 
 /* ---------- 이름 입력 칸(캔버스 위) ---------- */
 /* STATE.pmInline = { pmId, mode:'child'|'after'|'before'|'rename', refId, kind, value } */
-function pmStartInline(mode, refId, initial){
+function pmStartInlineParent(nodeId, kind){ pmStartInline('parent', nodeId, '', kind); }
+function pmStartInline(mode, refId, initial, kindOverride){
   const n = refId && refId !== 'ROOT' ? DATA.nodes.find(x => x.id === refId) : null;
   const pmId = n ? n.pmId : getActiveTab().ctx.pmId;
   if(mode === 'rename'){
@@ -7479,7 +7514,8 @@ function pmStartInline(mode, refId, initial){
   if(mode === 'after' || mode === 'before'){ if(!n) return pmStartInline('child', 'ROOT'); }
   const parentKind = mode === 'child' ? (n ? pmNodeKind(n) : null) : null;
   if(mode === 'child' && n && !['uo', 'step', 'stage'].some(k => pmKindAllowed(k, parentKind))) return;
-  const kind = mode === 'child' ? pmDefaultChildKind(parentKind) : n ? pmNodeKind(n) : 'uo';
+  if(mode === 'parent' && (!n || !pmInsertParentKind(n))){ uoLockNotice('이 노드 위에는 부모 가지를 둘 수 없습니다.'); return; }
+  const kind = kindOverride && PM_NODE_KINDS[kindOverride] ? kindOverride : mode === 'child' ? pmDefaultChildKind(parentKind) : mode === 'parent' ? pmInsertParentKind(n) : n ? pmNodeKind(n) : 'uo';
   STATE.pmInline = { pmId, mode, refId: refId || 'ROOT', kind, value: initial != null ? initial : (mode === 'rename' ? n.name : '') };
   pmRenderInline();
 }
@@ -7489,11 +7525,9 @@ function pmInlineBox(st){
   if(!svg) return null;
   const ref = pmViewPos(st.pmId, st.refId);   // v117: 화면 배치 기준
   if(!ref) return null;
-  const w = st.refId === 'ROOT' ? 220 : PM_NODE_W;
-  let x = ref.x, y = ref.y;
-  if(st.mode === 'child'){ const kids = getProcessChildren(st.pmId, st.refId === 'ROOT' ? null : st.refId).map(k => pmViewPos(st.pmId, k.id)).filter(Boolean); x = kids.length ? Math.max(...kids.map(k => k.x)) + PM_NODE_W + 40 : ref.x + (w - PM_NODE_W) / 2; y = ref.y + 140; }
-  else if(st.mode === 'after') x = ref.x + PM_NODE_W + 40;
-  else if(st.mode === 'before') x = ref.x - PM_NODE_W - 40;
+  // v125: 추가되는 쪽(가지가 뻗는 방향·형제 축·부모 쪽)에 맞춰
+  const a = pmInlineAnchor(st) || ref;
+  const x = a.x, y = a.y;
   const k = pmView.scale;
   const sr = svg.getBoundingClientRect(), wr = wrap.getBoundingClientRect();
   const fr = pmFrameOf(st.pmId);   // v120: 캔버스 틀 원점
@@ -7521,7 +7555,7 @@ function pmRenderInline(){
   }
   Object.assign(el.style, { left: b.left + 'px', top: b.top + 'px', width: Math.max(150, b.w) + 'px', minHeight: b.h + 'px' });
   el.setAttribute('data-mode', st.mode);
-  el.querySelector('.pm-inline-kind').textContent = `${{ child: '하위 추가', after: '아래 형제 추가', before: '앞 형제 추가', rename: '이름 고치기' }[st.mode]} · ${PM_NODE_KINDS[st.kind].label}`;
+  el.querySelector('.pm-inline-kind').textContent = `${{ child: '하위 가지 추가', after: '형제 가지 추가(뒤)', before: '형제 가지 추가(앞)', parent: '부모 가지 추가', rename: '이름 고치기' }[st.mode]} · ${PM_NODE_KINDS[st.kind].label}`;
   const inp = el.querySelector('input');
   if(inp.value !== st.value) inp.value = st.value;
   if(document.activeElement !== inp){ inp.focus(); const L = inp.value.length; inp.setSelectionRange(st.mode === 'rename' && st.value === (DATA.nodes.find(n => n.id === st.refId) || {}).name ? 0 : L, L); }
@@ -7538,6 +7572,7 @@ function pmCommitInline(){
   let newId = null;
   if(st.mode === 'rename') pmRenameNode(st.refId, name);
   else if(st.mode === 'child') newId = pmWithUndo(st.pmId, () => pmAddChildNode(st.refId, st.kind, name));
+  else if(st.mode === 'parent') newId = pmWithUndo(st.pmId, () => pmInsertParentNode(st.refId, name, st.kind));
   else newId = pmWithUndo(st.pmId, () => pmAddSiblingNode(st.refId, name, st.mode === 'before'));
   if(newId){
     // 하위 추가는 부모로 돌아가 Space로 계속, 형제 추가는 새 노드에 머물러 Enter로 계속
@@ -7600,6 +7635,7 @@ async function pmOnKey(e){
       return;
     }
     case 'addChild': stop(); pmStartInline('child', sel || 'ROOT'); return;
+    case 'addParent': stop(); if(selNode) pmStartInline('parent', selNode.id); return;
     case 'addAfter': case 'addBefore': stop(); if(!selNode) return pmStartInline('child', 'ROOT'); pmStartInline(action === 'addAfter' ? 'after' : 'before', selNode.id); return;
     case 'rename': stop(); if(selNode) pmStartInline('rename', selNode.id); return;
     case 'typeRename': if(!selNode) return; stop(); pmStartInline('rename', selNode.id, e.key); return;
@@ -7629,7 +7665,7 @@ async function pmOnKey(e){
   }
 }
 function pmShowKeyHelp(){
-  const rows = [['Space · Insert', '하위 추가 → 이름 입력 (끝내면 부모로 돌아와 계속 추가)'], ['Shift+Enter', '아래 형제 추가'], ['Ctrl+Enter', '앞 형제 추가'], ['Enter', '노드 열기(오른쪽 패널)'], ['Tab', '다음 노드로 초점 이동'],
+  const rows = [['Space · Insert', '하위 추가 → 이름 입력 (끝내면 부모로 돌아와 계속 추가)'], ['Shift+Enter', '아래 형제 추가'], ['Ctrl+Enter', '앞 형제 추가'], ['Ctrl+Shift+Enter', '부모 가지 추가(노드 위에 끼우기)'], ['끌어 놓기', '노드 위 = 하위로, 형제 사이 = 그 자리로 (편집 모드 없이)'], ['Enter', '노드 열기(오른쪽 패널)'], ['Tab', '다음 노드로 초점 이동'],
     ['F2 · 더블클릭', '이름 고치기'], ['글자 입력', '이름을 그 글자부터 새로 입력'], ['Esc', '입력 취소 · 여러 선택 해제'], ['← ↑ → ↓', '화면 위치대로 이동'],
     ['Ctrl+↑ / Ctrl+↓', '형제 순서 바꾸기'], ['Delete', '선택한 가지 삭제(하위 포함, 확인)'], ['Ctrl+C / X / V', '가지 복사 / 잘라내기 / 붙여넣기'],
     ['Ctrl+Z / Ctrl+Y', '구조 실행취소 / 다시 실행'], ['Ctrl·Shift+클릭', '여러 노드 선택'], ['우클릭', '노드 메뉴(종류·가지 선택·가지 삭제)'], ['?', '이 도움말']];
@@ -7651,13 +7687,7 @@ if(typeof document !== 'undefined' && document.addEventListener && !globalThis._
     pmStartInline('rename', g.getAttribute('data-node-id'));
   });
 }
-/* 선택한 노드 둘레의 + 단추(아래 = 하위, 왼쪽 = 앞 형제, 오른쪽 = 아래 형제) — Process Map이 Draft일 때 */
-function pmPlusHandlesSvg(n){
-  if(!pmStructureEditable(n.pmId)) return '';
-  const h = (mode, x, y, title) => `<g class="pm-plus" data-plus="${mode}" data-plus-node="${n.id}" transform="translate(${x},${y})" role="button" aria-label="${title}"><title>${title}</title><circle r="8"/><text text-anchor="middle" dominant-baseline="central">+</text></g>`;
-  const canChild = ['uo', 'step', 'stage'].some(k => pmKindAllowed(k, pmNodeKind(n)));
-  return (canChild ? h('child', PM_NODE_W / 2, PM_NODE_H + 16, '하위 추가 (Space)') : '') + h('before', -16, PM_NODE_H / 2, '앞 형제 추가 (Ctrl+Enter)') + h('after', PM_NODE_W + 16, PM_NODE_H / 2, '아래 형제 추가 (Shift+Enter)');
-}
+/* 선택한 노드 둘레의 + 는 07j_pm_dnd.js(pmPlusHandlesSvg — 가지가 뻗는 방향에 맞춰) */
 /* 지금 캔버스 스크롤 위치를 기억(스크롤 이벤트는 다음 프레임에 오므로 다시 그리기 직전에 직접 읽는다) */
 function pmKeepCanvasScroll(){
   const w = typeof document !== 'undefined' && document.getElementById && document.getElementById('pmCanvasWrap');
@@ -9505,6 +9535,210 @@ function pmPanStart(svg, e){
   document.addEventListener('mousemove', move); document.addEventListener('mouseup', up);
 }
 function pmPanJustEnded(){ return !!(pmPanState && pmPanState.done && Date.now() - pmPanState.done < 300); }
+/* ============================================================================
+   07j_pm_dnd.js — v125  Process Map 끌어 놓기(계층)·방향에 맞는 + 단추·부모 가지 추가
+   ThinkWise를 다시 둘러본 결과(2026-11-21, "for claude" 폴더의 탐색용 맵만 — 시험한 이동은 실행취소로 되돌림):
+     · 노드를 고르면 둘레에 + — 가지가 뻗는 쪽이 "하위가지 추가", 형제가 늘어선 축의 앞·뒤가 "형제가지(위/아래) 추가",
+       부모 쪽은 "가지 수동배치"(끄는 손잡이). 목록 모양(하위가 아래로 들여쓰기)이면 오른쪽 = 하위, 위·아래 = 형제.
+     · 편집 모드 없이 노드를 끌어 다른 노드 위에 놓으면 그 노드의 마지막 하위, 형제 사이 틈에 놓으면 그 자리에 끼운다.
+     · 부모 가지를 끼우는 메뉴는 없었다 — 여기서는 부모 쪽 + 와 우클릭 "부모 가지 추가", Ctrl+Shift+Enter로 둔다.
+   방향은 배치 이름이 아니라 화면에 그려진 자리(부모·형제·하위 상자)에서 계산한다 — 배치 5가지·단계별 배치·자유 배치에 모두 맞는다.
+   ========================================================================== */
+var PM_OPP_SIDE = { left: 'right', right: 'left', top: 'bottom', bottom: 'top' };
+var PM_SIDE_WORD = { right: '오른쪽', left: '왼쪽', top: '위', bottom: '아래' };
+
+/* ---------- 순수 함수 ---------- */
+function pmDirOf(a, b){ const dx = b.cx - a.cx, dy = b.cy - a.cy; return Math.abs(dx) >= Math.abs(dy) ? (dx >= 0 ? 'right' : 'left') : (dy >= 0 ? 'bottom' : 'top'); }
+function pmAxisOf(side){ return side === 'left' || side === 'right' ? 'x' : 'y'; }
+/* 노드 둘레 방향 — me·parent·firstKid·prev·next: 상자 중심 { cx, cy }(없으면 null), parentStyle: 부모의 선 모양 'list'|'row'|''.
+   반환 { child, after, before, parent } — 하위가 뻗는 쪽, 다음 형제 쪽, 앞 형제 쪽, 부모 쪽. 하위와 형제가 같은 축이면(목록) 하위는 옆(들여쓰기 쪽) */
+function pmNodeDirs(me, parent, firstKid, prev, next, parentStyle){
+  let after = parentStyle === 'list' ? 'bottom' : parentStyle === 'row' ? 'right' : next ? pmDirOf(me, next) : prev ? pmDirOf(prev, me) : null;
+  // 가지가 뻗어 온 쪽(out): 형제 축에 수직인 축에서 부모 → 나. 형제를 모르면 부모 → 나의 큰 쪽, 형제 축은 그 수직
+  let out;
+  if(after) out = !parent ? 'bottom' : pmAxisOf(after) === 'x' ? (me.cy >= parent.cy ? 'bottom' : 'top') : (me.cx >= parent.cx ? 'right' : 'left');
+  else { out = parent ? pmDirOf(parent, me) : 'bottom'; after = pmAxisOf(out) === 'x' ? 'bottom' : 'right'; }
+  let child = firstKid ? pmDirOf(me, firstKid) : out;
+  if(pmAxisOf(child) === pmAxisOf(after)) child = out;   // 목록(하위도 아래로 들여쓰기)이면 들여쓰기 쪽
+  return { child, after, before: PM_OPP_SIDE[after], parent: PM_OPP_SIDE[child] };
+}
+/* 끌고 있는 점이 어디에 떨어지는지 — boxes [{ id, x, y, w, h, after, root }].
+   상자 안: 형제 축으로 앞 1/4 = before, 뒤 1/4 = after, 가운데 = child. 상자 밖 형제 축 방향 gap 안 = before/after(형제 사이 틈). 루트는 child만 */
+function pmDropAt(boxes, px, py, gap){
+  const g = gap == null ? 22 : gap;
+  let near = null, nearD = Infinity;
+  for(const b of boxes || []){
+    const inX = px >= b.x && px <= b.x + b.w, inY = py >= b.y && py <= b.y + b.h;
+    if(b.root){ if(inX && inY) return { id: b.id, where: 'child' }; continue; }
+    const ax = pmAxisOf(b.after || 'bottom'), fwd = b.after === 'right' || b.after === 'bottom';
+    if(inX && inY){
+      const t = ax === 'x' ? (px - b.x) / b.w : (py - b.y) / b.h;
+      if(t > 0.25 && t < 0.75) return { id: b.id, where: 'child' };
+      return { id: b.id, where: (t >= 0.75) === fwd ? 'after' : 'before' };
+    }
+    // 형제 사이 틈: 형제 축으로 상자 바깥 gap 안, 가로지르는 축은 상자 범위 안
+    const cross = ax === 'x' ? inY : inX;
+    if(!cross) continue;
+    const lo = ax === 'x' ? b.x : b.y, hi = ax === 'x' ? b.x + b.w : b.y + b.h, p = ax === 'x' ? px : py;
+    const d = p < lo ? lo - p : p > hi ? p - hi : Infinity;
+    if(d <= g && d < nearD){ nearD = d; near = { id: b.id, where: (p > hi) === fwd ? 'after' : 'before' }; }
+  }
+  return near;
+}
+/* 부모 가지로 끼울 종류: 원래 부모 아래에 올 수 있고 이 노드를 하위로 둘 수 있는 것 — UO 위는 공정 단계 우선, 하위 단계 위는 하위 단계 우선 */
+function pmInsertParentKindFor(kind, parentKind){
+  const order = kind === 'step' ? ['step', 'uo'] : kind === 'uo' ? ['stage', 'uo'] : ['stage'];
+  return order.find(c => pmKindAllowed(c, parentKind) && pmKindAllowed(kind, c)) || null;
+}
+
+/* ---------- 화면 배치에서 읽기 ---------- */
+function pmVisibleChildIds(pmId, parentId){ return pmVisibleTreeNodes(pmId).filter(n => (n.parentId || null) === (parentId || null)).sort((a, b) => (a.order || 0) - (b.order || 0)).map(n => n.id); }
+function pmViewBox(pmId, id){
+  const p = pmViewPos(pmId, id);
+  if(!p) return null;
+  const w = id === 'ROOT' ? PM_ROOT_W : PM_NODE_W;
+  return { id, x: p.x, y: p.y, w, h: PM_NODE_H, cx: p.x + w / 2, cy: p.y + PM_NODE_H / 2 };
+}
+function pmNodeDirsFor(pmId, nodeId){
+  const v = pmViewCache && pmViewCache.pmId === pmId ? pmViewCache : pmViewLayout(pmId);
+  if(nodeId === 'ROOT'){
+    const k = pmVisibleChildIds(pmId, null)[0], me = pmViewBox(pmId, 'ROOT'), kb = k && pmViewBox(pmId, k);
+    return { child: me && kb ? pmDirOf(me, kb) : 'bottom' };
+  }
+  const n = DATA.nodes.find(x => x.id === nodeId);
+  const me = n && pmViewBox(pmId, nodeId);
+  if(!me) return null;
+  const pid = n.parentId || 'ROOT';
+  const sibs = pmVisibleChildIds(pmId, n.parentId || null), i = sibs.indexOf(nodeId), kids = pmVisibleChildIds(pmId, nodeId);
+  const style = v.list && v.list.has(pid) ? 'list' : v.row && v.row.has(pid) ? 'row' : '';
+  return pmNodeDirs(me, pmViewBox(pmId, pid), kids.length ? pmViewBox(pmId, kids[0]) : null, i > 0 ? pmViewBox(pmId, sibs[i - 1]) : null, i >= 0 && i < sibs.length - 1 ? pmViewBox(pmId, sibs[i + 1]) : null, style);
+}
+function pmInsertParentKind(n){
+  const p = n && n.parentId ? DATA.nodes.find(x => x.id === n.parentId) : null;
+  return n ? pmInsertParentKindFor(pmNodeKind(n), p ? pmNodeKind(p) : null) : null;
+}
+/* 선택한 노드 둘레의 + (방향은 화면 배치에서) — Process Map이 Draft일 때 */
+function pmPlusHandlesSvg(n){
+  if(!pmStructureEditable(n.pmId)) return '';
+  const d = pmNodeDirsFor(n.pmId, n.id) || { child: 'bottom', after: 'right', before: 'left', parent: 'top' };
+  const at = { left: [-16, PM_NODE_H / 2], right: [PM_NODE_W + 16, PM_NODE_H / 2], top: [PM_NODE_W / 2, -16], bottom: [PM_NODE_W / 2, PM_NODE_H + 16] };
+  const h = (mode, side, title) => `<g class="pm-plus pm-plus-${mode}" data-plus="${mode}" data-plus-side="${side}" data-plus-node="${n.id}" transform="translate(${at[side][0]},${at[side][1]})" role="button" aria-label="${title}"><title>${title}</title><circle r="8"/><text text-anchor="middle" dominant-baseline="central">+</text></g>`;
+  const canChild = ['uo', 'step', 'stage'].some(k => pmKindAllowed(k, pmNodeKind(n)));
+  return (canChild ? h('child', d.child, `하위 가지 추가 — ${PM_SIDE_WORD[d.child]} (Space)`) : '')
+    + h('after', d.after, `형제 가지 추가 — ${PM_SIDE_WORD[d.after]} (Shift+Enter)`)
+    + h('before', d.before, `형제 가지 추가 — ${PM_SIDE_WORD[d.before]} (Ctrl+Enter)`)
+    + (pmInsertParentKind(n) ? h('parent', d.parent, `부모 가지 추가 — ${PM_SIDE_WORD[d.parent]} (Ctrl+Shift+Enter)`) : '');
+}
+/* 이름 입력 칸 자리: 그 방향으로 한 칸(하위 추가는 이미 있는 하위의 끝 다음) */
+function pmInlineAnchor(st){
+  const ref = pmViewPos(st.pmId, st.refId);
+  if(!ref) return null;
+  const w = st.refId === 'ROOT' ? PM_ROOT_W : PM_NODE_W;
+  const d = pmNodeDirsFor(st.pmId, st.refId) || {};
+  const step = (p, pw, side) => ({ right: { x: p.x + pw + 40, y: p.y }, left: { x: p.x - PM_NODE_W - 40, y: p.y }, bottom: { x: p.x + (pw - PM_NODE_W) / 2, y: p.y + PM_NODE_H + 30 }, top: { x: p.x + (pw - PM_NODE_W) / 2, y: p.y - PM_NODE_H - 30 } })[side || 'bottom'];
+  if(st.mode === 'child'){
+    const kids = pmVisibleChildIds(st.pmId, st.refId === 'ROOT' ? null : st.refId);
+    if(kids.length){ const last = kids[kids.length - 1], ld = pmNodeDirsFor(st.pmId, last) || {}; return step(pmViewPos(st.pmId, last), PM_NODE_W, ld.after); }
+    return step(ref, w, d.child);
+  }
+  const side = { after: d.after, before: d.before, parent: d.parent }[st.mode];
+  return side ? step(ref, w, side) : { x: ref.x, y: ref.y };
+}
+
+/* ---------- store ---------- */
+/* [store] 노드 옮기기 — where: 'child'(target의 마지막 하위, target 'ROOT'면 맨 위) | 'before' | 'after'(target의 형제 자리).
+   종류 규칙·자기 하위 금지는 pmCanReparent. 자리가 그대로면 false. 감사: 부모가 바뀌면 "Reparent Node", 같은 부모 안이면 "Reorder Node" */
+function pmMoveNode(nodeId, targetId, where){
+  const node = DATA.nodes.find(n => n.id === nodeId);
+  if(!node || !['child', 'before', 'after'].includes(where)) return false;
+  const target = targetId && targetId !== 'ROOT' ? DATA.nodes.find(n => n.id === targetId) : null;
+  if(targetId && targetId !== 'ROOT' && (!target || target.pmId !== node.pmId || target.id === nodeId)) return false;
+  if(where !== 'child' && !target) return false;
+  const parentId = where === 'child' ? (target ? target.id : null) : (target.parentId || null);
+  const oldParent = node.parentId || null;
+  if(oldParent !== parentId){
+    const can = pmCanReparent(getPmTreeNodes(node.pmId), nodeId, parentId);
+    if(!can.ok){ uoLockNotice(can.reason); return false; }
+  }
+  const sibs = getProcessChildren(node.pmId, parentId);
+  const beforeKey = sibs.map(n => n.id).join(',');
+  const rest = sibs.filter(n => n.id !== nodeId);
+  const idx = where === 'child' ? rest.length : rest.findIndex(n => n.id === target.id) + (where === 'after' ? 1 : 0);
+  rest.splice(Math.max(0, idx), 0, node);
+  if(oldParent === parentId && rest.map(n => n.id).join(',') === beforeKey) return false;
+  node.parentId = parentId;
+  rest.forEach((n, i) => { n.order = i + 1; });
+  if(oldParent !== parentId) normalizeSiblingOrders(node.pmId, oldParent);
+  const nameOf = id => id ? ((DATA.nodes.find(n => n.id === id) || {}).name || id) : 'ROOT';
+  const pos = where === 'child' ? '마지막 하위' : `"${target.name}" ${where === 'after' ? '뒤' : '앞'}`;
+  if(oldParent !== parentId) logAudit('Process Map', 'Reparent Node', `${node.name}: ${nameOf(oldParent)} → ${nameOf(parentId)} (${pos})`, oldParent, parentId, { nodeId, pmId: node.pmId });
+  else logAudit('Process Map', 'Reorder Node', `${node.name}: ${pos}`, null, null, { nodeId, pmId: node.pmId });
+  validateData(DATA);
+  return true;
+}
+/* [store] 부모 가지 끼우기 — 노드 자리에 새 노드(종류: 지정하거나 pmInsertParentKind)를 두고 노드를 그 아래로. 반환: 새 노드 id */
+function pmInsertParentNode(nodeId, name, kind){
+  const n = DATA.nodes.find(x => x.id === nodeId);
+  if(!n) return null;
+  const p0 = n.parentId ? DATA.nodes.find(x => x.id === n.parentId) : null;
+  const pk = p0 ? pmNodeKind(p0) : null;
+  const k = kind && PM_NODE_KINDS[kind] ? kind : pmInsertParentKind(n);
+  if(!k || !pmKindAllowed(k, pk) || !pmKindAllowed(pmNodeKind(n), k)){ uoLockNotice(k ? `${PM_NODE_KINDS[k].label}을(를) 여기 부모로 둘 수 없습니다. ${pmKindRuleText(!pmKindAllowed(k, pk) ? k : pmNodeKind(n))}` : '이 노드 위에는 부모 가지를 둘 수 없습니다.'); return null; }
+  const oldParent = n.parentId || null;
+  const id = createProcessNode(n.pmId, String(name || PM_NODE_KINDS[k].label), oldParent);
+  const p = DATA.nodes.find(x => x.id === id);
+  if(k !== 'uo') p.kind = k;
+  p.order = (n.order || 0) - 0.5; p.x = n.x; p.y = n.y;
+  const moved = [n.id].concat(pmDescendantIds(getPmTreeNodes(n.pmId), n.id));
+  n.parentId = id; n.order = 1;
+  moved.forEach(i => { const d = DATA.nodes.find(x => x.id === i); if(d) d.y = (d.y || 0) + 140; });   // 자유 배치: 한 줄 아래로(계산 배치는 다시 계산)
+  normalizeSiblingOrders(n.pmId, oldParent);
+  logAudit('Process Map', 'Insert Parent', `${p.name}(${PM_NODE_KINDS[k].label}) → "${n.name}"의 부모로`, oldParent, id, { nodeId: id, pmId: n.pmId });
+  validateData(DATA);
+  return id;
+}
+
+/* ---------- 끌기(09_master_lists.js의 노드 끌기가 부른다) ---------- */
+/* 끌고 있는 점(SVG 좌표)에서 놓을 자리 — 끄는 노드·그 하위는 빼고, 놓을 수 없는 자리(종류 규칙)는 null */
+function pmDragDropTarget(pmId, nodeId, px, py){
+  const nodes = getPmTreeNodes(pmId);
+  const skip = new Set([nodeId].concat(pmDescendantIds(nodes, nodeId)));
+  const boxes = [Object.assign(pmViewBox(pmId, 'ROOT') || { x: 0, y: 0, w: 0, h: 0 }, { root: true })]
+    .concat(pmVisibleTreeNodes(pmId).filter(n => !skip.has(n.id)).map(n => Object.assign(pmViewBox(pmId, n.id), { after: (pmNodeDirsFor(pmId, n.id) || {}).after })));
+  const hit = pmDropAt(boxes, px, py);
+  if(!hit) return null;
+  const target = hit.id === 'ROOT' ? null : nodes.find(n => n.id === hit.id);
+  const parentId = hit.where === 'child' ? (target ? target.id : null) : (target.parentId || null);
+  if(!pmCanReparent(nodes, nodeId, parentId).ok) return null;
+  return hit;
+}
+/* 놓을 자리 표시: child면 대상 노드 테두리(.pm-reparent-target), 앞·뒤면 틈에 선 */
+function pmShowDropIndicator(svg, pmId, hit){
+  svg.querySelectorAll('.pm-reparent-target').forEach(g => g.classList.remove('pm-reparent-target'));
+  const old = svg.querySelector('#pmDropLine'); if(old) old.remove();
+  if(!hit) return;
+  if(hit.where === 'child'){ const tg = svg.querySelector(`[data-node-id="${hit.id}"]`); if(tg) tg.classList.add('pm-reparent-target'); return; }
+  const b = pmViewBox(pmId, hit.id), side = (pmNodeDirsFor(pmId, hit.id) || {})[hit.where] || 'bottom';
+  const m = 11, L = { bottom: [b.x, b.y + b.h + m, b.x + b.w, b.y + b.h + m], top: [b.x, b.y - m, b.x + b.w, b.y - m], right: [b.x + b.w + m, b.y, b.x + b.w + m, b.y + b.h], left: [b.x - m, b.y, b.x - m, b.y + b.h] }[side];
+  const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+  g.setAttribute('id', 'pmDropLine'); g.setAttribute('class', 'pm-drop-line'); g.setAttribute('data-drop', `${hit.where}:${hit.id}`);
+  g.innerHTML = `<line x1="${L[0]}" y1="${L[1]}" x2="${L[2]}" y2="${L[3]}"/><circle cx="${L[0]}" cy="${L[1]}" r="4"/>`;
+  svg.appendChild(g);
+}
+/* 놓기(계산 배치·자유 배치에서 편집 모드가 아닐 때) — 실행취소 단위 하나 */
+function pmDropNode(pmId, nodeId, hit){
+  if(!hit) return false;
+  const ok = pmWithUndo(pmId, () => pmMoveNode(nodeId, hit.id, hit.where));
+  if(ok && pmLayoutOf(DATA.processMaps.find(m => m.id === pmId)).mode === 'free'){
+    // 자유 배치: 새 자리 근처로(하위 전체를 같은 만큼)
+    const n = DATA.nodes.find(x => x.id === nodeId), t = hit.id === 'ROOT' ? null : DATA.nodes.find(x => x.id === hit.id);
+    const base = t ? (hit.where === 'child' ? { x: t.x, y: t.y + 140 } : { x: t.x + (hit.where === 'after' ? 1 : -1) * (PM_NODE_W + 40), y: t.y }) : { x: 80, y: 150 };
+    const dx = base.x - (n.x || 0), dy = base.y - (n.y || 0);
+    [nodeId].concat(pmDescendantIds(getPmTreeNodes(pmId), nodeId)).forEach(i => { const d = DATA.nodes.find(x => x.id === i); if(d){ d.x = (d.x || 0) + dx; d.y = (d.y || 0) + dy; } });
+    resolveSiblingCollisions(pmId, null);
+  }
+  return ok;
+}
 function openBomReport(pmId){
   goTo('bomReport', { reportPmId: pmId }, { label:'BOM Report', tag:'BOM' });
 }
@@ -9971,7 +10205,8 @@ function showProcessContextMenu(nodeId, clientX, clientY){
 
 /* -------- SVG Canvas rendering & drag interaction -------- */
 let pmView = { scale: 1 };
-let pmDrag = null; // {nodeId, offsetX, offsetY, pmId, moved, reparentTargetId}
+let pmDrag = null; // {nodeId, offsetX, offsetY, pmId, moved, reparentTargetId, drop}
+let pmSuppressClickUntil = 0;   // v125: 끌기 직후 click 무시
 let pmFlowConnectFrom = null;  // 흐름 화살표를 긋는 중인 시작 노드 id
 let pmSelectedFlowEdgeId = null;
 let pmFlowEdgePopup = null;    // { pmId, edgeId, x, y }
@@ -10287,6 +10522,7 @@ function pmToolbarHtml(pm){
       <div class="pm-zoom-btn pm-tool-text" id="pmImportBtn" role="button" tabindex="0" data-on-click="pmImportOpen" data-a-click="${pcsArgs([pm.id, '', ''])}" title="구조 가져오기 (.md · .txt · 붙여넣기)">${icon('upload')}</div>
       <span class="pm-toolbar-sep"></span>
       <div class="pm-zoom-btn" id="pmFocusBtn" data-on-click="pmToggleFocus" title="집중 모드 — 도구 막대·머리글 숨기기">⛶</div>
+      ${isMap && pmStructureEditable(pm.id) ? `<span class="pm-toolbar-hint" data-pm-hint>끌어서 놓으면 계층 변경 · 노드를 고르면 + 로 하위·형제·부모 추가 (가지가 뻗는 쪽 = 하위)</span>` : ''}
     </div>
     ${isMap && STATE.pmLayoutPopup ? pmLayoutPopupHtml(pm) : ''}${isMap && STATE.pmImageMenu ? pmImageMenuHtml(pm) : ''}`;
 }
@@ -10410,16 +10646,17 @@ function pmAttachNodeEvents(svg, g, pmId, tab){
   g.addEventListener('mousedown', (e)=>{
     if(e.target.closest('[data-add-handle]') || e.target.closest('[data-flow-handle]') || e.target.closest('[data-collapse-toggle]') || e.target.closest('[data-plus]')) return;
     if(e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey) return;
-    if(!tab.isEditingProcessMap) return;
     if(nodeId === 'ROOT') return; // root는 고정
+    // v125: 편집 모드가 아니어도 Draft면 끌어서 계층 바꾸기(ThinkWise처럼). 손으로 자리 옮기기(자유 배치)는 편집 모드에서만
+    if(!tab.isEditingProcessMap && !pmStructureEditable(pmId)) return;
     e.preventDefault(); e.stopPropagation();
-    const free = !pmViewCache || pmViewCache.pmId !== pmId || !pmViewCache.computed;
+    const free = (!pmViewCache || pmViewCache.pmId !== pmId || !pmViewCache.computed) && !!tab.isEditingProcessMap;
     const node = DATA.nodes.find(n=>n.id===nodeId);
     const at = free ? node : Object.assign({}, pmViewPos(pmId, nodeId));   // v117: 계산된 배치면 화면 자리만 움직이고 DATA 좌표는 그대로
     const ctm = svg.getScreenCTM();
     const startSvgX = (e.clientX - ctm.e) / ctm.a;
     const startSvgY = (e.clientY - ctm.f) / ctm.d;
-    pmDrag = { nodeId, offsetX: startSvgX - at.x, offsetY: startSvgY - at.y, pmId, moved:false, reparentTargetId:null, free, at };
+    pmDrag = { nodeId, offsetX: startSvgX - at.x, offsetY: startSvgY - at.y, pmId, moved:false, reparentTargetId:null, free, at, sx: e.clientX, sy: e.clientY, drop: null };
     g.classList.add('dragging');
   });
 
@@ -10428,6 +10665,7 @@ function pmAttachNodeEvents(svg, g, pmId, tab){
     showProcessContextMenu(nodeId, e.clientX, e.clientY);
   });
   g.addEventListener('click', (e)=>{
+    if(Date.now() < pmSuppressClickUntil){ e.stopPropagation(); return; }
     const col = e.target.closest('[data-collapse-toggle]');   // v112: 접기·펼치기
     if(col){ e.stopPropagation(); pmToggleCollapse(pmId, col.getAttribute('data-collapse-toggle')); return; }
     if((e.ctrlKey || e.metaKey || e.shiftKey) && nodeId !== 'ROOT'){   // v112: 여러 노드 선택
@@ -10491,6 +10729,7 @@ function pmCanvasMouseMove(svg, pmId, e){
     return;
   }
   if(!pmDrag) return;
+  if(!pmDrag.moved && Math.hypot(e.clientX - pmDrag.sx, e.clientY - pmDrag.sy) < 5) return;   // v125: 살짝 흔들린 클릭은 끌기가 아니다
   pmDrag.moved = true;
   const ctm = svg.getScreenCTM();
   const svgX = (e.clientX - ctm.e) / ctm.a;
@@ -10501,6 +10740,15 @@ function pmCanvasMouseMove(svg, pmId, e){
   at.x = Math.round(svgX - pmDrag.offsetX);   // v120 무한 캔버스: 왼쪽·위로도(음수 좌표) — 다음 그리기에서 캔버스가 넓어진다
   at.y = Math.round(svgY - pmDrag.offsetY);
 
+  if(!pmDrag.free){   // v125 계산 배치(또는 편집 모드 아님): 마우스 자리로 하위·앞·뒤 놓을 자리
+    const dragG0 = svg.querySelector(`[data-node-id="${pmDrag.nodeId}"]`);
+    if(dragG0){ dragG0.setAttribute('transform', `translate(${at.x},${at.y})`); if(dragG0.nextSibling) dragG0.parentNode.appendChild(dragG0); }   // 끄는 노드를 맨 위에
+    pmDrag.drop = pmStructureEditable(pmId) ? pmDragDropTarget(pmId, pmDrag.nodeId, svgX, svgY) : null;
+    pmDrag.reparentTargetId = pmDrag.drop && pmDrag.drop.where === 'child' ? pmDrag.drop.id : null;
+    pmUpdateEdgesPartial(svg, pmId);
+    pmShowDropIndicator(svg, pmId, pmDrag.drop);
+    return;
+  }
   // 드래그 중인 노드가 다른 노드 박스 위에 겹쳐지면 "여기에 놓으면 부모가 바뀜" 대상으로 표시(자기 자신/자손은 제외 — 순환 방지)
   const allNodes = pmVisibleTreeNodes(pmId);
   const dragCx = at.x+PM_NODE_W/2, dragCy = at.y+PM_NODE_H/2;
@@ -10549,12 +10797,13 @@ const PM_ROOT_BOX_NODE = { id:'ROOT', x:60, y:30, name:'ROOT' };
 function pmEndCanvasDrag(){
   if(pmFlowConnectFrom){ pmFlowConnectFrom = null; renderPmCanvas(); return; }
   if(!pmDrag) return;
-  const { moved, pmId, reparentTargetId, nodeId, free } = pmDrag;
+  const { moved, pmId, reparentTargetId, nodeId, free, drop } = pmDrag;
   pmDrag = null;
   // 실제로 끌지 않았으면(단순 클릭) 다시 그리지 않는다 — 곧이어 오는 click이 같은 요소에서 일어나 노드 선택이 처리되도록
   if(!moved) return;
-  if(!free){   // v117 계산 배치: 부모 바꾸기만, 자리는 배치가 다시 정한다
-    if(reparentTargetId) pmWithUndo(pmId, () => pmReparentNode(nodeId, reparentTargetId === 'ROOT' ? null : reparentTargetId));
+  pmSuppressClickUntil = Date.now() + 250;   // v125: 끌기를 끝낸 mouseup 뒤 click이 패널을 열지 않게
+  if(!free){   // v125: 놓을 자리(하위·앞·뒤)대로 옮기고, 자리는 배치가 다시 정한다
+    if(drop) pmDropNode(pmId, nodeId, drop);
     renderPmCanvas();
     return;
   }
@@ -24106,6 +24355,7 @@ const pmOfNode = i => args => { const n = uoNode(args[i]); return n ? n.pmId : n
 const PM_STRUCTURE_MUTATORS = {
   addUnitOperation: args => { const p = uoNode(args[0]); return p ? p.pmId : getActiveTab().ctx.pmId; },
   removeProcessNode: pmOfNode(0), moveProcessNode: pmOfNode(0), pmReparentNode: pmOfNode(0),
+  pmMoveNode: pmOfNode(0), pmInsertParentNode: pmOfNode(0),   // v125 끌어 놓기·부모 가지
   addPmFlowEdge: uoArg(0), removePmFlowEdge: uoArg(0), setPmRootText: uoArg(0),
   // v112 계층 구조
   pmAddChildNode: args => { const p = uoNode(args[0]); return p ? p.pmId : getActiveTab().ctx.pmId; },
@@ -24241,15 +24491,19 @@ function renderPmUoStrip(pm){
     ...r.changed.map(n=>`<div class="uo-alert">${icon('info')}<span><b>${escapeXml(n.name)}</b> — 승인본과 내용이 다릅니다. 재작업을 시작해 다시 승인받아야 합니다.</span></div>`),
     ...r.drift.map(d=>`<div class="uo-alert">${icon('info')}<span><b>${escapeXml(d.node.name)}</b> — 재검토 필요: ${escapeXml(d.items.map(uoDriftText).join(' / '))}</span></div>`),
   ].join('');
+  // v125: 맵을 넓게 — 한 줄 요약(승인 수·주의 수·결재 묶음)만 늘 보이고, UO 목록·주의 내용은 펼쳐서 본다(사람마다 기억)
+  const open = pmUoStripOpen(), warnN = r.changed.length + r.drift.length;
   return `
-    <div class="uo-strip">
-      <div class="uo-strip-head">${icon('shield')}<span>Unit Operation 승인 <b>${approved} / ${r.nodes.length}</b></span><span class="uo-strip-note">${note}</span></div>
-      <div class="uo-strip-chips">${chips || '<span class="uo-strip-note">Unit Operation이 없습니다.</span>'}</div>
-      ${renderApStripSection(pm)}
-      ${alerts}
+    <div class="uo-strip ${open ? 'open' : ''}" data-uo-strip>
+      <div class="uo-strip-head">${icon('shield')}<span>Unit Operation 승인 <b>${approved} / ${r.nodes.length}</b></span>${warnN ? `<span class="uo-strip-warn" data-uo-warn-count>주의 ${warnN}</span>` : ''}
+        <button class="uo-strip-toggle" data-uo-strip-toggle aria-expanded="${open}" data-on-click="pmToggleUoStrip">${open ? '▾ 접기' : `▸ UO 목록${warnN ? '·주의' : ''} 보기`}</button>
+        <span class="uo-strip-note">${note}</span>${renderApStripSection(pm)}</div>
+      ${open ? `<div class="uo-strip-chips">${chips || '<span class="uo-strip-note">Unit Operation이 없습니다.</span>'}</div>${alerts}` : ''}
     </div>`;
 }
 
+function pmUoStripOpen(){ try { return localStorage.getItem('pcs_pm_uo_strip') === 'open'; } catch(e){ return false; } }
+function pmToggleUoStrip(){ const v = !pmUoStripOpen(); try { localStorage.setItem('pcs_pm_uo_strip', v ? 'open' : 'closed'); } catch(e){ /* 저장 못 해도 이번 화면만 */ } render(); }
 /* Process Map 우측 패널의 UO 승인 카드 */
 function renderUoApprovalCard(node){
   const st = uoStatusOf(node.id), ver = uoVersionOf(node.id);
@@ -32096,6 +32350,8 @@ const PCS_CALLABLE = new Set([
   'mbToggleDetail',
   'mbUiSetFormula',
   'mbUiRecalc',
+  'pmToggleUoStrip',
+  'pmStartInlineParent',
   'navSidebar',
   'openAiWizard',
   'openBatchRecord',
