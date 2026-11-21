@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="pcs-api-base" content="">
 <meta name="pcs-firebase" content="{&quot;apiKey&quot;:&quot;AIzaSyASB4CKv15IwJUp8pIVKXFtOYwKlY7y1es&quot;,&quot;databaseURL&quot;:&quot;https://pcs-demo-18101-default-rtdb.asia-southeast1.firebasedatabase.app&quot;}">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-C5ftx+Q5JspI6ftPiZfvaViD2z/fBUFYulZoqyLutzo=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-xu9hBNZCDztySoIz2Hdyy3XVM7EiX3Tk+nVZ4YaGT1Y=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'none'">
 <title>PCS Platform · Process Control System</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -2532,6 +2532,18 @@ textarea.ui-dialog-input{resize:vertical; min-height:72px;}
 .mb-cmp-flag{font-size:12px; padding:7px 12px; border-radius:9px; border:1px solid var(--line-soft); background:#F3F8F4;}
 .mb-cmp-flag.tight{background:#FFF8EC; border-color:#F2D29B;} .mb-cmp-flag.over{background:#FDF1F1; border-color:#F2B8B5; color:#8A1C14;}
 .mb-cmp-table td, .mb-cmp-table th{white-space:nowrap; font-size:11.5px;}
+
+/* v128 새 버전 예시 가져오기 */
+.seed-ex-notice{display:flex; gap:12px; align-items:flex-start; border:1px solid #F2D7A6; background:#FFF8EC; border-radius:12px; padding:14px 16px; margin:0 0 18px;}
+.seed-ex-icon{color:#9A5B00; padding-top:2px;}
+.seed-ex-body{flex:1; min-width:0; font-size:13px; color:var(--ink-800);}
+.seed-ex-sub{font-size:12px; color:var(--ink-500); margin-top:2px;}
+.seed-ex-list{margin:8px 0 0 18px; padding:0; font-size:12.5px; line-height:1.6;}
+.seed-ex-muted{color:var(--ink-500);}
+.seed-ex-actions{display:flex; gap:6px; flex-shrink:0;}
+.seed-ex-setting{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:12px;}
+@media (max-width:720px){ .seed-ex-notice{flex-wrap:wrap;} .seed-ex-actions{width:100%;} }
+.mb-cmp-flag.none{background:var(--ink-50, #F4F4F5); color:var(--ink-600, #52525B); border-color:var(--ink-200, #E4E4E7);}
 </style>
 </head>
 <body>
@@ -5032,14 +5044,22 @@ function render(){
 /* -------- DASHBOARD -------- */
 /* ============================================================================
    05b_release_notes.js — v111  앱 버전과 "이번 버전에서 바뀐 점"
-   · PCS_APP_VERSION은 build.sh가 빌드 번호로 바꿔 넣는다(v127 자리).
+   · PCS_APP_VERSION은 build.sh가 빌드 번호로 바꿔 넣는다(v128 자리).
    · PCS_RELEASE_NOTES 맨 앞 항목은 항상 이번 빌드 버전이어야 한다(tests/unit/release-notes.test.cjs가 검사).
      버전을 올릴 때 여기 맨 앞에 한 항목을 넣는다. 테스트하는 사람이 무엇을 눌러 보면 되는지(try)를 같이 쓴다.
    · 오른쪽 위 사용자 메뉴 → "버전 vN · 바뀐 점" 으로 열고, 새 버전으로 처음 열면 알림을 한 번 띄운다.
    ========================================================================== */
-var PCS_APP_VERSION = 'v127';
+var PCS_APP_VERSION = 'v128';
 
 const PCS_RELEASE_NOTES = [
+  { version: 'v128', date: '2026-11-21', title: '저장된 데이터에 없는 새 버전 예시 가져오기 (DW-TOZ-10 시나리오 등)',
+    items: [
+      '저장된 데이터(공유 DB·브라우저)가 있으면 그 데이터가 기본 예시를 대신합니다. 그래서 저장본을 만든 뒤 추가된 예시(v122~v127: Mass Balance 계산식·회수 탱크·Titer 10 g/L 시나리오 PCS)는 보이지 않았습니다.',
+      '대시보드에 "저장된 데이터에 없는 새 버전 예시가 있습니다" 알림이 뜨고, "예시 가져오기"를 누르면 무엇을 추가하는지 확인한 뒤 추가합니다. 기존 PCS·UO는 지우거나 덮어쓰지 않으며, 승인된 UO의 Mass Balance Step은 건너뜁니다(승인본과 달라지지 않음). Audit Trail에 한 건으로 남습니다.',
+      '시나리오 PCS는 지금 참고 PCS를 복제해 참고 PDF 3쪽 값(10 g/L)으로 다시 그립니다. 원본 UO가 승인돼 계산식·회수 용기가 없으면 복제본(Draft)에 채워 넣습니다.',
+      '사용자 설정 → 데이터 저장에서도 "새 버전 예시 가져오기"를 쓸 수 있습니다. 시나리오 비교에서 회수 용기가 지정되지 않은 PCS는 "여유 있음" 대신 "회수 용기 미지정"으로 보입니다.',
+    ],
+    try: ['대시보드 알림 → 예시 가져오기 → DW-TOZ-10이 열림', 'DW-TOZ-10 ⚖ Mass Balance → ⇄ 시나리오 비교'] },
   { version: 'v127', date: '2026-11-21', title: 'Titer 10 g/L 시나리오 PCS, 회수 용기 용량 여유, 시나리오 비교',
     items: [
       '참고 PDF Downstream 3쪽(Product Titer 10 g/L)을 별도 PCS "DW-TOZ-10"으로 넣었습니다. 같은 파라미터에 다른 Set Point(ProA Pooling 4,479 L, MMC Pooling 16,196 L 등)와 사이클(ProA 5·MMC 5·CEX 6)을 두고, Mass Balance는 계산식으로 다시 계산했습니다. 원본(8 g/L)과 Parameter Master는 그대로입니다.',
@@ -5437,6 +5457,7 @@ function renderDashboard(){
       </div>
     </div>
 
+    ${renderSeedExamplesNotice()}
     ${renderDashboardStatCards()}
     <div class="dash-two-col">
       <div>${renderDashboardWorkQueue()}</div>
@@ -9835,7 +9856,9 @@ function seedTiterScenario(){
   const auditLen = DATA.auditTrail.length;
   const src = DATA.processMaps.find(p => p.id === 'pm_toz');
   const res = pmDuplicateProcessMap('pm_toz', { code: src.code + '-10', name: `${src.name} — Titer 10 g/L`, label: 'Titer 10 g/L', withPfd: false });
-  if(!res) return;
+  if(!res) return null;
+  // v128: 원본 UO가 승인돼 있어 원본에 예시 계산식·회수 용기가 없으면 복제본(Draft)에 채운다 — 이미 있으면 아무것도 안 한다
+  seedMbModelExample(res.pmId); seedMbFormulas(res.pmId); seedMbVessels(res.pmId);
   pfdEditDepth++;
   try { Object.entries(res.idMap).forEach(([oldId, newId]) => { if(pfdHasReference(oldId)) pfdBuildReferenceDrawingAs(newId, oldId, 'g10'); }); }
   finally { pfdEditDepth--; }
@@ -9846,6 +9869,7 @@ function seedTiterScenario(){
   if(elu) mbSetExtraField(res.pmId, proa.id, elu.id, 's_vol', String(S.proaPool));   // 용출 버퍼 = ProA Pool 부피
   mbRecalcFormulas(res.pmId);
   DATA.auditTrail.length = auditLen;
+  return res.pmId;
 }
 function openBomReport(pmId){
   goTo('bomReport', { reportPmId: pmId }, { label:'BOM Report', tag:'BOM' });
@@ -22837,21 +22861,22 @@ function mbStepDetailRow(pmId, s, cols, editable){
 /* ---------- 시드: 참고 PCS Protein A Capture 한 Step에 질량·사이클·곁가지 예시(실제 store 함수, 시드라 감사 기록은 남기지 않음) ----------
    값은 Parameter Master 참고 값에서 계산했다: 투입 농도 = Product Titer 8 g/L, 회수 농도 = 15000 L × 8 g/L × ProA Step Yield 85% ÷ 3583 L,
    사이클 = ProA Cycles 4(배치 합계로 적음), 용출 버퍼 3583 L 투입, Flow-through 15000 L(제품 0.4 g/L — 데모 참고 값). 40_pfd_validation.js에서 부른다. */
-function seedMbModelExample(){
-  if(!DATA.processMaps.some(p => p.id === 'pm_toz')) return;
-  const s = ensureMb('pm_toz').streams.find(x => x.stepName === 'Protein A Capture');
-  if(!s || s.s_concentrationIn || (s.extras || []).length) return;
+function seedMbModelExample(pmId){
+  pmId = pmId || 'pm_toz';   // v128: 시나리오 PCS·예시 가져오기에서도 같은 함수를 쓴다
+  if(!DATA.processMaps.some(p => p.id === pmId)) return;
+  const s = ensureMb(pmId).streams.find(x => x.stepName === 'Protein A Capture');
+  if(!s || !mbSeedEditable(s) || s.s_concentrationIn || (s.extras || []).length) return;
   const auditLen = DATA.auditTrail.length;
   const p = id => { const m = getMasterItem('parameter', id); return m ? Number(m.target) : null; };
   const titer = p('param_product_titer') || 8, y = (p('param_proa_yield') || 85) / 100, cyc = p('param_proa_cycles') || 4;
   const inp = parseFloat(s.s_input), out = parseFloat(s.s_output);
-  mbSetStreamField('pm_toz', s.id, 's_concentrationIn', String(titer));
-  mbSetStreamField('pm_toz', s.id, 's_concentration', String(Math.round(inp * titer * y / out * 100) / 100));
-  mbSetStreamField('pm_toz', s.id, 'cycles', cyc);
-  const b = mbAddExtra('pm_toz', s.id, 'buffer');
-  mbSetExtraField('pm_toz', s.id, b, 'name', '용출 버퍼(Elution)'); mbSetExtraField('pm_toz', s.id, b, 's_vol', String(out)); mbSetExtraField('pm_toz', s.id, b, 's_conc', '0');
-  const f = mbAddExtra('pm_toz', s.id, 'flowthrough');
-  mbSetExtraField('pm_toz', s.id, f, 's_vol', String(inp)); mbSetExtraField('pm_toz', s.id, f, 's_conc', '0.4');
+  mbSetStreamField(pmId, s.id, 's_concentrationIn', String(titer));
+  mbSetStreamField(pmId, s.id, 's_concentration', String(Math.round(inp * titer * y / out * 100) / 100));
+  mbSetStreamField(pmId, s.id, 'cycles', cyc);
+  const b = mbAddExtra(pmId, s.id, 'buffer');
+  mbSetExtraField(pmId, s.id, b, 'name', '용출 버퍼(Elution)'); mbSetExtraField(pmId, s.id, b, 's_vol', String(out)); mbSetExtraField(pmId, s.id, b, 's_conc', '0');
+  const f = mbAddExtra(pmId, s.id, 'flowthrough');
+  mbSetExtraField(pmId, s.id, f, 's_vol', String(inp)); mbSetExtraField(pmId, s.id, f, 's_conc', '0.4');
   DATA.auditTrail.length = auditLen;
 }
 /* ============================================================================
@@ -23164,20 +23189,22 @@ function pcsReportMbSummaryHtml(pm){
 /* ---------- 시드: 참고 PCS Step 값을 이 PCS의 PFD Set Point·앞 Step에 잇는다(실제 store 함수, 감사 기록은 남기지 않음) ----------
    v124: 참고 PDF(Downstream 2쪽, Product Titer 8 g/L)의 부피를 참고 PFD 탱크에 Set Point로 연동했으므로 7 Step 투입·회수를 모두 잇는다.
    크로마토그래피 사이클은 PDF 값(MMC 4, CEX 5). 40_pfd_validation.js에서 부른다. */
-function seedMbFormulas(){
-  if(!DATA.processMaps.some(p => p.id === 'pm_toz')) return;
-  const mb = ensureMb('pm_toz');
-  if(mb.streams.some(s => s.formulas)) return;
+function seedMbFormulas(pmId){
+  pmId = pmId || 'pm_toz';   // v128: 계산식이 아직 없고 고칠 수 있는(Draft UO) Step에만 — 시나리오 PCS·예시 가져오기에서도 쓴다
+  if(!DATA.processMaps.some(p => p.id === pmId)) return;
+  const mb = ensureMb(pmId);
+  const open = new Set(mb.streams.filter(s => mbSeedEditable(s) && !(s.formulas && Object.keys(s.formulas).length)).map(s => s.id));
+  if(!open.size) return;
   const auditLen = DATA.auditTrail.length;
-  const by = n => mb.streams.find(s => s.stepName === n);
-  const set = (name, f, e) => { const s = by(name); if(s) mbSetFormula('pm_toz', s.id, f, e); };
+  const by = n => mb.streams.find(s => s.stepName === n && open.has(s.id));
+  const set = (name, f, e) => { const s = by(name); if(s) mbSetFormula(pmId, s.id, f, e); };
   set('Protein A Capture', 's_input', '{P:HCCF Volume}');
   set('Protein A Capture', 's_output', '{P:ProA Pooling Volume}');
   set('Protein A Capture', 's_concentrationIn', '{P:Product Titer}');
   set('Protein A Capture', 's_concentration', 'round({input} * {concIn} * {P:ProA Step Yield} / 100 / {output}, 2)');
   [['Low pH VI', 'Low pH VIN Volume'], ['Depth Filtration', 'Filtered VIN Volume'], ['MMC Polishing', 'MMC Pooling Volume']].forEach(([n, p]) => { set(n, 's_input', '{prev.output}'); set(n, 's_output', `{P:${p}}`); });
   [['CEX Polishing', 'CEX Pooling Volume'], ['Viral Filtration', 'Virus Filtration Volume'], ['UF/DF', 'UFDF Volume']].forEach(([n, p]) => { set(n, 's_input', '{prev.output}'); set(n, 's_output', `{P:${p}}`); });
-  [['MMC Polishing', 4], ['CEX Polishing', 5]].forEach(([n, c]) => { const s = by(n); if(s) mbSetStreamField('pm_toz', s.id, 'cycles', c); });
+  [['MMC Polishing', 4], ['CEX Polishing', 5]].forEach(([n, c]) => { const s = by(n); if(s) mbSetStreamField(pmId, s.id, 'cycles', c); });
   DATA.auditTrail.length = auditLen;
 }
 /* ============================================================================
@@ -23271,7 +23298,10 @@ function renderMbCompare(){
   const spA = mbSetPointsOf(A.id), spB = mbSetPointsOf(B.id);
   const ids = [...new Set(Object.keys(spA).concat(Object.keys(spB)))];
   const diff = mbSetPointDiff(all, spA, spB, ids);
-  const warn = (m, pm) => { const xs = [...m.values()].filter(x => x.fill.level === 'over' || x.fill.level === 'tight'); return xs.length ? `<div class="mb-cmp-flag ${xs.some(x => x.fill.level === 'over') ? 'over' : 'tight'}" data-cmp-flag="${escapeXmlAttr(pm.id)}"><b>${escapeXml(pm.code)}</b> 용기 ${xs.map(x => `${escapeXml((getMasterItem('equipment', x.vessel) || {}).tag || '')} ${x.fill.pct}%`).join(', ')} — ${xs.some(x => x.fill.level === 'over') ? '용량 초과(넘침)' : '여유 부족(90% 초과)'}</div>` : `<div class="mb-cmp-flag ok"><b>${escapeXml(pm.code)}</b> 모든 회수 용기 90% 이하</div>`; };
+  const warn = (m, pm) => { const xs = [...m.values()].filter(x => x.fill.level === 'over' || x.fill.level === 'tight'); return xs.length ? `<div class="mb-cmp-flag ${xs.some(x => x.fill.level === 'over') ? 'over' : 'tight'}" data-cmp-flag="${escapeXmlAttr(pm.id)}"><b>${escapeXml(pm.code)}</b> 용기 ${xs.map(x => `${escapeXml((getMasterItem('equipment', x.vessel) || {}).tag || '')} ${x.fill.pct}%`).join(', ')} — ${xs.some(x => x.fill.level === 'over') ? '용량 초과(넘침)' : '여유 부족(90% 초과)'}</div>`
+    : ![...m.values()].some(x => x.fill.level)   // v128: 회수 용기(또는 용량)가 하나도 없으면 "여유 있음"이라고 말하지 않는다
+      ? `<div class="mb-cmp-flag none" data-cmp-novessel="${escapeXmlAttr(pm.id)}"><b>${escapeXml(pm.code)}</b> 회수 용기 미지정 — 용량 여유를 볼 수 없음(Mass Balance Step 상세에서 회수 용기 지정)</div>`
+      : `<div class="mb-cmp-flag ok"><b>${escapeXml(pm.code)}</b> 지정된 회수 용기 모두 90% 이하</div>`; };
   const opts = mbCompareCandidates(A.id).map(m => `<option value="${escapeXmlAttr(m.id)}" ${m.id === B.id ? 'selected' : ''}>${escapeXml(m.code)} · ${escapeXml(m.name)}${m.scenarioLabel ? ` (${escapeXml(m.scenarioLabel)})` : ''}</option>`).join('');
   const head = pm => `<th colspan="5" class="${pm === A ? 'mb-s' : 'mb-r'}">${escapeXml(pm.code)}${pm.scenarioLabel ? ` · ${escapeXml(pm.scenarioLabel)}` : ''}</th>`;
   const sub = '<th>투입</th><th>회수</th><th>Step 수율</th><th>누적</th><th>용기 충진</th>';
@@ -23291,13 +23321,13 @@ function renderMbCompare(){
 
 /* ---------- 시드: 참고 PCS Step의 회수 탱크(참고 PFD Downstream — 회수 풀이 담기는 탱크) ----------
    Low pH VI는 ProA 풀 탱크(PP-3101)에서 중화한다. 실제 store 함수, 시드라 감사 기록은 지운다. 40_pfd_validation.js에서 부른다. */
-function seedMbVessels(){
-  if(!DATA.processMaps.some(p => p.id === 'pm_toz')) return;
-  const streams = ensureMb('pm_toz').streams;
-  if(streams.some(s => s.s_vessel)) return;
+function seedMbVessels(pmId){
+  pmId = pmId || 'pm_toz';   // v128: 회수 용기가 비어 있고 고칠 수 있는(Draft UO) Step에만
+  if(!DATA.processMaps.some(p => p.id === pmId)) return;
+  const streams = ensureMb(pmId).streams;
   const auditLen = DATA.auditTrail.length;
   [['Protein A Capture', 'eq_pp3101'], ['Low pH VI', 'eq_pp3101'], ['Depth Filtration', 'eq_15kl_vessel'], ['MMC Polishing', 'eq_pp3241'], ['CEX Polishing', 'eq_pp3341'], ['Viral Filtration', 'eq_pp3561'], ['UF/DF', 'eq_pp3761']]
-    .forEach(([n, eq]) => { const s = streams.find(x => x.stepName === n); if(s && getMasterItem('equipment', eq)) mbSetStreamField('pm_toz', s.id, 's_vessel', eq); });
+    .forEach(([n, eq]) => { const s = streams.find(x => x.stepName === n); if(s && !s.s_vessel && mbSeedEditable(s) && getMasterItem('equipment', eq)) mbSetStreamField(pmId, s.id, 's_vessel', eq); });
   DATA.auditTrail.length = auditLen;
 }
 /* =========================================================
@@ -26128,8 +26158,191 @@ function renderPcsDataSettings(){
           ${pcsCan('data.clear') ? `<button class="btn" style="color:var(--red-600);" data-on-click="pcsResetToSeed">${kind === 'rest' ? '서버 데이터 초기화' : kind === 'firebase' ? '공유 데이터 초기화' : '기본 데이터로 초기화'}</button>` : ''}
           <input type="file" id="pcsImportFile" accept=".json,application/json" style="display:none;" data-on-change="pcsImportFromFileInput_126282">
         </div>
+        ${typeof renderSeedExamplesSetting === 'function' ? renderSeedExamplesSetting() : ''}
         <p class="pcs-import-msg" id="pcsImportMsg"></p>
       </div>`;
+}
+/* ============================================================================
+   23b_seed_examples.js — v128  새 버전 예시 가져오기
+   저장본(브라우저·공유 DB)이 있으면 그 데이터가 시드를 통째로 대신한다(23_storage pcsApplyData).
+   그래서 저장본을 처음 만든 뒤에 추가된 예시(v122 Mass Balance 모델, v123 계산식, v127 회수 탱크·용량·Titer 10 g/L
+   시나리오 PCS)는 저장본에 나타나지 않는다. 이 모듈은 무엇이 빠졌는지 알려 주고, 사용자가 누르면 가져온다.
+     · 시드를 만들 때(40_pfd_validation.js 끝) 예시가 쓰는 마스터 항목·Step 정보를 따로 적어 둔다 — seedExamplesFrom(순수).
+     · 빠진 것 계산 — seedExampleStatus(순수): 마스터 추가·용량 채우기, 참고 PCS Mass Balance Step, 시나리오 PCS.
+     · 가져오기 — store seedImportExamples: 시드와 같은 함수(seedMbModelExample·seedMbFormulas·seedMbVessels·
+       seedTiterScenario)를 지금 데이터에 그대로 돌린다. 승인(잠긴) UO의 Step은 건너뛴다 — 승인본을 바꾸지 않는다.
+       하나의 감사 기록 "Import Examples"에 무엇을 넣었는지 모두 적는다.
+   ========================================================================== */
+var PCS_SEED_EXAMPLES = null;
+var SEED_EXAMPLE_PM = 'pm_toz';
+var SEED_EXAMPLE_HIDE_KEY = 'pcs_seed_examples_hidden';
+
+/* ---------- 순수 ---------- */
+/* Mass Balance Step이 시드 예시를 받을 수 있는가 — 주인 UO가 Draft일 때만(승인·검토 중인 UO는 잠김) */
+function mbSeedEditable(s){ return !s || !s.nodeId || uoEditable(s.nodeId); }
+
+function seedExampleMasterArr(data, listType){
+  if(listType === 'training') return data.trainingMaster || [];
+  if(listType === 'sampling') return data.samplingPlanMaster || [];
+  return ((data.masterLists || {})[listType]) || [];
+}
+/* 시드 데이터 → 예시가 쓰는 것들 { masters:[{listType, item}], streams:[{stepName, formulas, vessel, model}] } */
+function seedExamplesFrom(seed){
+  const out = { masters: [], streams: [] };
+  const pm = (seed.processMaps || []).find(p => p.id === SEED_EXAMPLE_PM);
+  if(!pm) return out;
+  const want = new Map();
+  const add = (listType, id) => { if(id && !want.has(listType + '|' + id)) want.set(listType + '|' + id, { listType, id }); };
+  const params = seedExampleMasterArr(seed, 'parameter');
+  const streams = (((seed.massBalance || {})[SEED_EXAMPLE_PM] || {}).streams) || [];
+  streams.forEach(s => {
+    add('equipment', s.s_vessel); add('equipment', s.r_vessel);
+    Object.values(s.formulas || {}).forEach(f => String(f).replace(/\{P:\s*([^}@]+?)\s*(?:@[^}]*)?\}/g, (m, key) => {
+      const p = params.find(x => x.id === key) || params.find(x => x.name === key);
+      if(p) add('parameter', p.id);
+      return m;
+    }));
+    out.streams.push({ stepName: s.stepName, formulas: !!(s.formulas && Object.keys(s.formulas).length), vessel: !!s.s_vessel, model: !!(s.extras || []).length });
+  });
+  // 시나리오 PCS의 PFD(다시 그린 참고 도면)가 잇는 마스터 항목
+  const scen = (seed.processMaps || []).find(p => p.scenarioOf === SEED_EXAMPLE_PM);
+  if(scen){
+    (seed.nodes || []).filter(n => n.pmId === scen.id).forEach(n => {
+      ((seed.pfdLinks || {})[n.id] || []).forEach(l => add(l.listType, l.masterItemId));
+      Object.entries((seed.nodeLists || {})[n.id] || {}).forEach(([t, ids]) => (Array.isArray(ids) ? ids : []).forEach(id => add(t, id)));
+    });
+  }
+  want.forEach(({ listType, id }) => {
+    const item = seedExampleMasterArr(seed, listType).find(x => x.id === id);
+    if(item) out.masters.push({ listType, item: JSON.parse(JSON.stringify(item)) });
+  });
+  return out;
+}
+/* 지금 데이터에 빠진 예시. editable(nodeId) — 생략하면 data의 UO 상태(Draft만 고칠 수 있음)로 판단 */
+function seedExampleStatus(data, ex, editable){
+  const st = { masters: { add: [], fill: [] }, mb: { todo: [], locked: [] }, scenario: { available: false, code: '', name: '' }, any: false };
+  if(!ex || !data) return st;
+  const canEdit = editable || (id => { const n = (data.nodes || []).find(x => x.id === id); return !n || (n.uoStatus || 'Draft') === 'Draft'; });
+  ex.masters.forEach(m => {
+    const arr = seedExampleMasterArr(data, m.listType);
+    const same = arr.find(x => x.id === m.item.id);
+    if(same){
+      if(m.listType === 'equipment' && Number(m.item.capacityL) > 0 && !(Number(same.capacityL) > 0)) st.masters.fill.push({ id: same.id, capacityL: m.item.capacityL, label: same.tag || same.name });
+      return;
+    }
+    // 같은 이름(설비는 같은 Tag)이 다른 ID로 이미 있으면 사용자 항목을 두고 들이지 않는다(이름 중복 방지)
+    const clash = arr.find(x => m.listType === 'equipment' ? (m.item.tag && x.tag === m.item.tag) : x.name === m.item.name);
+    if(!clash) st.masters.add.push(m);
+  });
+  const pm = (data.processMaps || []).find(p => p.id === SEED_EXAMPLE_PM);
+  if(pm){
+    const streams = (((data.massBalance || {})[SEED_EXAMPLE_PM] || {}).streams) || [];
+    ex.streams.forEach(es => {
+      const s = streams.find(x => x.stepName === es.stepName);
+      if(!s) return;
+      const need = (es.formulas && !(s.formulas && Object.keys(s.formulas).length)) || (es.vessel && !s.s_vessel) || (es.model && !(s.extras || []).length);
+      if(!need) return;
+      (s.nodeId && !canEdit(s.nodeId) ? st.mb.locked : st.mb.todo).push(es.stepName);
+    });
+    if(!(data.processMaps || []).some(p => p.scenarioOf === SEED_EXAMPLE_PM)) st.scenario = { available: true, code: pm.code + '-10', name: `${pm.name} — Titer 10 g/L` };
+  }
+  st.any = !!(st.masters.add.length || st.masters.fill.length || st.mb.todo.length || st.scenario.available);
+  return st;
+}
+/* 확인 창·알림에 쓰는 한 줄씩 */
+function seedExampleLines(st){
+  const lines = [];
+  if(st.scenario.available) lines.push(`시나리오 PCS ${st.scenario.code} (Titer 10 g/L, 참고 PDF Downstream 3쪽) — Draft로 새로 만듦`);
+  if(st.masters.add.length){
+    const by = {};
+    st.masters.add.forEach(m => { (by[m.listType] = by[m.listType] || []).push(m.item.tag || m.item.name); });
+    lines.push('마스터 추가 — ' + Object.entries(by).map(([t, a]) => `${MASTER_LIST_LABEL_KO[t] || t} ${a.length}개(${a.join(', ')})`).join(' · '));
+  }
+  if(st.masters.fill.length) lines.push(`Equipment 용량(L) 채우기 — ${st.masters.fill.map(f => `${f.label} ${Number(f.capacityL).toLocaleString()} L`).join(', ')}`);
+  if(st.mb.todo.length) lines.push(`${SEED_EXAMPLE_PM_CODE()} Mass Balance 예시(계산식·사이클·회수 용기) — Step ${st.mb.todo.length}개(${st.mb.todo.join(', ')})`);
+  return lines;
+}
+var MASTER_LIST_LABEL_KO = { equipment: 'Equipment', material: 'Material', parameter: 'Parameter', training: 'Training', sampling: 'Sampling Plan' };
+function SEED_EXAMPLE_PM_CODE(){ const pm = DATA.processMaps.find(p => p.id === SEED_EXAMPLE_PM); return pm ? pm.code : 'DW-TOZ'; }
+
+/* ---------- 데이터 ---------- */
+function seedExamplesCapture(){ PCS_SEED_EXAMPLES = seedExamplesFrom(DATA); }
+function seedExamplesNow(){ return seedExampleStatus(DATA, PCS_SEED_EXAMPLES); }
+function seedExamplesSignature(st){ return JSON.stringify([st.scenario.code, st.masters.add.map(m => m.item.id), st.masters.fill.map(f => f.id), st.mb.todo]); }
+
+/* ---------- store ---------- */
+/* [store] 빠진 예시를 가져온다. 반환 { pmId(만든 시나리오 PCS 또는 null), lines, locked } 또는 null(가져올 것 없음) */
+function seedImportExamples(){
+  const st = seedExamplesNow();
+  if(!st.any) return null;
+  const lines = seedExampleLines(st);
+  const auditLen = DATA.auditTrail.length;
+  // 1) 마스터 — 예시가 쓰는 항목. 번호(no)는 목록 끝 번호 다음으로
+  st.masters.add.forEach(({ listType, item }) => {
+    const arr = getMasterArray(listType);
+    if(!arr || arr.some(x => x.id === item.id)) return;
+    const copy = JSON.parse(JSON.stringify(item));
+    if(copy.no != null){ const max = arr.reduce((m, x) => Math.max(m, Number(x.no) || 0), 0); copy.no = max + 1; }
+    store.addMasterItem(listType, copy);
+  });
+  st.masters.fill.forEach(f => store.updateMasterItem('equipment', f.id, 'capacityL', f.capacityL));
+  // 2) 참고 PCS Mass Balance — 시드와 같은 함수(Draft UO의 Step만)
+  if(st.mb.todo.length){
+    seedMbModelExample(SEED_EXAMPLE_PM); seedMbFormulas(SEED_EXAMPLE_PM); seedMbVessels(SEED_EXAMPLE_PM);
+    mbRecalcFormulas(SEED_EXAMPLE_PM);
+  }
+  // 3) 시나리오 PCS — 시드와 같은 함수(지금 참고 PCS를 복제 → 참고 도면 10 g/L로 다시 그리기 → 사이클·계산식 다시 계산)
+  const pmId = st.scenario.available ? seedTiterScenario() : null;
+  DATA.auditTrail.length = auditLen;   // 세부 기록 대신 아래 한 건에 모두 적는다
+  const after = seedExamplesNow();
+  logAudit('System', 'Import Examples', `새 버전 예시 가져오기 — ${lines.join(' / ')}${st.mb.locked.length ? ` / 승인된 UO라 건너뛴 Step ${st.mb.locked.length}개(${st.mb.locked.join(', ')})` : ''}`, null, pmId, pmId ? { pmId } : null);
+  validateData(DATA);
+  return { pmId: pmId || null, lines, locked: st.mb.locked, left: after.any };
+}
+
+/* ---------- 화면 ---------- */
+/* 공유·서버 데이터에 항목을 더하므로 "가져오기" 권한(공유 모드 Admin, 서버 모드 data.import)이 있어야 한다 */
+function seedExamplesAllowed(){ return typeof pcsCan !== 'function' || pcsCan('data.import'); }
+async function seedImportExamplesUi(){
+  if(!seedExamplesAllowed()){ uiAlert('새 버전 예시 가져오기는 데이터 가져오기 권한(공유 모드에서는 Admin)이 있어야 합니다.', { title: '새 버전 예시 가져오기' }); return; }
+  const st = seedExamplesNow();
+  if(!st.any){ uiToast('가져올 새 예시가 없습니다.', { kind: 'info' }); return; }
+  const lines = seedExampleLines(st);
+  const locked = st.mb.locked.length ? `\n\n승인(잠긴) UO의 Step ${st.mb.locked.length}개는 건드리지 않습니다: ${st.mb.locked.join(', ')} — 재작업을 시작한 뒤 다시 가져오면 채워집니다.` : '';
+  const ok = await uiConfirm(`저장된 데이터에 없는 새 버전 예시를 추가합니다.\n\n· ${lines.join('\n· ')}${locked}\n\n기존 PCS·UO 내용은 지우거나 덮어쓰지 않습니다. Audit Trail에 한 건으로 남습니다.`, { title: '새 버전 예시 가져오기', okLabel: '가져오기' });
+  if(!ok) return;
+  const r = seedImportExamples();
+  if(!r){ uiToast('가져올 새 예시가 없습니다.', { kind: 'info' }); render(); return; }
+  uiToast(r.pmId ? `예시를 가져왔습니다 — 시나리오 PCS ${DATA.processMaps.find(p => p.id === r.pmId).code}를 엽니다.` : '예시를 가져왔습니다.', { kind: 'success' });
+  if(r.pmId) openProcessMapInNewTab(r.pmId); else render();
+}
+function seedExamplesHide(){
+  try { localStorage.setItem(SEED_EXAMPLE_HIDE_KEY, seedExamplesSignature(seedExamplesNow())); } catch(_){}
+  render();
+}
+/* 대시보드 알림 — 저장본에 빠진 예시가 있을 때만. 숨기면 같은 목록에는 다시 안 뜬다(새 예시가 생기면 다시 뜸) */
+function renderSeedExamplesNotice(){
+  if(!PCS_SEED_EXAMPLES || !seedExamplesAllowed()) return '';
+  const st = seedExamplesNow();
+  if(!st.any) return '';
+  let hidden = '';
+  try { hidden = localStorage.getItem(SEED_EXAMPLE_HIDE_KEY) || ''; } catch(_){}
+  if(hidden === seedExamplesSignature(st)) return '';
+  const lines = seedExampleLines(st);
+  return `<div class="seed-ex-notice" data-seed-examples>
+    <div class="seed-ex-icon">${icon('info')}</div>
+    <div class="seed-ex-body"><b>저장된 데이터에 없는 새 버전 예시가 있습니다</b>
+      <div class="seed-ex-sub">저장본이 시드를 대신하므로 저장본을 만든 뒤 추가된 예시는 자동으로 나타나지 않습니다. 가져오면 기존 내용은 그대로 두고 아래만 추가합니다.</div>
+      <ul class="seed-ex-list">${lines.map(l => `<li>${escapeXml(l)}</li>`).join('')}${st.mb.locked.length ? `<li class="seed-ex-muted">승인된 UO의 Step ${st.mb.locked.length}개는 건너뜀(${escapeXml(st.mb.locked.join(', '))})</li>` : ''}</ul></div>
+    <div class="seed-ex-actions"><button class="btn btn-primary btn-sm" data-seed-import data-on-click="seedImportExamplesUi">예시 가져오기</button><button class="btn btn-sm" data-seed-hide data-on-click="seedExamplesHide">숨기기</button></div>
+  </div>`;
+}
+/* 설정 > 데이터 저장 구역의 한 줄 */
+function renderSeedExamplesSetting(){
+  if(!PCS_SEED_EXAMPLES || !seedExamplesAllowed()) return '';
+  const st = seedExamplesNow();
+  return `<div class="seed-ex-setting" data-seed-setting><button class="btn" data-seed-import ${st.any ? '' : 'disabled'} data-on-click="seedImportExamplesUi">새 버전 예시 가져오기</button>
+    <span class="seed-ex-sub">${st.any ? escapeXml(seedExampleLines(st).join(' · ')) : '저장된 데이터에 새 버전 예시가 모두 있습니다.'}</span></div>`;
 }
 /* ============================================================================
    24_pfd_resize.js — v84  도형 크기 조절 핸들 (PFD-020, PFD-021, PFD-092)
@@ -31240,6 +31453,7 @@ seedTiterScenario();    // v127: 07k_pm_scenario.js — Titer 10 g/L 시나리�
 seedPmHierarchy();   // v112: 07b_pm_hierarchy.js
 pmMigrateVersionTrees(DATA);   // v119: 시드의 승인 버전에도 구조(스키마 3과 같은 규칙)
 seedReferenceBomRules();   // v113: 17b_uo_mass_balance.js
+seedExamplesCapture();     // v128: 23b_seed_examples.js — 저장본에 없는 예시를 알려 주고 가져오기 위해 시드 예시를 적어 둔다
 
 /* ---------- Process Map ↔ PFD 경로 정리 ---------- */
 /* [store] UO 노드 삭제 — 노드와 그 노드에 딸린 것을 함께 지운다(남기면 아무 데서도 열 수 없는 데이터가 된다).
@@ -32727,6 +32941,7 @@ const PCS_CALLABLE = new Set([
   'mbCompareSetOther',
   'mbCompareSetSite',
   'pmDuplicateUi',
+  'seedImportExamplesUi', 'seedExamplesHide',   // v128 새 버전 예시 가져오기
   'navSidebar',
   'openAiWizard',
   'openBatchRecord',
