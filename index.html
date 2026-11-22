@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="pcs-api-base" content="">
 <meta name="pcs-firebase" content="{&quot;apiKey&quot;:&quot;AIzaSyASB4CKv15IwJUp8pIVKXFtOYwKlY7y1es&quot;,&quot;databaseURL&quot;:&quot;https://pcs-demo-18101-default-rtdb.asia-southeast1.firebasedatabase.app&quot;}">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-H4i9PgftLADHCIFBe+E0MGtmlnEW1DeDRPAkxeJOHOs=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-VdtHxMxKYbi91XUz9+x2seOs38NXQ/zvfUxX9vjfzoc=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'none'">
 <title>PCS Platform · Process Control System</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -2371,8 +2371,8 @@ textarea.ui-dialog-input{resize:vertical; min-height:72px;}
 .pm-mm-nodes rect{fill:#E9D3D6;}
 .pm-mm-nodes .pm-mm-root{fill:#3D0C16;}
 .pm-mm-view{fill:rgba(192,24,42,.07); stroke:#C0182A; stroke-width:1.2;}
-.pm-view.pm-focus > .view-head, .pm-view.pm-focus > .pm-meta-grid, .pm-view.pm-focus > .uo-strip, .pm-view.pm-focus > .pm-legend, .pm-view.pm-focus > .pm-edit-hint{display:none;}
-.pm-view.pm-focus #pmCanvasWrap{min-height:calc(100vh - 150px); height:calc(100vh - 150px);}
+.pm-view.pm-focus > .view-head, .pm-view.pm-focus > .pm-meta-grid, .pm-view.pm-focus > .uo-strip, .pm-view.pm-focus > .pm-legend, .pm-view.pm-focus > .pm-edit-hint, .pm-view.pm-focus > .pm-ribbon{display:none;}
+
 .pm-focus-exit{position:absolute; top:12px; right:12px; z-index:30; font-size:12px; padding:6px 10px; border-radius:8px; border:1px solid var(--line); background:#fff; box-shadow:var(--shadow-sm); cursor:pointer; font-family:inherit;}
 #pmCanvasWrap.pm-kanban-mode{background:#F7F4F4;}
 .pm-kb{padding:62px 16px 18px;}
@@ -2784,6 +2784,59 @@ textarea.ui-dialog-input{resize:vertical; min-height:72px;}
 /* v130: UO 패널의 Step 상세는 표가 넓어도 패널 폭 안에(가로 스크롤과 함께 움직이지 않게) */
 .mb-uo-scroll{container-type:inline-size;}
 .mb-uo-scroll .mb-detail{position:sticky; left:8px; width:calc(100cqw - 28px);}
+
+/* ============================================================
+   v131 Process Map — 창 높이에 맞춘 앱 화면(페이지는 스크롤하지 않고 캔버스만 움직임) + 접고 펴는 머리 리본
+   ============================================================ */
+.view:has(> .fade-enter > .pm-view){height:100%; display:flex; flex-direction:column; padding:12px 18px 14px; overflow:hidden;}
+.view > .fade-enter:has(> .pm-view){flex:1; min-height:0; display:flex; flex-direction:column;}
+.pm-view{flex:1; min-height:0; display:flex; flex-direction:column;}
+.pm-view > .pm-container{flex:1; min-height:340px; align-items:stretch;}
+.pm-container > .pm-canvas-card{display:flex; flex-direction:column; min-height:0;}
+.pm-canvas-card > #pmCanvasWrap{flex:1; height:auto; min-height:0;}
+.pm-container > .pm-side-panel:not(.pm-panel-full){position:relative; top:auto; max-height:none; align-self:stretch;}
+.pm-container > .pm-resize-handle{align-self:stretch;}
+@media (max-height:640px){ .view:has(> .fade-enter > .pm-view){overflow:auto;} .pm-view > .pm-container{min-height:420px;} }
+
+/* 머리 리본 */
+.pm-ribbon{flex-shrink:0; position:relative;}
+.pm-ribbon.open .pm-head{margin-bottom:8px;}
+.pm-ribbon-toggle{align-self:center; border:1px solid transparent; background:transparent; color:var(--ink-500); font:inherit; font-size:11.5px; font-weight:700; padding:5px 9px; border-radius:8px; cursor:pointer; white-space:nowrap;}
+.pm-ribbon-toggle:hover{background:#F3EEEE; color:var(--burgundy-900); border-color:var(--line);}
+.pm-ribbon.collapsed{margin-bottom:8px;}
+.pm-ribbon-bar{display:flex; align-items:center; gap:10px; padding:6px 8px 6px 14px; background:var(--card); border:1px solid var(--line); border-radius:12px; box-shadow:var(--shadow-sm); min-height:48px; container-type:inline-size;}
+.pm-ribbon-title{display:flex; align-items:center; gap:8px; min-width:0; flex:0 1 auto;}
+.pm-ribbon-code{font-size:10.5px; font-weight:800; letter-spacing:.08em; color:var(--red-600); white-space:nowrap;}
+.pm-ribbon-name{margin:0; font-size:14.5px; font-weight:800; color:var(--burgundy-900); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:-.01em;}
+.pm-ribbon-uo{flex-shrink:0; border:1px solid var(--line); background:#FAF7F7; color:var(--ink-700); font:inherit; font-size:11px; font-weight:700; padding:3px 9px; border-radius:99px; cursor:pointer; white-space:nowrap;}
+.pm-ribbon-uo.warn{background:#FFF4E5; border-color:#F2D29B; color:#8A5200;}
+.pm-ribbon-scn{font-size:11px; font-weight:700; color:#2F5FA8; background:#EEF4FF; padding:2px 8px; border-radius:99px; white-space:nowrap;}
+.pm-ribbon-actions{margin-left:auto; flex-wrap:nowrap !important; gap:4px !important; min-width:0; overflow-x:auto; scrollbar-width:none;}
+.pm-ribbon-actions::-webkit-scrollbar{display:none;}
+.pm-ribbon-actions .btn{padding:5px 9px !important; font-size:11.5px !important; white-space:nowrap; flex-shrink:0;}
+.pm-ribbon-actions .badge{padding:5px 10px !important; font-size:11px; flex-shrink:0;}
+.pm-rb-btn{display:inline-flex; align-items:center; gap:5px;}
+.pm-rb-ic{display:inline-flex; align-items:center;}
+@container (max-width:1180px){ .pm-ribbon-bar .pm-rb-label{display:none;} .pm-ribbon-bar .pm-rb-btn{padding:5px 8px !important;} }
+@container (max-width:860px){ .pm-ribbon-bar .pm-ribbon-name{display:none;} }
+
+/* 캔버스 도구 막대: 카드 위 띠를 더 가볍게(노드를 가리지 않는다) */
+.pm-canvas-card .pm-canvas-toolbar{padding:6px 10px; gap:5px; background:linear-gradient(#FFFFFF, #FBF8F8); border-bottom:1px solid #ECE5E5;}
+.pm-canvas-card .pm-zoom-btn{width:28px; height:28px; border-radius:7px; box-shadow:none; border-color:#E6DEDF; font-size:14px;}
+.pm-canvas-card .pm-zoom-btn:hover{background:#F7F2F2; border-color:#D9CCCD;}
+
+/* 범례: 캔버스 왼쪽 아래 */
+.pm-legend-dock{position:absolute; left:12px; bottom:12px; z-index:26; display:flex; flex-direction:column-reverse; align-items:flex-start; gap:6px; pointer-events:none;}
+.pm-legend-dock > *{pointer-events:auto;}
+.pm-legend-btn{display:inline-flex; align-items:center; gap:5px; border:1px solid var(--line); background:rgba(255,255,255,.95); color:var(--ink-700); font:inherit; font-size:11.5px; font-weight:700; padding:5px 10px; border-radius:99px; cursor:pointer; box-shadow:var(--shadow-sm);}
+.pm-legend-btn svg{width:13px; height:13px;}
+.pm-legend-dock.open .pm-legend-btn{background:var(--burgundy-900); color:#fff; border-color:var(--burgundy-900);}
+.pm-legend-dock .pm-legend{margin:0; background:rgba(255,255,255,.97); box-shadow:var(--shadow-md); max-width:min(720px, calc(100vw - 420px));}
+
+/* 맵 전체 보기 배율 표시 */
+.pm-fit-flash{position:absolute; left:50%; top:54px; transform:translateX(-50%); z-index:35; background:rgba(42,8,16,.86); color:#fff; font-size:12px; font-weight:700; padding:6px 14px; border-radius:99px; pointer-events:none; transition:opacity .35s; box-shadow:var(--shadow-md);}
+.pm-fit-flash.out{opacity:0;}
+.pm-canvas-card:has(#pmCanvasWrap.pm-outline-mode) .pm-legend-dock{display:none;}
 </style>
 </head>
 <body>
@@ -5284,14 +5337,22 @@ function render(){
 /* -------- DASHBOARD -------- */
 /* ============================================================================
    05b_release_notes.js — v111  앱 버전과 "이번 버전에서 바뀐 점"
-   · PCS_APP_VERSION은 build.sh가 빌드 번호로 바꿔 넣는다(v130 자리).
+   · PCS_APP_VERSION은 build.sh가 빌드 번호로 바꿔 넣는다(v131 자리).
    · PCS_RELEASE_NOTES 맨 앞 항목은 항상 이번 빌드 버전이어야 한다(tests/unit/release-notes.test.cjs가 검사).
      버전을 올릴 때 여기 맨 앞에 한 항목을 넣는다. 테스트하는 사람이 무엇을 눌러 보면 되는지(try)를 같이 쓴다.
    · 오른쪽 위 사용자 메뉴 → "버전 vN · 바뀐 점" 으로 열고, 새 버전으로 처음 열면 알림을 한 번 띄운다.
    ========================================================================== */
-var PCS_APP_VERSION = 'v130';
+var PCS_APP_VERSION = 'v131';
 
 const PCS_RELEASE_NOTES = [
+  { version: 'v131', date: '2026-11-23', title: 'Process Map 머리 리본 접기·펴기, 빈 곳 두 번 누르기 = 맵 전체 보기',
+    items: [
+      'Process Map 화면이 창 높이에 맞춰집니다. 페이지는 내려가지 않고 캔버스 안에서만 맵이 움직이므로, 위쪽 머리(제목·PFD 보드·Mass Balance·Report·승인 단추)와 도구 막대가 늘 보입니다.',
+      '머리는 Microsoft 앱의 리본처럼 접고 펼 수 있습니다(오른쪽 "접기 ▴" 또는 Ctrl+F1). 접으면 한 줄짜리 막대에 단추가 그대로 남고, 캔버스가 넓어집니다. 접힌 상태는 이 브라우저에 기억됩니다. 막대의 "UO 7/18 · 주의" 요약을 누르면 다시 펴집니다.',
+      'ThinkWise처럼 맵의 빈 곳을 두 번 누르면 맵 전체가 보이는 배율로 바뀌고(가운데 정렬), 한 번 더 두 번 누르면 원래 배율·위치로 돌아갑니다. 노드를 두 번 누르면 지금처럼 이름 고치기입니다.',
+      '노드 배지 범례는 캔버스 왼쪽 아래 "범례" 단추로 옮겼습니다(누르면 펼침).',
+    ],
+    try: ['Process Map 머리 오른쪽 "접기 ▴" (Ctrl+F1)', '맵 빈 곳 두 번 누르기 → 다시 두 번 누르기', '캔버스 왼쪽 아래 "범례"'] },
   { version: 'v130', date: '2026-11-21', title: 'Mass Balance 화면 새 구성 · Excel 템플릿 · 계산식 도우미 · Process Overview가 Process Map을 따름',
     items: [
       'Mass Balance 화면을 "Step 표 + 오른쪽 상세 패널"로 바꿨습니다. 표에서는 투입 → 회수·수율을 한눈에 보고 칸에서 바로 고칩니다. Step 이름을 누르면 패널이 열리고, 탭 [값 | 계산식 | 투입·산출 | 운전·용기 | 연동]에 전에 한 줄에 펼쳐 있던 기능이 모두 있습니다(농도·순도·단위·Excel 셀 연동·사이클·회수 용기·Step Scale·Receiving 채우기·PFD Arrow·삭제).',
@@ -6648,30 +6709,62 @@ function renderProcessMap(){
 
   const sidePanel = panel ? renderPmPanel(pm.id, panel) : '';
 
-  return `<div class="pm-view ${STATE.pmFocus ? 'pm-focus' : ''}">
+  // v131: 머리(제목·단추·UO 승인 줄)는 리본처럼 접고 편다. 화면은 창 높이에 맞춰(페이지가 스크롤되지 않고 캔버스만 움직임) — 머리·도구 막대가 늘 보인다
+  const ribbonOpen = pmRibbonOpen();
+  const strip = renderPmUoStrip(pm);   // 접혀 있어도 계산은 한다(캔버스 노드 경고 표시가 이 결과를 쓴다)
+  const uoSum = pmUoReadiness(pm.id), uoWarn = uoSum.changed.length + uoSum.drift.length;
+  const btn = (id, attrs, ic, label, title, cls) => `<button class="btn pm-rb-btn ${cls || ''}" ${id ? `id="${id}"` : ''} ${attrs} title="${escapeXmlAttr(title || label)}" aria-label="${escapeXmlAttr(label)}"><span class="pm-rb-ic">${ic}</span><span class="pm-rb-label">${label}</span></button>`;
+  const actions = `
+        ${btn('', `data-on-click="toggleProcessMapEdit"`, isEditing ? icon('check') : icon('plus'), isEditing ? '편집 완료' : '공정 커스텀', '', isEditing ? 'btn-primary' : '')}
+        ${btn('', `data-on-click="goTo_719a82" data-a-click="${pcsArgs([String(pm.id)])}"`, icon('layoutGrid'), 'PFD 보드', '이 PCS의 모든 PFD를 한 보드에서 편집')}
+        ${btn('', `data-on-click="openPmApprovalHistory" data-a-click="${pcsArgs([String(pm.id)])}"`, icon('history'), `버전 기록 (${escapeXml(pm.version)})`)}
+        ${btn('pmPcsReportBtn', pcsOn('click','openPcsReport',[pm.id]), icon('fileText'), pm.status==='Approved'?'Export PCS Report':'PCS Report (작업본)', pm.status==='Approved'?'승인본 PCS Report':'승인 전 작업본(Draft / In Approval)으로 열립니다', pm.status==='Approved'?'btn-primary':'')}
+        ${btn('pmBomReportBtn', pcsOn('click','openBomReport',[pm.id]), icon('flask'), pm.status==='Approved'?'Export BOM Report':'BOM Report (작업본)', pm.status==='Approved'?'승인본 BOM Report':'승인 전 작업본(Draft / In Approval)으로 열립니다', pm.status==='Approved'?'btn-primary':'')}
+        ${btn('pmDuplicateBtn', pcsOn('click','pmDuplicateUi',[pm.id]), icon('copy'), '복제', '같은 공정을 조건만 바꿔 검토할 시나리오 PCS로 복제(노드·PFD·리스트·WI·Mass Balance)')}
+        <button class="btn pm-rb-btn" id="pmMbBtn" ${pcsOn('click','openMassBalance',[pm.id])} title="이 Process Map의 Mass Balance — Step별 투입·회수·수율, Sending/Receiving 비교" aria-label="Mass Balance"><span class="pm-rb-ic">⚖</span><span class="pm-rb-label">Mass Balance</span>${pmCumYieldBadge(pm.id)}</button>
+        ${renderPmApprovalActions(pm)}`;
+  const toggle = `<button class="pm-ribbon-toggle" data-pm-ribbon-toggle aria-expanded="${ribbonOpen}" ${pcsOn('click', 'pmToggleRibbon', [])} title="${ribbonOpen ? '머리 접기 — 캔버스를 넓게' : '머리 펴기'} (Ctrl+F1)">${ribbonOpen ? '접기 ▴' : '펴기 ▾'}</button>`;
+  const meta = `<div class="pm-meta-inline" data-pm-meta><span>Product <b>${escapeXml(product.code)}</b></span><span>버전 <b>${escapeXml(pm.version)}</b></span><span>Reviewed by <b>${escapeXml(pm.reviewedBy || '–')}</b></span><span>Approved by <b>${escapeXml(pm.approvedBy || '–')}</b></span>${pm.scenarioOf ? `<span data-pm-scenario>시나리오 <b>${escapeXml(pm.scenarioLabel || '')}</b> · 원본 ${escapeXml((DATA.processMaps.find(m=>m.id===pm.scenarioOf) || {}).code || '')}</span>` : ''}</div>`;
+  const ribbon = ribbonOpen
+    ? `<div class="pm-ribbon open" data-pm-ribbon="open">
     <div class="view-head pm-head"><div><span class="view-eyebrow">${escapeXml(product.code)}</span><h1 class="view-title">${escapeXml(pm.code)} ${escapeXml(pm.kind || 'Upstream')} PCS</h1>
-      <div class="pm-meta-inline" data-pm-meta><span>Product <b>${escapeXml(product.code)}</b></span><span>버전 <b>${escapeXml(pm.version)}</b></span><span>Reviewed by <b>${escapeXml(pm.reviewedBy || '–')}</b></span><span>Approved by <b>${escapeXml(pm.approvedBy || '–')}</b></span>${pm.scenarioOf ? `<span data-pm-scenario>시나리오 <b>${escapeXml(pm.scenarioLabel || '')}</b> · 원본 ${escapeXml((DATA.processMaps.find(m=>m.id===pm.scenarioOf) || {}).code || '')}</span>` : ''}</div></div>
-      <div class="view-actions">
-        <button class="btn ${isEditing ? 'btn-primary' : ''}" data-on-click="toggleProcessMapEdit"><span>${isEditing ? icon('check') : icon('plus')}</span>${isEditing ? '편집 완료' : '공정 커스텀'}</button>
-        <button class="btn" data-on-click="goTo_719a82" data-a-click="${pcsArgs([String(pm.id)])}" title="이 PCS의 모든 PFD를 한 보드에서 편집"><span>${icon('layoutGrid')}</span>PFD 보드</button>
-        <button class="btn" data-on-click="openPmApprovalHistory" data-a-click="${pcsArgs([String(pm.id)])}"><span>${icon('history')}</span>버전 기록 (${pm.version})</button>
-        <button class="btn ${pm.status==='Approved'?'btn-primary':''}" id="pmPcsReportBtn" ${pcsOn('click','openPcsReport',[pm.id])} title="${pm.status==='Approved'?'승인본 PCS Report':'승인 전 작업본(Draft / In Approval)으로 열립니다'}"><span>${icon('fileText')}</span>${pm.status==='Approved'?'Export PCS Report':'PCS Report (작업본)'}</button>
-        <button class="btn ${pm.status==='Approved'?'btn-primary':''}" id="pmBomReportBtn" ${pcsOn('click','openBomReport',[pm.id])} title="${pm.status==='Approved'?'승인본 BOM Report':'승인 전 작업본(Draft / In Approval)으로 열립니다'}"><span>${icon('flask')}</span>${pm.status==='Approved'?'Export BOM Report':'BOM Report (작업본)'}</button>
-        <button class="btn" id="pmDuplicateBtn" ${pcsOn('click','pmDuplicateUi',[pm.id])} title="같은 공정을 조건만 바꿔 검토할 시나리오 PCS로 복제(노드·PFD·리스트·WI·Mass Balance)">${icon('copy')}<span>복제</span></button>
-        <button class="btn" id="pmMbBtn" ${pcsOn('click','openMassBalance',[pm.id])} title="이 Process Map의 Mass Balance — Step별 투입·회수·수율, Sending/Receiving 비교"><span>⚖</span>Mass Balance${pmCumYieldBadge(pm.id)}</button>
-        ${renderPmApprovalActions(pm)}
-      </div></div>
-    ${renderPmUoStrip(pm)}
+      ${meta}</div>
+      <div class="view-actions">${actions}${toggle}</div></div>
+    ${strip}</div>`
+    : `<div class="pm-ribbon collapsed" data-pm-ribbon="collapsed">
+    <div class="pm-ribbon-bar">
+      <div class="pm-ribbon-title"><span class="pm-ribbon-code">${escapeXml(pm.code)}</span><h1 class="pm-ribbon-name">${escapeXml(pm.code)} ${escapeXml(pm.kind || 'Upstream')} PCS</h1>
+        <button class="pm-ribbon-uo ${uoWarn ? 'warn' : ''}" data-pm-ribbon-uo ${pcsOn('click', 'pmToggleRibbon', [])} title="Unit Operation 승인 현황 — 누르면 머리를 펴서 자세히">UO ${uoSum.nodes.length - uoSum.notApproved.length}/${uoSum.nodes.length}${uoWarn ? ` · 주의 ${uoWarn}` : ''}</button>
+        ${pm.scenarioOf ? `<span class="pm-ribbon-scn" data-pm-scenario>시나리오 ${escapeXml(pm.scenarioLabel || '')}</span>` : ''}</div>
+      <div class="view-actions pm-ribbon-actions">${actions}</div>${toggle}
+    </div></div>`;
+
+  return `<div class="pm-view ${STATE.pmFocus ? 'pm-focus' : ''} ${ribbonOpen ? 'ribbon-open' : 'ribbon-collapsed'}">
+    ${ribbon}
     <div class="pm-container${sidePanel?' panel-open':''}">
-      <div class="card" style="padding:0; overflow:hidden; position:relative;${sidePanel?` max-width:calc(100% - ${getPmPanelWidth()+48}px);`:''}">
+      <div class="card pm-canvas-card" style="padding:0; overflow:hidden; position:relative;${sidePanel?` max-width:calc(100% - ${getPmPanelWidth()+48}px);`:''}">
         <div id="pmToolbarHost"></div>
         <div id="pmCanvasWrap" data-pmid="${pm.id}"></div>
+        ${pmLegendDockHtml()}
       </div>
       ${sidePanel ? `<div class="pm-resize-handle" role="separator" aria-orientation="vertical" aria-label="패널 폭 — 끌어서 조절, 끝까지 줄이면 접힘" data-on-mousedown="startPmPanelResize_1e78b1" data-on-dblclick="closePmPanel" title="끌어서 패널 폭 조절 · 끝까지 줄이면 접힘 · 두 번 누르면 닫기"></div>` : ''}
       ${sidePanel}
     </div>
-    <div class="pm-legend">
-      <span class="pm-legend-title">${icon('info')} 노드 배지</span>
+    </div>
+  `;
+}
+/* v131: 머리 리본 접기·펴기(이 브라우저에 기억) */
+function pmRibbonOpen(){ try { return localStorage.getItem('pcs_pm_ribbon') !== 'collapsed'; } catch(e){ return true; } }
+function pmToggleRibbon(){ const open = pmRibbonOpen(); try { localStorage.setItem('pcs_pm_ribbon', open ? 'collapsed' : 'open'); } catch(e){} pmKeepCanvasScroll(); render(); }
+/* v131: 노드 배지 범례 — 캔버스 왼쪽 아래 작은 단추(누르면 펼침), 아래 공간을 차지하지 않게 */
+function pmLegendOpen(){ try { return localStorage.getItem('pcs_pm_legend') === 'open'; } catch(e){ return false; } }
+function pmToggleLegend(){ const open = pmLegendOpen(); try { localStorage.setItem('pcs_pm_legend', open ? 'closed' : 'open'); } catch(e){} const d = document.querySelector('[data-pm-legend-dock]'); if(d) d.outerHTML = pmLegendDockHtml(); else render(); }
+function pmLegendDockHtml(){
+  const open = pmLegendOpen();
+  return `<div class="pm-legend-dock ${open ? 'open' : ''}" data-pm-legend-dock>
+    <button class="pm-legend-btn" aria-expanded="${open}" ${pcsOn('click', 'pmToggleLegend', [])} title="노드 배지·상태 색 범례">${icon('info')}<span>범례</span></button>
+    ${open ? `<div class="pm-legend" data-pm-legend>
+      <span class="pm-legend-title">노드 배지</span>
       <span class="pm-legend-item"><span class="pm-legend-chip">P</span>PFD</span>
       <span class="pm-legend-item"><span class="pm-legend-chip">E</span>Equipment</span>
       <span class="pm-legend-item"><span class="pm-legend-chip">M</span>Material</span>
@@ -6680,10 +6773,8 @@ function renderProcessMap(){
       <span class="pm-legend-item"><span class="pm-legend-chip">W</span>Work Instruction</span>
       <span class="pm-legend-sep"></span>
       ${Object.entries(PM_NODE_STATUS_COLOR).map(([st,color])=>`<span class="pm-legend-item"><span class="pm-legend-dot" style="background:${color}"></span>${st}</span>`).join('')}
-    </div>
-    ${isEditing ? `<p class="pm-edit-hint" style="font-size:12px; color:var(--ink-500); margin-top:14px;">${icon('move')} 자유 배치에서는 노드를 끌어 놓은 자리에 그대로 둡니다. 계산 배치에서는 편집 모드가 아니어도 끌어서 계층을 바꿀 수 있습니다.</p>` : ''}
-    </div>
-  `;
+    </div>` : ''}
+  </div>`;
 }
 
 /* =========================================================
@@ -9061,9 +9152,51 @@ function pmFitToScreen(){
   pmView.scale = pmFitScale(cb.x2 - cb.x1 + 40, cb.y2 - cb.y1 + 40, wrap.clientWidth, wrap.clientHeight);
   renderPmCanvas();
   const f = pmFrameOf(pmId), k = pmView.scale;
-  wrap.scrollLeft = Math.max(0, (cb.x1 - f.x - 20) * k); wrap.scrollTop = Math.max(0, (cb.y1 - f.y - 20) * k);
+  // v131: 남는 쪽(가로나 세로)은 가운데로 — 무한 캔버스라 내용 둘레에 여백이 있다
+  const padX = Math.max(0, (wrap.clientWidth - (cb.x2 - cb.x1 + 40) * k) / 2), padY = Math.max(0, (wrap.clientHeight - (cb.y2 - cb.y1 + 40) * k) / 2);
+  wrap.scrollLeft = Math.max(0, (cb.x1 - f.x - 20) * k - padX); wrap.scrollTop = Math.max(0, (cb.y1 - f.y - 20) * k - padY);
   STATE.pmCanvasScroll[pmId] = { l: wrap.scrollLeft, t: wrap.scrollTop };
   pmRenderMinimap();
+}
+/* v131 (ThinkWise처럼) 맵 빈 곳을 두 번 누르면 맵 전체가 보이는 배율로, 한 번 더 두 번 누르면 그 전 배율·위치로 */
+let pmFitPrev = null;   // { pmId, scale, l, t, fit:{ scale, l, t } }
+function pmFitToggle(){
+  const wrap = document.getElementById('pmCanvasWrap');
+  if(!wrap || !wrap.querySelector('#pmCanvas')) return;
+  const pmId = wrap.getAttribute('data-pmid');
+  const P = pmFitPrev;
+  const atFit = P && P.pmId === pmId && P.fit && Math.abs(pmView.scale - P.fit.scale) < 0.001 && Math.abs(wrap.scrollLeft - P.fit.l) < 4 && Math.abs(wrap.scrollTop - P.fit.t) < 4;
+  if(atFit){
+    pmView.scale = P.scale;
+    renderPmCanvas();
+    wrap.scrollLeft = P.l; wrap.scrollTop = P.t;
+    STATE.pmCanvasScroll[pmId] = { l: wrap.scrollLeft, t: wrap.scrollTop };
+    pmFitPrev = null;
+    pmRenderMinimap();
+    pmFitFlash('원래 배율 ' + Math.round(pmView.scale * 100) + '%');
+    return;
+  }
+  const before = { pmId, scale: pmView.scale, l: wrap.scrollLeft, t: wrap.scrollTop };
+  pmFitToScreen();
+  pmFitPrev = Object.assign(before, { fit: { scale: pmView.scale, l: wrap.scrollLeft, t: wrap.scrollTop } });
+  pmFitFlash('맵 전체 보기 ' + Math.round(pmView.scale * 100) + '% — 다시 두 번 누르면 원래대로');
+}
+/* 캔버스 위에 잠깐 뜨는 배율 표시 */
+function pmFitFlash(text){
+  const card = document.querySelector('.pm-canvas-card');
+  if(!card) return;
+  let el = card.querySelector('.pm-fit-flash');
+  if(!el){ el = document.createElement('div'); el.className = 'pm-fit-flash'; el.setAttribute('role', 'status'); card.appendChild(el); }
+  el.textContent = text; el.classList.remove('out'); clearTimeout(el.__t);
+  el.__t = setTimeout(() => el.classList.add('out'), 1400);
+}
+/* 빈 곳 두 번 누르기 — 첫 클릭이 캔버스를 다시 그려 브라우저 dblclick이 안 올 수 있어 직접 잰다(움직이지 않은 클릭 두 번, 450ms·8px 안) */
+let pmEmptyClick = null;
+function pmEmptyClickAt(x, y){
+  const now = Date.now(), c = pmEmptyClick;
+  if(c && now - c.t < 450 && Math.abs(x - c.x) < 8 && Math.abs(y - c.y) < 8){ pmEmptyClick = null; pmFitToggle(); return true; }
+  pmEmptyClick = { t: now, x, y };
+  return false;
 }
 /* 선택한 노드(가지)를 화면 가운데로 */
 function pmCenterSelected(){
@@ -9109,6 +9242,11 @@ if(typeof document !== 'undefined' && document.addEventListener && !globalThis._
     if(e.key !== 'Escape' || !STATE.pmFocus || !document.getElementById('pmCanvasWrap')) return;
     if(document.querySelector('.modal-overlay, #uiDialogLayer .ui-dialog, #pmInlineEditor') || pmSelection().length) return;
     STATE.pmFocus = false; render();
+  });
+  // v131: Ctrl+F1 = 머리 리본 접기·펴기(Microsoft 앱과 같은 키)
+  document.addEventListener('keydown', e => {
+    if(e.key !== 'F1' || !e.ctrlKey || !document.getElementById('pmCanvasWrap')) return;
+    e.preventDefault(); pmToggleRibbon();
   });
 }
 
@@ -9911,10 +10049,11 @@ function pmPanStart(svg, e){
     pmPanState.moved = true; wrap.classList.add('pm-panning');
     wrap.scrollLeft = pmPanState.sl - dx; wrap.scrollTop = pmPanState.st - dy;
   };
-  const up = () => {
+  const up = ev => {
     document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', up);
     wrap.classList.remove('pm-panning');
     const moved = pmPanState && pmPanState.moved;
+    if(!moved && e.button === 0 && onEmpty) pmEmptyClickAt(ev.clientX, ev.clientY);   // v131 빈 곳 두 번 누르기 = 맵 전체 보기
     pmPanState = moved ? { moved: true, done: Date.now() } : null;   // 바로 뒤 click은 무시(팝업 닫기·선택 해제 안 함)
   };
   document.addEventListener('mousemove', move); document.addEventListener('mouseup', up);
@@ -10962,7 +11101,7 @@ function pmToolbarHtml(pm){
       <div class="pm-zoom-btn" data-on-click="pmZoom" data-a-click="${pcsArgs([0.15])}" title="확대">+</div>
       <div class="pm-zoom-btn" data-on-click="pmZoom" data-a-click="${pcsArgs([-0.15])}" title="축소">−</div>
       <div class="pm-zoom-btn" data-on-click="pmZoomReset" title="100%">1:1</div>
-      <div class="pm-zoom-btn" id="pmFitBtn" data-on-click="pmFitToScreen" title="화면에 맞추기">⤢</div>
+      <div class="pm-zoom-btn" id="pmFitBtn" data-on-click="pmFitToScreen" title="화면에 맞추기 — 맵 빈 곳을 두 번 눌러도 됩니다(한 번 더 두 번 누르면 원래대로)">⤢</div>
       <div class="pm-zoom-btn" id="pmCenterBtn" data-on-click="pmCenterSelected" title="선택한 가지를 가운데로">◎</div>
       <div class="pm-zoom-btn ${pmViewPrefs().minimap?'on':''}" id="pmMinimapBtn" data-on-click="pmToggleMinimap" title="미니맵">▣</div>
       <div class="pm-zoom-btn" data-on-click="pmToggleFullscreen" title="전체화면">${icon('expand')}</div>
@@ -10980,7 +11119,7 @@ function pmToolbarHtml(pm){
       <div class="pm-zoom-btn pm-tool-text" id="pmImportBtn" role="button" tabindex="0" data-on-click="pmImportOpen" data-a-click="${pcsArgs([pm.id, '', ''])}" title="구조 가져오기 (.md · .txt · 붙여넣기)">${icon('upload')}</div>
       <span class="pm-toolbar-sep"></span>
       <div class="pm-zoom-btn" id="pmFocusBtn" data-on-click="pmToggleFocus" title="집중 모드 — 도구 막대·머리글 숨기기">⛶</div>
-      ${isMap && pmStructureEditable(pm.id) ? `<span class="pm-toolbar-hint" data-pm-hint>끌어서 놓으면 계층 변경 · 노드를 고르면 + 로 하위·형제·부모 추가 (가지가 뻗는 쪽 = 하위)</span>` : ''}
+      ${isMap ? `<span class="pm-toolbar-hint" data-pm-hint>${getActiveTab().isEditingProcessMap ? '자유 배치에서는 노드를 끌어 놓은 자리에 그대로 둡니다 · ' : ''}${pmStructureEditable(pm.id) ? '끌어서 놓으면 계층 변경 · + 로 하위·형제·부모 추가 · ' : ''}빈 곳 두 번 누르기 = 맵 전체 보기</span>` : ''}
     </div>
     ${isMap && STATE.pmLayoutPopup ? pmLayoutPopupHtml(pm) : ''}${isMap && STATE.pmImageMenu ? pmImageMenuHtml(pm) : ''}`;
 }
@@ -11069,6 +11208,12 @@ function attachPmCanvasEvents(wrap, pmId){
     });
   });
   svg.addEventListener('mousedown', e=>pmPanStart(svg, e));   // v120: 빈 곳 끌기 = 화면 이동
+  // v131: 맵이 칸보다 작아 SVG 밖(칸 바탕)을 눌러도 두 번 누르기 = 맵 전체 보기
+  if(!wrap.__pmBgDbl){ wrap.__pmBgDbl = true; wrap.addEventListener('mousedown', e => {
+    if(e.target !== wrap || e.button !== 0 || pmViewMode() !== 'map') return;
+    const up = ev => { document.removeEventListener('mouseup', up); if(Math.abs(ev.clientX - e.clientX) + Math.abs(ev.clientY - e.clientY) < 4) pmEmptyClickAt(ev.clientX, ev.clientY); };
+    document.addEventListener('mouseup', up);
+  }); }
   svg.addEventListener('click', (e)=>{
     if(pmPanJustEnded()) return;
     if(e.target.closest('[data-flow-edge-id]')) return;
@@ -33620,6 +33765,7 @@ const PCS_CALLABLE = new Set([
   'pmCenterSelected',
   'pmToggleMinimap',
   'pmToggleFocus',
+  'pmToggleRibbon', 'pmToggleLegend', 'pmFitToggle',   // v131 머리 리본·범례·맵 전체 보기
   'pmToggleImageMenu',
   'pmExportImage',
   'pmKanbanMoveUi',
