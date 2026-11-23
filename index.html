@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="pcs-api-base" content="">
 <meta name="pcs-firebase" content="{&quot;apiKey&quot;:&quot;AIzaSyASB4CKv15IwJUp8pIVKXFtOYwKlY7y1es&quot;,&quot;databaseURL&quot;:&quot;https://pcs-demo-18101-default-rtdb.asia-southeast1.firebasedatabase.app&quot;}">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-VdtHxMxKYbi91XUz9+x2seOs38NXQ/zvfUxX9vjfzoc=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-6t/7uC4bC+fxok7wbrjiNxL88K2e3e9w142rVmFTrWw=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'none'">
 <title>PCS Platform · Process Control System</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -182,7 +182,7 @@ button:focus-visible, .crumb:focus-visible, [tabindex]:focus-visible, input:focu
 .main-col{flex:1; display:flex; flex-direction:column; min-width:0; background:var(--bg);}
 
 /* Tab Bar */
-.tab-bar{
+.tab-bar{   /* v132: 화면에서 뺐다(요소 없음) */
   display:flex; background:#EFEBEA; border-bottom:1px solid var(--line);
   padding:8px 8px 0 8px; gap:4px; overflow-x:auto; flex-shrink:0;
 }
@@ -2804,21 +2804,25 @@ textarea.ui-dialog-input{resize:vertical; min-height:72px;}
 .pm-ribbon-toggle{align-self:center; border:1px solid transparent; background:transparent; color:var(--ink-500); font:inherit; font-size:11.5px; font-weight:700; padding:5px 9px; border-radius:8px; cursor:pointer; white-space:nowrap;}
 .pm-ribbon-toggle:hover{background:#F3EEEE; color:var(--burgundy-900); border-color:var(--line);}
 .pm-ribbon.collapsed{margin-bottom:8px;}
-.pm-ribbon-bar{display:flex; align-items:center; gap:10px; padding:6px 8px 6px 14px; background:var(--card); border:1px solid var(--line); border-radius:12px; box-shadow:var(--shadow-sm); min-height:48px; container-type:inline-size;}
-.pm-ribbon-title{display:flex; align-items:center; gap:8px; min-width:0; flex:0 1 auto;}
-.pm-ribbon-code{font-size:10.5px; font-weight:800; letter-spacing:.08em; color:var(--red-600); white-space:nowrap;}
-.pm-ribbon-name{margin:0; font-size:14.5px; font-weight:800; color:var(--burgundy-900); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:-.01em;}
+.pm-ribbon-bar{display:flex; align-items:center; gap:10px; padding:6px 8px 6px 14px; background:var(--card); border:1px solid var(--line); border-radius:12px; box-shadow:var(--shadow-sm); min-height:48px; container-type:inline-size; overflow:hidden;}
+/* v132: 제목 칸은 코드·UO 요약만큼은 늘 차지하고(겹침 방지) 이름만 줄어든다. 단추 칸이 줄어들며, 접기 단추는 막대 안에 */
+.pm-ribbon-title{display:flex; align-items:center; gap:8px; flex:0 1 auto; max-width:40%; overflow:hidden;}
+.pm-ribbon-code{font-size:10.5px; font-weight:800; letter-spacing:.08em; color:var(--red-600); white-space:nowrap; flex-shrink:0;}
+.pm-ribbon-name{margin:0; font-size:14.5px; font-weight:800; color:var(--burgundy-900); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:-.01em; min-width:0; flex:0 1 auto;}
 .pm-ribbon-uo{flex-shrink:0; border:1px solid var(--line); background:#FAF7F7; color:var(--ink-700); font:inherit; font-size:11px; font-weight:700; padding:3px 9px; border-radius:99px; cursor:pointer; white-space:nowrap;}
 .pm-ribbon-uo.warn{background:#FFF4E5; border-color:#F2D29B; color:#8A5200;}
-.pm-ribbon-scn{font-size:11px; font-weight:700; color:#2F5FA8; background:#EEF4FF; padding:2px 8px; border-radius:99px; white-space:nowrap;}
-.pm-ribbon-actions{margin-left:auto; flex-wrap:nowrap !important; gap:4px !important; min-width:0; overflow-x:auto; scrollbar-width:none;}
+.pm-ribbon-scn{font-size:11px; font-weight:700; color:#2F5FA8; background:#EEF4FF; padding:2px 8px; border-radius:99px; white-space:nowrap; flex-shrink:0;}
+.pm-ribbon-actions{flex:1 1 auto; justify-content:flex-end; flex-wrap:nowrap !important; gap:4px !important; min-width:0; overflow-x:auto; scrollbar-width:none;}
 .pm-ribbon-actions::-webkit-scrollbar{display:none;}
-.pm-ribbon-actions .btn{padding:5px 9px !important; font-size:11.5px !important; white-space:nowrap; flex-shrink:0;}
-.pm-ribbon-actions .badge{padding:5px 10px !important; font-size:11px; flex-shrink:0;}
+.pm-ribbon-actions > *{flex-shrink:0;}
+.pm-ribbon-actions .btn{padding:5px 9px !important; font-size:11.5px !important; white-space:nowrap;}
+.pm-ribbon-actions .badge{padding:5px 10px !important; font-size:11px;}
+.pm-ribbon-bar > .pm-ribbon-toggle{flex-shrink:0;}
 .pm-rb-btn{display:inline-flex; align-items:center; gap:5px;}
 .pm-rb-ic{display:inline-flex; align-items:center;}
-@container (max-width:1180px){ .pm-ribbon-bar .pm-rb-label{display:none;} .pm-ribbon-bar .pm-rb-btn{padding:5px 8px !important;} }
-@container (max-width:860px){ .pm-ribbon-bar .pm-ribbon-name{display:none;} }
+@container (max-width:1720px){ .pm-ribbon-bar .pm-rb-2nd .pm-rb-label{display:none;} .pm-ribbon-bar .pm-rb-2nd{padding:5px 8px !important;} }
+@container (max-width:1240px){ .pm-ribbon-bar .pm-ribbon-name{display:none;} .pm-ribbon-bar .pm-rb-btn:not(#pmMbBtn) .pm-rb-label, .pm-ribbon-bar [data-on-click="returnPmApproval"] .pm-rb-label{display:none;} .pm-ribbon-bar .pm-rb-btn{padding:5px 8px !important;} }
+@container (max-width:960px){ .pm-ribbon-bar .pm-rb-label{display:none;} }
 
 /* 캔버스 도구 막대: 카드 위 띠를 더 가볍게(노드를 가리지 않는다) */
 .pm-canvas-card .pm-canvas-toolbar{padding:6px 10px; gap:5px; background:linear-gradient(#FFFFFF, #FBF8F8); border-bottom:1px solid #ECE5E5;}
@@ -2866,8 +2870,6 @@ textarea.ui-dialog-input{resize:vertical; min-height:72px;}
       <span class="pcs-save-slot" id="headerSaveSlot"></span>
       <div class="header-user" id="headerUser"></div>
     </div>
-    <!-- In-App Tab Bar -->
-    <div class="tab-bar" id="tabBar"></div>
     <!-- Topbar (Breadcrumbs) -->
     <div class="topbar"><button type="button" class="crumb-back" id="navBackBtn" data-on-click="goBack" title="이전 화면으로 (Alt+←, 브라우저 뒤로)" disabled>←<span>뒤로</span></button><div class="crumbrow" id="crumbrow"></div></div>
     <!-- Scrollable View -->
@@ -5099,25 +5101,31 @@ function goToCrumb(idx){
    순수 함수: 지금 탭에서 "뒤로"가 갈 곳.
    1) 탭 안에서 한 단계 위(브레드크럼 바로 앞)  2) 탭의 첫 화면이면 이 탭을 연 탭(예: Process Map 목록 → 연 Process Map)
    없으면 null. */
-function navBackTarget(tab, tabs){
+function navBackTarget(tab, tabs, stack){
   if(!tab) return null;
   const path = tab.path || [];
   if(path.length > 1) return { kind:'crumb', idx:path.length - 2, label:path[path.length - 2].label };
+  // v132: 탭 막대를 없앴으므로 왼쪽 메뉴로 오간 화면도 "뒤로"로 — 방금 전에 있던 화면(아직 열려 있는 것)
+  for(let i = (stack || []).length - 1; i >= 0; i--){
+    const prev = stack[i] !== tab.id && (tabs || []).find(t => t.id === stack[i]);
+    if(prev){ const top = (prev.path || [])[prev.path.length - 1] || {}; return { kind:'tab', tabId:prev.id, label:top.label || prev.title, stackIdx:i }; }
+  }
   const opener = tab.openerId && (tabs || []).find(t => t.id === tab.openerId && t.id !== tab.id);
   if(opener){ const top = (opener.path || [])[opener.path.length - 1] || {}; return { kind:'tab', tabId:opener.id, label:top.label || opener.title }; }
   return null;
 }
 function goBack(){
-  const t = navBackTarget(getActiveTab(), STATE.tabs);
+  const t = navBackTarget(getActiveTab(), STATE.tabs, STATE.navStack);
   if(!t) return false;
-  if(t.kind === 'crumb') goToCrumb(t.idx); else switchTab(t.tabId);
+  if(t.kind === 'crumb') goToCrumb(t.idx);
+  else { if(t.stackIdx != null) STATE.navStack = STATE.navStack.slice(0, t.stackIdx); STATE.navBacking = true; try { switchTab(t.tabId); } finally { STATE.navBacking = false; } }
   const vc = document.querySelector('.view-container'); if(vc) vc.scrollTo(0,0);
   return true;
 }
 function renderBackButton(){
   const b = document.getElementById('navBackBtn');
   if(!b) return;
-  const t = navBackTarget(getActiveTab(), STATE.tabs);
+  const t = navBackTarget(getActiveTab(), STATE.tabs, STATE.navStack);
   b.disabled = !t;
   b.title = t ? `${t.label}(으)로 돌아가기 (Alt+←, 브라우저 뒤로)` : '돌아갈 이전 화면이 없습니다';
   b.setAttribute('aria-label', t ? `뒤로: ${t.label}` : '뒤로');
@@ -5258,8 +5266,19 @@ function navSidebar(key){
   render(); document.querySelector('.view-container')?.scrollTo(0,0);
 }
 
+/* v132: 화면 위 탭 막대는 없앴다(사용자 의견 — 왼쪽 메뉴와 같고 자리만 차지). 화면마다의 상태(경로·선택)는 그대로 STATE.tabs에 남고,
+   오간 순서는 navStack에 쌓아 "뒤로"가 쓴다. render()가 부를 때마다 화면이 바뀌었는지 보고 쌓는다(되돌아갈 때는 쌓지 않음). */
+function pcsTrackNav(){
+  const cur = STATE.activeTabId;
+  if(STATE.navLast && STATE.navLast !== cur && !STATE.navBacking){
+    STATE.navStack = (STATE.navStack || []).filter(id => id !== cur).concat([STATE.navLast]).slice(-50);
+  }
+  STATE.navLast = cur;
+}
 function renderTabBar() {
+  pcsTrackNav();
   const bar = document.getElementById('tabBar');
+  if(!bar) return;
   bar.innerHTML = STATE.tabs.map(t => `
     <div class="tab ${t.id === STATE.activeTabId ? 'active' : ''}" data-on-click="switchTab" data-a-click="${pcsArgs([String(t.id)])}">
       <span class="tab-title">${escapeXml(t.title)}</span>
@@ -5337,14 +5356,21 @@ function render(){
 /* -------- DASHBOARD -------- */
 /* ============================================================================
    05b_release_notes.js — v111  앱 버전과 "이번 버전에서 바뀐 점"
-   · PCS_APP_VERSION은 build.sh가 빌드 번호로 바꿔 넣는다(v131 자리).
+   · PCS_APP_VERSION은 build.sh가 빌드 번호로 바꿔 넣는다(v132 자리).
    · PCS_RELEASE_NOTES 맨 앞 항목은 항상 이번 빌드 버전이어야 한다(tests/unit/release-notes.test.cjs가 검사).
      버전을 올릴 때 여기 맨 앞에 한 항목을 넣는다. 테스트하는 사람이 무엇을 눌러 보면 되는지(try)를 같이 쓴다.
    · 오른쪽 위 사용자 메뉴 → "버전 vN · 바뀐 점" 으로 열고, 새 버전으로 처음 열면 알림을 한 번 띄운다.
    ========================================================================== */
-var PCS_APP_VERSION = 'v131';
+var PCS_APP_VERSION = 'v132';
 
 const PCS_RELEASE_NOTES = [
+  { version: 'v132', date: '2026-11-23', title: '화면 위 탭 막대 없앰, 접힌 Process Map 머리 겹침 고침',
+    items: [
+      '화면 위 탭 막대(Dashboard · 문서 이름 …)를 없앴습니다. 왼쪽 메뉴와 같은 일을 하며 자리만 차지했습니다. 화면마다 작업 상태(어디까지 들어갔는지·선택)는 그대로 기억하고, 왼쪽 메뉴로 다시 가면 그 화면으로 돌아갑니다.',
+      '"← 뒤로"는 화면 안에서 한 단계 위로, 첫 화면이면 방금 전에 있던 화면으로 갑니다. 왼쪽 메뉴로 옮겨 온 경우도 돌아갑니다(브라우저 뒤로·Alt+←도 같음).',
+      'Process Map 머리를 접었을 때 코드명과 UO 요약이 단추와 겹치고 "펴기"가 막대 밖으로 나가던 것을 고쳤습니다. 폭이 좁으면 보조 단추(PFD 보드·버전 기록·Report·복제)부터 아이콘만 남깁니다(이름은 마우스를 올리면 보임).',
+    ],
+    try: ['왼쪽 메뉴로 Equipment Master → "← 뒤로"', 'Process Map 머리 "접기 ▴"'] },
   { version: 'v131', date: '2026-11-23', title: 'Process Map 머리 리본 접기·펴기, 빈 곳 두 번 누르기 = 맵 전체 보기',
     items: [
       'Process Map 화면이 창 높이에 맞춰집니다. 페이지는 내려가지 않고 캔버스 안에서만 맵이 움직이므로, 위쪽 머리(제목·PFD 보드·Mass Balance·Report·승인 단추)와 도구 막대가 늘 보입니다.',
@@ -6716,11 +6742,11 @@ function renderProcessMap(){
   const btn = (id, attrs, ic, label, title, cls) => `<button class="btn pm-rb-btn ${cls || ''}" ${id ? `id="${id}"` : ''} ${attrs} title="${escapeXmlAttr(title || label)}" aria-label="${escapeXmlAttr(label)}"><span class="pm-rb-ic">${ic}</span><span class="pm-rb-label">${label}</span></button>`;
   const actions = `
         ${btn('', `data-on-click="toggleProcessMapEdit"`, isEditing ? icon('check') : icon('plus'), isEditing ? '편집 완료' : '공정 커스텀', '', isEditing ? 'btn-primary' : '')}
-        ${btn('', `data-on-click="goTo_719a82" data-a-click="${pcsArgs([String(pm.id)])}"`, icon('layoutGrid'), 'PFD 보드', '이 PCS의 모든 PFD를 한 보드에서 편집')}
-        ${btn('', `data-on-click="openPmApprovalHistory" data-a-click="${pcsArgs([String(pm.id)])}"`, icon('history'), `버전 기록 (${escapeXml(pm.version)})`)}
-        ${btn('pmPcsReportBtn', pcsOn('click','openPcsReport',[pm.id]), icon('fileText'), pm.status==='Approved'?'Export PCS Report':'PCS Report (작업본)', pm.status==='Approved'?'승인본 PCS Report':'승인 전 작업본(Draft / In Approval)으로 열립니다', pm.status==='Approved'?'btn-primary':'')}
-        ${btn('pmBomReportBtn', pcsOn('click','openBomReport',[pm.id]), icon('flask'), pm.status==='Approved'?'Export BOM Report':'BOM Report (작업본)', pm.status==='Approved'?'승인본 BOM Report':'승인 전 작업본(Draft / In Approval)으로 열립니다', pm.status==='Approved'?'btn-primary':'')}
-        ${btn('pmDuplicateBtn', pcsOn('click','pmDuplicateUi',[pm.id]), icon('copy'), '복제', '같은 공정을 조건만 바꿔 검토할 시나리오 PCS로 복제(노드·PFD·리스트·WI·Mass Balance)')}
+        ${btn('', `data-on-click="goTo_719a82" data-a-click="${pcsArgs([String(pm.id)])}"`, icon('layoutGrid'), 'PFD 보드', '이 PCS의 모든 PFD를 한 보드에서 편집', 'pm-rb-2nd')}
+        ${btn('', `data-on-click="openPmApprovalHistory" data-a-click="${pcsArgs([String(pm.id)])}"`, icon('history'), `버전 기록 (${escapeXml(pm.version)})`, '', 'pm-rb-2nd')}
+        ${btn('pmPcsReportBtn', pcsOn('click','openPcsReport',[pm.id]), icon('fileText'), pm.status==='Approved'?'Export PCS Report':'PCS Report (작업본)', pm.status==='Approved'?'승인본 PCS Report':'승인 전 작업본(Draft / In Approval)으로 열립니다', (pm.status==='Approved'?'btn-primary ':'') + 'pm-rb-2nd')}
+        ${btn('pmBomReportBtn', pcsOn('click','openBomReport',[pm.id]), icon('flask'), pm.status==='Approved'?'Export BOM Report':'BOM Report (작업본)', pm.status==='Approved'?'승인본 BOM Report':'승인 전 작업본(Draft / In Approval)으로 열립니다', (pm.status==='Approved'?'btn-primary ':'') + 'pm-rb-2nd')}
+        ${btn('pmDuplicateBtn', pcsOn('click','pmDuplicateUi',[pm.id]), icon('copy'), '복제', '같은 공정을 조건만 바꿔 검토할 시나리오 PCS로 복제(노드·PFD·리스트·WI·Mass Balance)', 'pm-rb-2nd')}
         <button class="btn pm-rb-btn" id="pmMbBtn" ${pcsOn('click','openMassBalance',[pm.id])} title="이 Process Map의 Mass Balance — Step별 투입·회수·수율, Sending/Receiving 비교" aria-label="Mass Balance"><span class="pm-rb-ic">⚖</span><span class="pm-rb-label">Mass Balance</span>${pmCumYieldBadge(pm.id)}</button>
         ${renderPmApprovalActions(pm)}`;
   const toggle = `<button class="pm-ribbon-toggle" data-pm-ribbon-toggle aria-expanded="${ribbonOpen}" ${pcsOn('click', 'pmToggleRibbon', [])} title="${ribbonOpen ? '머리 접기 — 캔버스를 넓게' : '머리 펴기'} (Ctrl+F1)">${ribbonOpen ? '접기 ▴' : '펴기 ▾'}</button>`;
@@ -6827,14 +6853,14 @@ async function reopenPmForRevision(pmId){
 function renderPmApprovalActions(pm){
   const badge = `<span class="badge ${PM_APPROVAL_BADGE[pm.status]||'badge-gray'}" style="padding:8px 14px;"><span class="badge-dot"></span>${pm.status}</span>`;
   if(pm.status === 'Approved'){
-    return `${badge}<button class="btn" data-on-click="reopenPmForRevision" data-a-click="${pcsArgs([String(pm.id)])}" title="Unit Operation 구성·계층·흐름·Scope를 바꿀 때만 필요합니다. 내용만 고칠 때는 해당 Unit Operation에서 재작업을 시작하세요.">${icon('edit')}<span style="margin-left:4px;">Process Map 재작업</span></button>`;
+    return `${badge}<button class="btn" data-on-click="reopenPmForRevision" data-a-click="${pcsArgs([String(pm.id)])}" title="Unit Operation 구성·계층·흐름·Scope를 바꿀 때만 필요합니다. 내용만 고칠 때는 해당 Unit Operation에서 재작업을 시작하세요.">${icon('edit')}<span class="pm-rb-label" style="margin-left:4px;">Process Map 재작업</span></button>`;
   }
   const actionLabel = PM_APPROVAL_ACTION_LABEL[pm.status];
   const uoReady = pmUoReadiness(pm.id).ok;
   return `
     ${badge}
-    <button class="btn" data-on-click="returnPmApproval" data-a-click="${pcsArgs([String(pm.id)])}" ${PM_APPROVAL_STATES.indexOf(pm.status)<=0?'disabled style="opacity:.4;cursor:not-allowed;"':''}>${icon('arrowR')}<span style="margin-left:4px; transform:scaleX(-1); display:inline-block;">${icon('arrowR')}</span>이전 단계로</button>
-    <button class="btn btn-primary" data-on-click="advancePmApproval" data-a-click="${pcsArgs([String(pm.id)])}" ${uoReady?'':'disabled style="opacity:.4;cursor:not-allowed;" title="모든 Unit Operation이 Approved여야 진행할 수 있습니다"'}>${icon('check')}<span style="margin-left:4px;">${actionLabel}</span></button>
+    <button class="btn" data-on-click="returnPmApproval" data-a-click="${pcsArgs([String(pm.id)])}" ${PM_APPROVAL_STATES.indexOf(pm.status)<=0?'disabled style="opacity:.4;cursor:not-allowed;"':''}>${icon('arrowR')}<span style="margin-left:4px; transform:scaleX(-1); display:inline-block;">${icon('arrowR')}</span><span class="pm-rb-label">이전 단계로</span></button>
+    <button class="btn btn-primary" data-on-click="advancePmApproval" data-a-click="${pcsArgs([String(pm.id)])}" ${uoReady?'':'disabled style="opacity:.4;cursor:not-allowed;" title="모든 Unit Operation이 Approved여야 진행할 수 있습니다"'}>${icon('check')}<span class="pm-rb-label" style="margin-left:4px;">${actionLabel}</span></button>
   `;
 }
 
